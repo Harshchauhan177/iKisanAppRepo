@@ -22,7 +22,7 @@ class DiscountsCollectionViewCell: UICollectionViewCell {
         equipmentImage.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
         equipmentNameLabel.text = EquipmentData.equipment[indexPath.row].name
         discountedPrice.text = "\(EquipmentData.equipment[indexPath.row].pricePerHour)"
-        rating.text = "\(EquipmentData.equipment[indexPath.row].rating)"
+        rating.text = "⭐️\(EquipmentData.equipment[indexPath.row].rating)"
    
         
         

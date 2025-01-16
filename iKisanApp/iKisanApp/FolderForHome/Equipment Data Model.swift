@@ -29,8 +29,17 @@ struct Availability {
 
 class EquipmentData{
     static var equipment: [Equipment] = [
-        Equipment(equipmentID: UUID(), equipmentImage: "equipment1", name: "Tractor", type: "Agricultural", capacity: "10000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 10000, providerID: UUID(), rating: 4.5)
+        Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 10000, providerID: UUID(), rating: 4.5),
+        Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000, providerID: UUID(), rating: 4.5),
+        Equipment(equipmentID: UUID(), equipmentImage: "3.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000, providerID: UUID(), rating: 4.5),
+        Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000, providerID: UUID(), rating: 4.5),
+        Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000, providerID: UUID(), rating: 4.5),
+        Equipment(equipmentID: UUID(), equipmentImage: "6.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000, providerID: UUID(), rating: 4.5),
+        Equipment(equipmentID: UUID(), equipmentImage: "7.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000, providerID: UUID(), rating: 4.5),
+        Equipment(equipmentID: UUID(), equipmentImage: "8.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000, providerID: UUID(), rating: 4.5)
     ]
+    
+
     
     
 }

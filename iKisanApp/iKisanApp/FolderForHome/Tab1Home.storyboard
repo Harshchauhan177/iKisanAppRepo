@@ -30,7 +30,7 @@
                             </searchBar>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="lbc-cv-dBX">
                                 <rect key="frame" x="0.0" y="199" width="393" height="619"/>
-                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <color key="backgroundColor" red="0.66666668650000005" green="0.66666668650000005" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="Faz-Gj-l5j">
                                     <size key="itemSize" width="128" height="128"/>
                                     <size key="headerReferenceSize" width="50" height="50"/>
@@ -45,6 +45,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="127.99999999999997" height="128"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </collectionViewCellContentView>
+                                        <color key="backgroundColor" red="0.45138680930000002" green="0.99309605359999997" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     </collectionViewCell>
                                 </cells>
                                 <collectionReusableView key="sectionHeaderView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="tdF-Tb-SJo">
@@ -65,37 +66,60 @@
                             <constraint firstItem="vDu-zF-Fre" firstAttribute="bottom" secondItem="lbc-cv-dBX" secondAttribute="bottom" id="hvi-dh-Yx5"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Welcome" largeTitleDisplayMode="always" id="ukp-qD-bGM">
+                    <navigationItem key="navigationItem" title="Welcome" id="ukp-qD-bGM">
                         <barButtonItem key="rightBarButtonItem" title="Item" image="person.crop.circle.fill" catalog="system" style="plain" id="tbx-gG-gjm">
                             <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </barButtonItem>
                     </navigationItem>
+                    <connections>
+                        <outlet property="collectionView" destination="lbc-cv-dBX" id="82c-2g-6LR"/>
+                        <segue destination="D7D-f6-gRc" kind="show" id="RzO-pV-Lw4"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1737" y="3"/>
         </scene>
-        <!--Item-->
+        <!--View Controller-->
+        <scene sceneID="RPK-Am-dB4">
+            <objects>
+                <viewController id="D7D-f6-gRc" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Odn-Y5-2RA">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="Fe0-Po-iFs"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <navigationItem key="navigationItem" largeTitleDisplayMode="never" id="res-Tw-VeC"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ElT-65-iWL" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2805" y="3"/>
+        </scene>
+        <!--iKisan-->
         <scene sceneID="fqU-tc-0kH">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="dGs-l5-ePt" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="eOl-1T-wGe" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Item" id="JJ4-Ze-j7W"/>
+                    <tabBarItem key="tabBarItem" title="iKisan" image="house" catalog="system" selectedImage="house.fill" id="JJ4-Ze-j7W"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="GYh-4E-mpV">
                         <rect key="frame" x="0.0" y="59" width="393" height="96"/>
                         <autoresizingMask key="autoresizingMask"/>
+                        <navigationBarAppearance key="standardAppearance"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
                     <connections>
                         <segue destination="Y6W-OH-hqX" kind="relationship" relationship="rootViewController" id="vdf-19-rhP"/>
                     </connections>
                 </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dGs-l5-ePt" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="999" y="3"/>
         </scene>
     </scenes>
     <resources>
+        <image name="house" catalog="system" width="128" height="104"/>
+        <image name="house.fill" catalog="system" width="128" height="104"/>
         <image name="person.crop.circle.fill" catalog="system" width="128" height="123"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
