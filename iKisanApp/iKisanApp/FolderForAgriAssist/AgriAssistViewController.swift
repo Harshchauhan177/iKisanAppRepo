@@ -7,23 +7,82 @@
 
 import UIKit
 
-class AgriAssistViewController: UIViewController {
+class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableViewDelegate,UISearchBarDelegate{
+    
+    
+    @IBOutlet weak var cropSearchBar: UISearchBar!
+    @IBOutlet weak var tableView: UITableView!
 
+//    let suggestions = ["Rice", "Wheat", "Oats", "Cotton", "Tea", "Maize", "Tobacco", "Sugarcane"]
+//        var filteredCrops: [String] = []
+//        
+        
+    var crops: [Crop] = [
+        Crop(id: 1, name: "Rice", imageName: UIImage(named: "Rice") ?? UIImage()),
+        Crop(id: 2, name: "Wheat", imageName: UIImage(named: "Wheat") ?? UIImage()),
+        Crop(id: 3, name: "Oats", imageName: UIImage(named: "Oats") ?? UIImage()),
+        Crop(id: 4, name: "Cotton", imageName: UIImage(named: "Cotton") ?? UIImage()),
+        Crop(id: 5, name: "Tea", imageName: UIImage(named: "Tea") ?? UIImage()),
+        Crop(id: 6, name: "Maize", imageName: UIImage(named: "Maize") ?? UIImage()),
+        Crop(id: 7, name: "Tobacco", imageName: UIImage(named: "Tobacco") ?? UIImage()),
+        Crop(id: 8, name: "Sugarcane", imageName: UIImage(named: "Sugarcane") ?? UIImage())
+    ]
+    var filteredCrops: [Crop] = []
+//   
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        tableView.delegate = self
+        tableView.dataSource = self
+        cropSearchBar.delegate = self
+        filteredCrops = crops
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+            filteredCrops = crops
+        }
+        else{
+            filteredCrops = crops.filter { $0.name.lowercased().contains(searchText.lowercased()) }
+        }
+        tableView.reloadData()
     }
-    */
-
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+    }
+    
+    
+    
+    
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+            return filteredCrops.count
+        }
+        
+        // Cell for each row
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: "CropCell", for: indexPath) as? CropTableViewCell else {
+                return UITableViewCell()
+            }
+            
+            // Configure the cell
+//            let crop = crops[indexPath.row]
+//            cell.cropNameLabel.text = crop.name
+//            cell.cropImageView.image = crop.imageName
+//            
+//            return cell
+            
+            let crop = filteredCrops[indexPath.row]
+                    cell.cropNameLabel.text = crop.name
+                    cell.cropImageView.image = crop.imageName
+                    
+                    return cell
+        }
+        
+        // Action when a row is selected
+        func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+            let selectedCrop = filteredCrops[indexPath.row]
+            print("Selected Crop: \(selectedCrop.name)")
+        }
 }
+
