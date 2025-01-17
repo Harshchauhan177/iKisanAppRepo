@@ -49,25 +49,7 @@ class SearchViewController: UIViewController,UISearchBarDelegate, UITableViewDel
                 cell.textLabel?.text = filteredSuggestions[indexPath.row]
                 return cell
     }
-//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        let selectedText = filteredSuggestions[indexPath.row]
-//            searchBarLabel.text = selectedText
-//            searchBarLabel.resignFirstResponder()
-//            selectedSuggestion = selectedText
-//            if let createRequestVC = storyboard?.instantiateViewController(withIdentifier: "createRequestfromsearch") as? CreateRequestViewController {
-//                createRequestVC.selectedSuggestion = selectedSuggestion
-//                createRequestVC.modalPresentationStyle = .fullScreen
-//                present(createRequestVC, animated: true, completion: nil)
-//            }
-//       }
-//
-//    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-//        if segue.identifier == "createRequestfromsearch" {
-//            if let createRequestVC = segue.destination as? CreateRequestViewController {
-//                createRequestVC.selectedSuggestion = selectedSuggestion
-//            }
-//        }
-//    }
+
 
 
 }
