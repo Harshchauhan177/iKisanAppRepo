@@ -45,7 +45,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         switch section {
         case 0:
-            return 3 // Example: Discounts data count
+            //return 3
+            return 6
+            // Example: Discounts data count
         case 1:
             return 3 // Example: Suggestion has 3 cards
         case 2:
@@ -111,8 +113,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         let groupSize = NSCollectionLayoutSize(widthDimension: .absolute(130), heightDimension: .absolute(116))
+      //let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(116))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-       // group.interItemSpacing = .fixed(8)
+        group.interItemSpacing = .fixed(8)
         group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 4)
         let section = NSCollectionLayoutSection(group: group)
         section.orthogonalScrollingBehavior = .continuous
@@ -170,10 +173,13 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             switch indexPath.section {
             case 0:
                 header.headerLabel.text = "Discounts"
+                header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
             case 1:
                 header.headerLabel.text = "Suggestion"
+                header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
             case 2:
                 header.headerLabel.text = "Explore More"
+                header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
             default:
                 break
             }
