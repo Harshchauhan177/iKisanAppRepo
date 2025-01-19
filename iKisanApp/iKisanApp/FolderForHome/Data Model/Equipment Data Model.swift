@@ -27,6 +27,12 @@ struct Availability {
     var endDate: Date
 }
 
+struct ReviewData{
+    var reviewHeading: String
+    var reviewDescription: String
+    var rating: Double
+}
+
 class EquipmentData{
     static var equipment: [Equipment] = [
         Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 10000, providerID: UUID(), rating: 4.5),
@@ -39,7 +45,16 @@ class EquipmentData{
         Equipment(equipmentID: UUID(), equipmentImage: "8.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000, providerID: UUID(), rating: 4.5)
     ]
     
-
+    static var reviews: [ReviewData] = [
+        ReviewData(reviewHeading: "Excellent", reviewDescription: "Description", rating: 4.5),
+        ReviewData(reviewHeading: "Good", reviewDescription: "Description", rating: 3.5),
+        ReviewData(reviewHeading: "Bad", reviewDescription: "Description", rating: 2.5),
+        ReviewData(reviewHeading: "Very Bad", reviewDescription: "Description", rating: 1.5),
+        
+        ]
+        
     
     
 }
+
+

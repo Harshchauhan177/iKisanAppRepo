@@ -187,4 +187,17 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
         return UICollectionReusableView()
     }
+    
+   // MARK: Extension data
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
+        let controller = EquipmentDescriptionTableViewController.instantiate()
+        
+        //controller.equipment = equipment[indexPath.row]
+        
+        navigationController?.pushViewController(controller, animated: true)
+    }
+    
+    
 }
