@@ -53,3 +53,8 @@ enum TimeSlot: String {
     case afternoon = "Afternoon"
     case evening = "Evening"
 }
+
+struct EquipmentsForCrops {
+    var Equipmentsimage:[String]
+    var EquipmentsName:[String]
+}
