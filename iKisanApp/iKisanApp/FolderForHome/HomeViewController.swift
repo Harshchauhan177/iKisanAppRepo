@@ -10,10 +10,22 @@ import UIKit
 class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     
     @IBOutlet var collectionView: UICollectionView!
-
+    
+    var selectedIndexPath: IndexPath?
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        let searchController = UISearchController()
+        navigationItem.searchController = searchController
 
+        searchController.obscuresBackgroundDuringPresentation = false
+
+        //searchController.searchResultsUpdater = self
+
+        navigationItem.hidesSearchBarWhenScrolling = false
+
+        
         // Registering Nibs for cells
         let discountsNib = UINib(nibName: "DiscountsCell", bundle: nil)
         let suggestionNib = UINib(nibName: "SuggestionCell", bundle: nil)
@@ -143,29 +155,15 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             heightDimension: .absolute(250)
         )
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.interItemSpacing = .fixed(8)
+        group.interItemSpacing = .fixed(16)
        
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = 16 // Spacing between groups
-        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
 
         return section
     }
 
-
-//    func generateExploreMoreSection() -> NSCollectionLayoutSection {
-//     let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5), heightDimension: .absolute(150))
-////       let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
-//        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-//        //let groupSize = NSCollectionLayoutSize(widthDimension: .absolute(175), heightDimension: .absolute(232))
-//        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(232))
-//        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitem: item, count: 2)
-//        group.interItemSpacing = .fixed(8)
-//        group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
-//        let section = NSCollectionLayoutSection(group: group)
-//
-//        return section
-//    }
 
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         if kind == UICollectionView.elementKindSectionHeader {
@@ -191,12 +189,39 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
    // MARK: Extension data
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        selectedIndexPath = indexPath
         
-        let controller = EquipmentDescriptionTableViewController.instantiate()
+        let selectedEquipment = EquipmentData.equipment[indexPath.row]
+//        let controller = EquipmentDescriptionTableViewController.instantiate()
+        print("inside didselect")
         
-        //controller.equipment = equipment[indexPath.row]
+       
+        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+      if let controller = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
+          print("EquipmentDescriptionTableViewController")
+         
+          controller.equipmentName = selectedEquipment.name
         
-        navigationController?.pushViewController(controller, animated: true)
+          controller.discountedPriceHr = "\(selectedEquipment.pricePerHour)"
+          controller.realPriceHr = "\(selectedEquipment.realPricePerHour)"
+          controller.discountedPriceAc = "\(selectedEquipment.pricePerAcre)"
+          controller.realPriceAc = "\(selectedEquipment.realPricePerAcre)"
+          controller.coEquipDetail = "\(selectedEquipment.coEquipDetail)"
+          controller.location = "\(selectedEquipment.location)"
+          controller.rating = "\(selectedEquipment.rating)"
+          controller.bigImage = "\(selectedEquipment.equipmentMoreImages.images[0])"
+          controller.smallImage1 = "\(selectedEquipment.equipmentMoreImages.images[1])"
+          controller.smallImage2 = "\(selectedEquipment.equipmentMoreImages.images[2])"
+          controller.smallImage3 = "\(selectedEquipment.equipmentMoreImages.images[3])"
+          controller.more = "\(selectedEquipment.equipmentMoreImages.images.count)"
+          controller.ratingOutOf5 = "\(selectedEquipment.rating)"
+          controller.equipmentLocationDetailed = "\(selectedEquipment.location)"
+          controller.model = "\(selectedEquipment.modelYear)"
+          controller.capacity = "\(selectedEquipment.capacity)"
+          controller.mileage = "\(selectedEquipment.mielage)"
+          navigationController?.pushViewController(controller, animated: true)
+        }
+       
     }
     
     
