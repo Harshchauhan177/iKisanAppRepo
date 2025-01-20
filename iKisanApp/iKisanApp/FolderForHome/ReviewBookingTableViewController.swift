@@ -7,8 +7,10 @@
 
 import UIKit
 
-class ReviewBookingTableViewController: UITableViewController {
+class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegate {
     
+    var locationA: String?
+    var pricePerHr: Double? = 100
     
     @IBOutlet var locationLabel: UILabel!
     
@@ -21,7 +23,17 @@ class ReviewBookingTableViewController: UITableViewController {
     @IBOutlet var priceLabel: UILabel!
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        locationLabel.text = locationA
+        fieldAreaTextField.delegate = self
+        updateData()
+        
+//        locationLabel.text = location
+//        var fieldArea = 900.0
+//        //fieldArea = Double(fieldAreaTextField.text!)!
+//        
+//        
+//        priceLabel.text = "\(pricePerHr)"
+//        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -29,6 +41,21 @@ class ReviewBookingTableViewController: UITableViewController {
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
 
+    func updateData() {
+        
+        locationLabel.text = locationA
+        datePicker.date = Date()
+        
+        guard let fieldAreaText = fieldAreaTextField.text ,
+               let fieldArea = Double(fieldAreaText),
+              let price = pricePerHr
+        else { return }
+        
+        let totalPrice = price * fieldArea
+        
+        priceLabel.text = "\(totalPrice)"
+    }
+    
   
     @IBAction func proceedToPayButtonTapped(_ sender: Any) {
     }

@@ -8,7 +8,7 @@
 import UIKit
 
 class EquipmentDescriptionTableViewController: UITableViewController, UICollectionViewDelegate, UICollectionViewDataSource {
-
+    
     //MARK: Section1 Equipment Deatils
     
     var Equipment : Equipment?
@@ -18,7 +18,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     var discountedPriceAc: String?
     var realPriceAc: String?
     var coEquipDetail: String?
-    var location: String?
+    var location: String? = "Atta"
     var rating: String?
     var bigImage : String?
     var smallImage1: String?
@@ -58,16 +58,16 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     
     //MARK: Collection View
-
+    
     @IBOutlet weak var collectionView: UICollectionView!
     
-  //MARK: Equipment's Location Row
+    //MARK: Equipment's Location Row
     
     
     @IBOutlet var equipmentLocationDetailedLabel: UILabel!
-     
     
-   //MARK: More Details Row
+    
+    //MARK: More Details Row
     
     
     @IBOutlet var modelLabel: UILabel!
@@ -80,32 +80,32 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     override func viewDidLoad() {
         super.viewDidLoad()
         
-//        equipmentNameLabel.text = "Equipment Name"
-//        navigationItem.title = name
+        //        equipmentNameLabel.text = "Equipment Name"
+        //        navigationItem.title = name
         equipmentNameLabel.text = equipmentName
         collectionView.delegate = self
-               collectionView.dataSource = self
-               
-               // Configure collection view layout
-               if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
-
-                   layout.minimumLineSpacing = 20
-                   layout.scrollDirection = .horizontal
-                   layout.minimumInteritemSpacing = 0
-                   layout.sectionInset = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
-                   collectionView.isPagingEnabled = true
-               }
+        collectionView.dataSource = self
+        
+        // Configure collection view layout
+        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            
+            layout.minimumLineSpacing = 20
+            layout.scrollDirection = .horizontal
+            layout.minimumInteritemSpacing = 0
+            layout.sectionInset = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
+            collectionView.isPagingEnabled = true
+        }
         updateEquipmentDescriptionData()
     }
-
-  
+    
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return 3
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardCell", for: indexPath) as! ReviewCardCollectionViewCell
-                // Configure the card cell (e.g., set text, images, etc.)
+        // Configure the card cell (e.g., set text, images, etc.)
         //cell.updateReviewCardData(reviewData: ReviewData[indexPath.row])
         cell.feedbackHeadingLabel.text = "Feedback"
         cell.feedbackTextLabel.text = "Rented the Square Baler for my wheat field—excellent performance, fuel-efficient, and easy to use. The rental process was hassle-free."
@@ -119,32 +119,32 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         let width = collectionView.frame.width
         let height = collectionView.frame.height
         return CGSize(width: width, height: height)
-        }
-
-//    func updateEquipmentDescriptionData(indexPath: IndexPath) {
-//        equipmentNameLabel.text = EquipmentData.equipment[indexPath.row].name/*equipmentDescriptionData.name*/
-//        discountedPriceHrLabel.text = "\(EquipmentData.equipment[indexPath.row].pricePerHour)"
-//        realPriceHrLabel.text = "\(EquipmentData.equipment[indexPath.row].realPricePerHour)"
-//        discountedPriceAcLabel.text = "\(EquipmentData.equipment[indexPath.row].pricePerAcre)"
-//        realPriceAcLabel.text = "\(EquipmentData.equipment[indexPath.row].realPricePerAcre)"
-//        coEquipDetailLabel.text = "\(EquipmentData.equipment[indexPath.row].coEquipDetail)"
-//        locationLabel.text = EquipmentData.equipment[indexPath.row].location
-//        ratingLabel.text  = "\(EquipmentData.equipment[indexPath.row].rating)"
-//        
-//        //Data for Photos Section
-//        bigImageView.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![0])
-//        smallImageView1.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![1])
-//        smallImageView2.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![2])
-//        smallImageView3.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![3])
-//        moreLabel.text = "\(EquipmentData.equipment[indexPath.row].equipmentMoreImages!.count)"
-//        
-//        //Rating
-//        ratingOutOf5Label.text = "\(EquipmentData.equipment[indexPath.row].rating)"
-//        
-//        //Equipments Location Section
-//        
-//        equipmentLocationDetailedLabel.text = EquipmentData.equipment[indexPath.row].location
-//    }
+    }
+    
+    //    func updateEquipmentDescriptionData(indexPath: IndexPath) {
+    //        equipmentNameLabel.text = EquipmentData.equipment[indexPath.row].name/*equipmentDescriptionData.name*/
+    //        discountedPriceHrLabel.text = "\(EquipmentData.equipment[indexPath.row].pricePerHour)"
+    //        realPriceHrLabel.text = "\(EquipmentData.equipment[indexPath.row].realPricePerHour)"
+    //        discountedPriceAcLabel.text = "\(EquipmentData.equipment[indexPath.row].pricePerAcre)"
+    //        realPriceAcLabel.text = "\(EquipmentData.equipment[indexPath.row].realPricePerAcre)"
+    //        coEquipDetailLabel.text = "\(EquipmentData.equipment[indexPath.row].coEquipDetail)"
+    //        locationLabel.text = EquipmentData.equipment[indexPath.row].location
+    //        ratingLabel.text  = "\(EquipmentData.equipment[indexPath.row].rating)"
+    //
+    //        //Data for Photos Section
+    //        bigImageView.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![0])
+    //        smallImageView1.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![1])
+    //        smallImageView2.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![2])
+    //        smallImageView3.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![3])
+    //        moreLabel.text = "\(EquipmentData.equipment[indexPath.row].equipmentMoreImages!.count)"
+    //
+    //        //Rating
+    //        ratingOutOf5Label.text = "\(EquipmentData.equipment[indexPath.row].rating)"
+    //
+    //        //Equipments Location Section
+    //
+    //        equipmentLocationDetailedLabel.text = EquipmentData.equipment[indexPath.row].location
+    //    }
     
     func updateEquipmentDescriptionData() {
         equipmentNameLabel.text = equipmentName
@@ -167,7 +167,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         ratingOutOf5Label.text = ratingOutOf5
         
         //Equipments Location Section
-//        
+        //
         equipmentLocationDetailedLabel.text = location
         
         moreLabel.text = more
@@ -175,4 +175,59 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         mileageLabel.text = mileage
     }
     
+    
+    @IBAction func bookButtonTapped(_ sender: UIButton) {
+        showBookingOptions()
+    }
+    
+    func showBookingOptions() {
+        let alertController = UIAlertController(title: "Choose Your Booking Type", message: "Book individually or join with nearby farmers for reduced costs. ", preferredStyle: .alert)
+        
+        let individualAction = UIAlertAction(title: "Book as Individual", style: .default) { _ in
+            
+            self.navigateToReviewBooking()
+            
+        }
+        
+        let coEquipAction = UIAlertAction(title: "Book with Co-Equip", style: .default) { _ in
+            self.navigateToCoEquipBooking()
+        }
+        
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+        
+        alertController.addAction(individualAction)
+        alertController.addAction(coEquipAction)
+        alertController.addAction(cancelAction)
+        
+        self.present(alertController, animated: true, completion: nil)
+    }
+    
+    func navigateToReviewBooking() {
+        if let individualBookingVC = storyboard?.instantiateViewController(withIdentifier: "ReviewBookingTableViewController"){
+            navigationController?.pushViewController(individualBookingVC, animated: true)
+        }
+    }
+    
+    func navigateToCoEquipBooking() {
+        if let coEquipBookingVC = storyboard?.instantiateViewController(withIdentifier: "IndividualBookingViewController"){
+            navigationController?.pushViewController(coEquipBookingVC, animated: true)
+        }
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "ReviewBookingSegue" {
+            if let destinationVC = segue.destination as? ReviewBookingTableViewController {
+                destinationVC.locationA = location
+                destinationVC.pricePerHr = Double(discountedPriceHr!)!
+            }
+        } else if segue.identifier == "CoEquipBookingSegue" {
+//            let destinationVC = segue.destination as? CoEquipBookingViewController
+//            destinationVC.location = location
+//            destinationVC.pricePerHr = Double(discountedPriceHr!)
+        }
+        
+    }
+    
 }
+        
