@@ -219,6 +219,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
           controller.model = "\(selectedEquipment.modelYear)"
           controller.capacity = "\(selectedEquipment.capacity)"
           controller.mileage = "\(selectedEquipment.mielage)"
+          controller.moreImages = selectedEquipment.equipmentMoreImages.images
+
           navigationController?.pushViewController(controller, animated: true)
         }
        

@@ -11,7 +11,7 @@ private let reuseIdentifier = "Cell"
 
 class ImageViewCollectionViewController: UICollectionViewController {
 
-    let imageNames = ["1.jpeg", "2.jpeg", "3.jpeg"]
+    var imageNames: [String] = []
 
        override func viewDidLoad() {
            super.viewDidLoad()

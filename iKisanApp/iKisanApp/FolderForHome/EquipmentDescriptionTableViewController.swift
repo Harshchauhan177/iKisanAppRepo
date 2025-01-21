@@ -24,13 +24,22 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     var smallImage1: String?
     var smallImage2: String?
     var smallImage3: String?
-    var more: String?
+    var more: String = "More"
     var ratingOutOf5: String?
     var equipmentLocationDetailed: String?
     var model: String?
     var capacity: String?
     var mileage: String?
+    var moreImages: [String] = []
     
+    //Outlet for View(for Radius )
+    
+    @IBOutlet var bigView: UIView!
+    
+    @IBOutlet var ratingView: UIView!
+    
+    
+    @IBOutlet var moreView: UIView!
     
     @IBOutlet var hostedByLabel: UILabel!
     @IBOutlet var equipmentNameLabel: UILabel!
@@ -80,8 +89,15 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //        equipmentNameLabel.text = "Equipment Name"
-        //        navigationItem.title = name
+        bigView.layer.cornerRadius = 10
+        ratingView.layer.cornerRadius = 17
+        bigImageView.layer.cornerRadius = 10
+        smallImageView1.layer.cornerRadius = 7
+        smallImageView2.layer.cornerRadius = 7
+        smallImageView3.layer.cornerRadius = 7
+        moreView.layer.cornerRadius = 7
+        
+       
         equipmentNameLabel.text = equipmentName
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -105,11 +121,12 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardCell", for: indexPath) as! ReviewCardCollectionViewCell
-        // Configure the card cell (e.g., set text, images, etc.)
-        //cell.updateReviewCardData(reviewData: ReviewData[indexPath.row])
-        cell.feedbackHeadingLabel.text = "Feedback"
-        cell.feedbackTextLabel.text = "Rented the Square Baler for my wheat field—excellent performance, fuel-efficient, and easy to use. The rental process was hassle-free."
-        
+
+        let review = ReviewData.reviews[indexPath.row]
+            
+            // Pass the review data to the update function in the cell
+            cell.updateReviewCardData(reviewData: review)
+      
         cell.layer.cornerRadius = 7
         return cell
     }
@@ -121,34 +138,11 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         return CGSize(width: width, height: height)
     }
     
-    //    func updateEquipmentDescriptionData(indexPath: IndexPath) {
-    //        equipmentNameLabel.text = EquipmentData.equipment[indexPath.row].name/*equipmentDescriptionData.name*/
-    //        discountedPriceHrLabel.text = "\(EquipmentData.equipment[indexPath.row].pricePerHour)"
-    //        realPriceHrLabel.text = "\(EquipmentData.equipment[indexPath.row].realPricePerHour)"
-    //        discountedPriceAcLabel.text = "\(EquipmentData.equipment[indexPath.row].pricePerAcre)"
-    //        realPriceAcLabel.text = "\(EquipmentData.equipment[indexPath.row].realPricePerAcre)"
-    //        coEquipDetailLabel.text = "\(EquipmentData.equipment[indexPath.row].coEquipDetail)"
-    //        locationLabel.text = EquipmentData.equipment[indexPath.row].location
-    //        ratingLabel.text  = "\(EquipmentData.equipment[indexPath.row].rating)"
-    //
-    //        //Data for Photos Section
-    //        bigImageView.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![0])
-    //        smallImageView1.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![1])
-    //        smallImageView2.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![2])
-    //        smallImageView3.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentMoreImages![3])
-    //        moreLabel.text = "\(EquipmentData.equipment[indexPath.row].equipmentMoreImages!.count)"
-    //
-    //        //Rating
-    //        ratingOutOf5Label.text = "\(EquipmentData.equipment[indexPath.row].rating)"
-    //
-    //        //Equipments Location Section
-    //
-    //        equipmentLocationDetailedLabel.text = EquipmentData.equipment[indexPath.row].location
-    //    }
+    
     
     func updateEquipmentDescriptionData() {
         equipmentNameLabel.text = equipmentName
-        discountedPriceHrLabel.text = discountedPriceAc
+        discountedPriceHrLabel.text = discountedPriceHr
         realPriceHrLabel.text = realPriceHr
         discountedPriceAcLabel.text = discountedPriceAc
         realPriceAcLabel.text = realPriceAc
@@ -161,7 +155,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         smallImageView1.image = UIImage(named: smallImage1!)
         smallImageView2.image = UIImage(named: smallImage2!)
         smallImageView3.image = UIImage(named: smallImage3!)
-        moreLabel.text = more //"\(Equipment.equipmentMoreImages!.count)"
+        moreLabel.text = "+ \(String(describing: more))" //"\(Equipment.equipmentMoreImages!.count)"
         
         //Rating
         ratingOutOf5Label.text = ratingOutOf5
@@ -170,7 +164,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         //
         equipmentLocationDetailedLabel.text = location
         
-        moreLabel.text = more
+        modelLabel.text = model
         capacityLabel.text = capacity
         mileageLabel.text = mileage
     }
@@ -203,11 +197,12 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         self.present(alertController, animated: true, completion: nil)
     }
     
+
+    
     func navigateToReviewBooking() {
-        if let individualBookingVC = storyboard?.instantiateViewController(withIdentifier: "ReviewBookingTableViewController"){
-            navigationController?.pushViewController(individualBookingVC, animated: true)
-        }
+        performSegue(withIdentifier: "ReviewBookingSegue", sender: self)
     }
+    
     
     func navigateToCoEquipBooking() {
         if let coEquipBookingVC = storyboard?.instantiateViewController(withIdentifier: "IndividualBookingViewController"){
@@ -216,18 +211,35 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+      
         if segue.identifier == "ReviewBookingSegue" {
+         
             if let destinationVC = segue.destination as? ReviewBookingTableViewController {
+           
+                
                 destinationVC.locationA = location
-                destinationVC.pricePerHr = Double(discountedPriceHr!)!
+                
+                
+                if let discountedPrice = discountedPriceAc, let price = Double(discountedPrice) {
+                    destinationVC.pricePerHr = price
+                    
+                }
+                    
+                        
             }
-        } else if segue.identifier == "CoEquipBookingSegue" {
-//            let destinationVC = segue.destination as? CoEquipBookingViewController
-//            destinationVC.location = location
-//            destinationVC.pricePerHr = Double(discountedPriceHr!)
+                    
+    }else if segue.identifier == "MoreImageView" {
+        if let destinationVC = segue.destination as? ImageViewCollectionViewController {
+            // Pass moreImages data to ImageViewCollectionViewController
+            destinationVC.imageNames = moreImages
         }
-        
+           
+        }
+    }
+
+    
+    @IBAction func moreImageButtonTapped(_ sender: UIButton) {
+        performSegue(withIdentifier: "MoreImageView", sender: self)
     }
     
 }
-        

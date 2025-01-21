@@ -9,8 +9,9 @@ import UIKit
 
 class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegate {
     
+    var timeSlot = ["Morning","Afternoon","Evening"]
     var locationA: String?
-    var pricePerHr: Double? = 100
+    var pricePerHr: Double = 100
     
     @IBOutlet var locationLabel: UILabel!
     
@@ -20,43 +21,60 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
     
     @IBOutlet var timeButtonOutlet: UIButton!
     
+    @IBOutlet var timeSlotDisplayOutlet: UILabel!
     @IBOutlet var priceLabel: UILabel!
     override func viewDidLoad() {
         super.viewDidLoad()
-        locationLabel.text = locationA
+      
+        
         fieldAreaTextField.delegate = self
+        
         updateData()
         
-//        locationLabel.text = location
-//        var fieldArea = 900.0
-//        //fieldArea = Double(fieldAreaTextField.text!)!
-//        
-//        
-//        priceLabel.text = "\(pricePerHr)"
-//        
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
+        setUpMenus()
 
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
 
     func updateData() {
         
         locationLabel.text = locationA
         datePicker.date = Date()
-        
-        guard let fieldAreaText = fieldAreaTextField.text ,
-               let fieldArea = Double(fieldAreaText),
-              let price = pricePerHr
-        else { return }
-        
-        let totalPrice = price * fieldArea
-        
-        priceLabel.text = "\(totalPrice)"
-    }
+    } 
     
-  
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            textField.resignFirstResponder()
+
+          
+            if let fieldAreaText = textField.text, let fieldArea = Double(fieldAreaText) {
+                let totalPrice = fieldArea * pricePerHr
+                priceLabel.text = "Total Price: \(totalPrice)"
+            } else {
+                priceLabel.text = "Invalid input"
+            }
+
+            return true
+        }
+    
+    
+    private func setUpMenus() {
+        var actions: [UIAction] = []
+        for time in timeSlot {
+            let action = UIAction(title: time, handler: { [weak self] _ in
+                self?.timeSlotDisplayOutlet.text = time // Update label
+            })
+            actions.append(action)
+        }
+        let timeMenu = UIMenu(title: "Select Time", children: actions)
+        timeButtonOutlet.menu = timeMenu
+        timeButtonOutlet.showsMenuAsPrimaryAction = true
+        
+        
+    }
+
+         
+            
+      
+    
     @IBAction func proceedToPayButtonTapped(_ sender: Any) {
     }
     
