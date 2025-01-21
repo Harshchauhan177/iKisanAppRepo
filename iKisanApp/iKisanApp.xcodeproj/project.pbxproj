@@ -21,11 +21,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		97DD4B6C2D3ECDFC008201DC /* customViews */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = customViews;
-			sourceTree = "<group>";
-		};
 		C48A0E0D2D378C480026B8AC /* iKisanApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -52,7 +47,6 @@
 			children = (
 				C48A0E0D2D378C480026B8AC /* iKisanApp */,
 				C48A0E0C2D378C480026B8AC /* Products */,
-				97DD4B6C2D3ECDFC008201DC /* customViews */,
 			);
 			sourceTree = "<group>";
 		};
@@ -80,7 +74,6 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				97DD4B6C2D3ECDFC008201DC /* customViews */,
 				C48A0E0D2D378C480026B8AC /* iKisanApp */,
 			);
 			name = iKisanApp;
