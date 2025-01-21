@@ -4,7 +4,6 @@
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
-        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="collection view cell content view" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -376,13 +375,54 @@
                     <view key="view" contentMode="scaleToFill" id="aSL-CO-c7H">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="tlF-db-qoQ">
+                                <rect key="frame" x="0.0" y="61" width="393" height="781"/>
+                                <color key="backgroundColor" red="0.63529413940000001" green="0.63137257099999999" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="KR0-7p-Jh3">
+                                    <size key="itemSize" width="128" height="128"/>
+                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                </collectionViewFlowLayout>
+                                <cells>
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="cell" id="YnX-Jt-b9u">
+                                        <rect key="frame" x="0.0" y="0.0" width="127.99999999999997" height="128"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="pee-5f-yea">
+                                            <rect key="frame" x="0.0" y="0.0" width="127.99999999999997" height="128"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </collectionViewCellContentView>
+                                    </collectionViewCell>
+                                </cells>
+                            </collectionView>
+                            <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WDi-Ne-n8j">
+                                <rect key="frame" x="0.0" y="5" width="393" height="56"/>
+                                <items>
+                                    <navigationItem title="Rice" id="uDc-iK-s6a"/>
+                                </items>
+                            </navigationBar>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="AOg-Mx-9ck"/>
-                        <color key="backgroundColor" systemColor="systemBlueColor"/>
+                        <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="AOg-Mx-9ck" firstAttribute="trailing" secondItem="tlF-db-qoQ" secondAttribute="trailing" id="1q4-SY-ZAR"/>
+                            <constraint firstItem="AOg-Mx-9ck" firstAttribute="bottom" secondItem="tlF-db-qoQ" secondAttribute="bottom" id="I4B-6z-gSo"/>
+                            <constraint firstItem="WDi-Ne-n8j" firstAttribute="trailing" secondItem="AOg-Mx-9ck" secondAttribute="trailing" id="Not-NZ-lVS"/>
+                            <constraint firstItem="WDi-Ne-n8j" firstAttribute="top" secondItem="AOg-Mx-9ck" secondAttribute="top" constant="5" id="Yps-0T-F3d"/>
+                            <constraint firstItem="WDi-Ne-n8j" firstAttribute="top" secondItem="AOg-Mx-9ck" secondAttribute="top" constant="5" id="igN-l5-91d"/>
+                            <constraint firstItem="tlF-db-qoQ" firstAttribute="top" secondItem="WDi-Ne-n8j" secondAttribute="bottom" id="nqf-dp-Caz"/>
+                            <constraint firstItem="WDi-Ne-n8j" firstAttribute="leading" secondItem="AOg-Mx-9ck" secondAttribute="leading" id="v2c-Sh-EBM"/>
+                            <constraint firstItem="tlF-db-qoQ" firstAttribute="leading" secondItem="AOg-Mx-9ck" secondAttribute="leading" id="z0q-3u-Bxy"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="collectionView" destination="tlF-db-qoQ" id="ZEM-fx-x0W"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dDS-9Y-ryb" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="7161" y="53"/>
+            <point key="canvasLocation" x="7159.5419847328239" y="52.816901408450704"/>
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
@@ -393,8 +433,5 @@
         <image name="chevron.right" catalog="system" width="97" height="128"/>
         <image name="lightbulb.max" catalog="system" width="121" height="128"/>
         <image name="lightbulb.min.fill" catalog="system" width="115" height="128"/>
-        <systemColor name="systemBlueColor">
-            <color red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
     </resources>
 </document>

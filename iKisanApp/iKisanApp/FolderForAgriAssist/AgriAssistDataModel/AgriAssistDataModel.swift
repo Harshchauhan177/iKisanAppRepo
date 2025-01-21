@@ -58,3 +58,5 @@ struct EquipmentsForCrops {
     var Equipmentsimage:[String]
     var EquipmentsName:[String]
 }
+
+
