@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 struct CardData{
     let title: String
@@ -13,5 +14,5 @@ struct CardData{
     let oldPrice: String?
     let rating: String
     let host: String
-    let imageName: String
+    let imageName: UIImage
 }
