@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
-    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <device id="retina6_12" orientation="landscape" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="collection view cell content view" minToolsVersion="11.0"/>
@@ -16,21 +16,23 @@
                 <rect key="frame" x="0.0" y="0.0" width="176" height="172"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9Kw-lu-s2r">
+                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="9Kw-lu-s2r">
                         <rect key="frame" x="0.0" y="0.0" width="176" height="110.33333333333333"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="110.33" id="485-NS-f16"/>
+                        </constraints>
                     </imageView>
-                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="qY9-PT-i6T">
-                        <rect key="frame" x="4" y="116" width="81" height="46"/>
+                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="iCU-uq-JfN">
+                        <rect key="frame" x="4" y="116" width="127" height="44"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="h97-jr-I7G">
-                                <rect key="frame" x="0.0" y="0.0" width="28.333333333333332" height="17.666666666666668"/>
+                                <rect key="frame" x="0.0" y="0.0" width="127" height="17.666666666666668"/>
                                 <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="VU0-KO-CrQ">
-                                <rect key="frame" x="0.0" y="18.666666666666657" width="81" height="14.333333333333336"/>
+                            <stackView opaque="NO" contentMode="scaleToFill" spacing="54" translatesAutoresizingMaskIntoConstraints="NO" id="Ful-OC-t5V">
+                                <rect key="frame" x="0.0" y="17.666666666666657" width="127" height="14.333333333333336"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Price" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pab-dP-GSB">
                                         <rect key="frame" x="0.0" y="0.0" width="29" height="14.333333333333334"/>
@@ -38,8 +40,8 @@
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Original" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1ms-Vs-kql">
-                                        <rect key="frame" x="37" y="0.0" width="44" height="14.333333333333334"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Original" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1ms-Vs-kql">
+                                        <rect key="frame" x="83" y="0.0" width="44" height="14.333333333333334"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
@@ -47,16 +49,21 @@
                                 </subviews>
                             </stackView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Host" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AnG-10-J2R">
-                                <rect key="frame" x="0.0" y="34" width="22.666666666666668" height="12"/>
+                                <rect key="frame" x="0.0" y="32" width="127" height="12"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="10"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="127" id="5Ks-n6-RdH"/>
+                        </constraints>
                     </stackView>
-                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Rating" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="89g-5b-GIO">
-                        <rect key="frame" x="118.00000000000001" y="116" width="48.666666666666671" height="20.333333333333343"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Rating" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="89g-5b-GIO">
+                        <rect key="frame" x="139" y="116" width="27" height="20"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="27" id="kXR-PT-uYA"/>
+                        </constraints>
                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
@@ -64,8 +71,15 @@
                 </subviews>
                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                 <constraints>
-                    <constraint firstAttribute="bottom" secondItem="qY9-PT-i6T" secondAttribute="bottom" constant="10" id="eFn-xQ-LgW"/>
-                    <constraint firstItem="qY9-PT-i6T" firstAttribute="leading" secondItem="F6W-U5-t4X" secondAttribute="leading" constant="4" id="qpm-05-u2V"/>
+                    <constraint firstItem="iCU-uq-JfN" firstAttribute="leading" secondItem="F6W-U5-t4X" secondAttribute="leading" constant="4" id="63g-2a-3rg"/>
+                    <constraint firstItem="9Kw-lu-s2r" firstAttribute="top" secondItem="F6W-U5-t4X" secondAttribute="top" id="AaV-bk-XfZ"/>
+                    <constraint firstAttribute="bottom" secondItem="89g-5b-GIO" secondAttribute="bottom" constant="36" id="EgE-pc-Chk"/>
+                    <constraint firstItem="89g-5b-GIO" firstAttribute="top" secondItem="9Kw-lu-s2r" secondAttribute="bottom" constant="5.6699999999999999" id="Ga2-oL-pDM"/>
+                    <constraint firstItem="9Kw-lu-s2r" firstAttribute="leading" secondItem="F6W-U5-t4X" secondAttribute="leading" id="POZ-je-WcB"/>
+                    <constraint firstItem="iCU-uq-JfN" firstAttribute="top" secondItem="9Kw-lu-s2r" secondAttribute="bottom" constant="5.6699999999999999" id="UDa-j8-xI4"/>
+                    <constraint firstAttribute="bottom" secondItem="iCU-uq-JfN" secondAttribute="bottom" constant="12" id="VvD-9t-KoL"/>
+                    <constraint firstAttribute="trailing" secondItem="9Kw-lu-s2r" secondAttribute="trailing" id="ug3-Hk-uho"/>
+                    <constraint firstAttribute="trailing" secondItem="89g-5b-GIO" secondAttribute="trailing" constant="10" id="wP4-kY-f4g"/>
                 </constraints>
             </collectionViewCellContentView>
             <size key="customSize" width="176" height="172"/>
@@ -77,7 +91,7 @@
                 <outlet property="hostLabel" destination="AnG-10-J2R" id="udD-tA-K8F"/>
                 <outlet property="ratingLabel" destination="89g-5b-GIO" id="8cp-eh-2A5"/>
             </connections>
-            <point key="canvasLocation" x="335.87786259541986" y="38.028169014084511"/>
+            <point key="canvasLocation" x="334.50704225352115" y="36.641221374045799"/>
         </collectionViewCell>
     </objects>
 </document>

@@ -21,7 +21,7 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
     
     var categories = ["Combine","Rice","Wheat","soyabean","Irrigation","Other"]
     var card:[CardData]=[]
-    
+    var numberOfColumns: CGFloat = 2
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,12 +42,23 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             let categoryLayout = UICollectionViewFlowLayout()
             categoryLayout.scrollDirection = .horizontal
             categoryCollectionView.setCollectionViewLayout(categoryLayout, animated: false)
-            
-            let cardLayout = UICollectionViewFlowLayout()
-            cardLayout.scrollDirection = .vertical
-            cardCollectionView.setCollectionViewLayout(cardLayout, animated: false)
+        let layout = UICollectionViewFlowLayout()
+                layout.scrollDirection = .vertical
+                cardCollectionView.setCollectionViewLayout(layout, animated: false)
+                updateItemSize()
         }
-
+    func updateItemSize() {
+            let padding: CGFloat = 10
+            let totalSpacing = (numberOfColumns + 1) * padding
+            let itemWidth = (cardCollectionView.frame.size.width - totalSpacing) / numberOfColumns
+            let itemHeight: CGFloat = 172
+            
+            if let layout = cardCollectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+                layout.itemSize = CGSize(width: itemWidth, height: itemHeight)
+                layout.invalidateLayout()
+            }
+        }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if collectionView == categoryCollectionView{
             return categories.count
@@ -84,10 +95,10 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             return CGSize(width: 100, height: 40)
         }else{
             let numberOfColumns: CGFloat = 2
-                        let padding: CGFloat = 10 // Adjust space between items
-                        let totalSpacing = (numberOfColumns + 1) * padding
-                        let itemWidth = (collectionView.frame.size.width - totalSpacing) / numberOfColumns
-                        return CGSize(width: itemWidth, height: 172)
+                    let padding: CGFloat = 10
+                    let totalSpacing = (numberOfColumns + 1) * padding
+                    let itemWidth = (collectionView.bounds.size.width - totalSpacing) / numberOfColumns
+                    return CGSize(width: itemWidth, height: 172)
         }
     }
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -103,27 +114,39 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         }
     func generateSectionForCards() -> NSCollectionLayoutSection {
         let numberOfColumns: CGFloat = 2
-            let padding: CGFloat = 10 // Adjust space between items
-            let totalSpacing = (numberOfColumns + 1) * padding
-            let itemWidth = (cardCollectionView.frame.size.width - totalSpacing) / numberOfColumns
+        let padding: CGFloat = 10 // Adjust space between items
+        let totalSpacing = (numberOfColumns + 1) * padding
+        let itemWidth = (cardCollectionView.frame.size.width - totalSpacing) / numberOfColumns
+        
+        let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(itemWidth), heightDimension: .absolute(172))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        
+        // Define the group size for the two-column layout
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(172))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, item]) // Two items per row
+        
+        group.contentInsets = NSDirectionalEdgeInsets(top: 8.0, leading: 8.0, bottom: 8.0, trailing: 8.0)
+        group.interItemSpacing = .fixed(padding) // Adjust spacing between items in a row
+        
+        // Create the section with the defined group
+        let section = NSCollectionLayoutSection(group: group)
+        
+        // Specify the section's orthogonal scrolling behavior (no horizontal scrolling in this case)
+        section.orthogonalScrollingBehavior = .none
+        
+        return section
+    }
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+            super.viewWillTransition(to: size, with: coordinator)
             
-            let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(itemWidth), heightDimension: .absolute(172))
-            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            // Recalculate the number of columns based on the new width
+            let isLandscape = size.width > size.height
+            numberOfColumns = isLandscape ? 3 : 2  // Adjust to 3 columns for landscape, 2 for portrait
             
-            // Define the group size for the two-column layout
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(172))
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, item]) // Two items per row
-            
-            group.contentInsets = NSDirectionalEdgeInsets(top: 8.0, leading: 8.0, bottom: 8.0, trailing: 8.0)
-            group.interItemSpacing = .fixed(padding) // Adjust spacing between items in a row
-            
-            // Create the section with the defined group
-            let section = NSCollectionLayoutSection(group: group)
-            
-            // Specify the section's orthogonal scrolling behavior (no horizontal scrolling in this case)
-            section.orthogonalScrollingBehavior = .none
-            
-            return section    }
+            coordinator.animate(alongsideTransition: { _ in
+                self.updateItemSize()  // Update the item size when the orientation changes
+            }, completion: nil)
+        }
     func setOriginalPrice(_ originalPrice: String?, for cell: CardCell) {
         guard let originalPrice = originalPrice else { return }
         
