@@ -73,7 +73,7 @@ class ScreenData {
                      equipmentTypePurpose: "Designed for use in flooded paddy fields.",
                      equipmentTypeBestFor: "Field area more than 4 acres.Construction",
                      equipmentTypeAverageCost: "$50,000",
-                     equipmentTypeNeeds: "Operator and Fuel.Field area more than 4 acres. Field area more than 4 acres.")
+                     equipmentTypeNeeds: "Operator, Fuel.Field area more than 4 ac. Field more than 4 acres.")
     ]
     
     // Section 2 - Data for Equipment Details (5 items for Section 2)

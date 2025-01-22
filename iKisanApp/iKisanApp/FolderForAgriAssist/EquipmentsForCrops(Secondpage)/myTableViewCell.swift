@@ -11,7 +11,8 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
 
     
     @IBOutlet weak var myCollectionView: UICollectionView!
-    
+    @IBOutlet weak var EquipmentTypeLabel: UILabel!
+   
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -31,6 +32,10 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
         self.layer.shadowRadius = 4
         self.layer.masksToBounds = false
         
+        EquipmentTypeLabel.text = eData.EquipmentsForCropsData[myIndex].equipments[0].title
+
+//        EquipmentTypeLabel.text = "harsh 1"
+        
     }
 
     
@@ -38,7 +43,16 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
     
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return eData[myCollectionView.tag].Equipmentsimage.count
+//        return eData[myCollectionView.tag].eData.EquipmentsForCropsData[myIndex].equipments[0].equipmentList[0].imageName.count
+//        return eData[myCollectionView.tag].EquipmentsForCropsData[myIndex].equipments[0].equipmentList[0].imageName.count
+//        return eData.EquipmentsForCropsData[myIndex].equipments[0].equipmentList[0].imageName.count
+        
+//        return eData.EquipmentsForCropsData[myIndex].equipments[1].equipmentList[0].imageName.count
+
+        // Function to count the number of equipment items with valid image names for "Rice"
+        4
+        
+        
     }
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         1
@@ -47,8 +61,8 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = myCollectionView.dequeueReusableCell(withReuseIdentifier: "collectionCell", for: indexPath) as! myCollectionViewCell
         
-        cell.myEquipmentImage.image = UIImage(named: eData[myCollectionView.tag].Equipmentsimage[indexPath.row])
-//        cell.myEquipmentsName.text =
+        cell.myEquipmentImage.image = UIImage(named: eqData[myCollectionView.tag].Equipmentsimage[indexPath.row])  //
+        cell.myEquipmentsName.text = eqData[myCollectionView.tag].EquipmentsName[indexPath.row]                    //
         
         cell.myEquipmentImage.layer.cornerRadius = cell.myEquipmentImage.frame.size.width / 2
         cell.myEquipmentImage.layer.masksToBounds = true

@@ -23,15 +23,15 @@ class SectionHeaderCollectionReusableView: UICollectionReusableView {
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
         button.translatesAutoresizingMaskIntoConstraints = false
         addSubview(headerLabel)
-        addSubview(button)
+//        addSubview(button)
         
         NSLayoutConstraint.activate([headerLabel.topAnchor.constraint(equalTo: topAnchor),
                                      headerLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
                                      headerLabel.leadingAnchor.constraint(equalTo: leadingAnchor,constant: 16),
                                     
-                                     button.topAnchor.constraint(equalTo: topAnchor),
-                                     button.bottomAnchor.constraint(equalTo: bottomAnchor),
-                                     button.leadingAnchor.constraint(equalTo: leadingAnchor,constant: 300),
+//                                     button.topAnchor.constraint(equalTo: topAnchor),
+//                                     button.bottomAnchor.constraint(equalTo: bottomAnchor),
+//                                     button.leadingAnchor.constraint(equalTo: leadingAnchor,constant: 300),
                                     ])
     }
 }

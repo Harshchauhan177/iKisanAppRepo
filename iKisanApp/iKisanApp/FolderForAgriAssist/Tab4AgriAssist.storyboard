@@ -17,29 +17,28 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Select Crop" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZWe-KQ-xo2">
-                                <rect key="frame" x="16" y="111" width="185" height="41"/>
+                                <rect key="frame" x="16" y="111.00000000000001" width="184.66666666666666" height="39.666666666666671"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="34"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <searchBar contentMode="redraw" placeholder="Select Crop" translatesAutoresizingMaskIntoConstraints="NO" id="EWY-Ca-xz7">
-                                <rect key="frame" x="0.0" y="153" width="393" height="56"/>
+                                <rect key="frame" x="0.0" y="151.66666666666666" width="393" height="56"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <color key="tintColor" red="0.63529413940000001" green="0.63137257099999999" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                <color key="barTintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <textInputTraits key="textInputTraits"/>
                                 <connections>
                                     <outlet property="delegate" destination="Y6W-OH-hqX" id="6Pk-kQ-9Hu"/>
                                 </connections>
                             </searchBar>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Crops categories" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VeT-zk-pPE">
-                                <rect key="frame" x="16" y="239" width="271" height="41"/>
+                                <rect key="frame" x="16" y="237.66666666666666" width="270.66666666666669" height="40.666666666666657"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="34"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="y4s-fN-kIk">
-                                <rect key="frame" x="0.0" y="290" width="393" height="528"/>
+                                <rect key="frame" x="0.0" y="288.33333333333331" width="393" height="529.66666666666674"/>
                                 <color key="backgroundColor" red="0.63529413940000001" green="0.63137257099999999" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="CropCell" id="pnF-Ct-Mq1" customClass="CropTableViewCell" customModule="iKisanApp" customModuleProvider="target">
@@ -57,8 +56,8 @@
                                                     </constraints>
                                                 </imageView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gxB-9G-8Rd">
-                                                    <rect key="frame" x="49" y="11.333333333333336" width="42" height="21"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <rect key="frame" x="49" y="11.666666666666666" width="41.333333333333343" height="20.333333333333336"/>
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
@@ -73,7 +72,6 @@
                                         <connections>
                                             <outlet property="cropImageView" destination="aiZ-eK-796" id="2h9-iS-mTa"/>
                                             <outlet property="cropNameLabel" destination="gxB-9G-8Rd" id="47J-2W-Uob"/>
-                                            <segue destination="ypj-rd-Ff8" kind="show" id="gt4-nS-v4n"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
@@ -104,6 +102,7 @@
                     <connections>
                         <outlet property="cropSearchBar" destination="EWY-Ca-xz7" id="VLR-Gj-ncn"/>
                         <outlet property="tableView" destination="y4s-fN-kIk" id="QHf-c2-kWa"/>
+                        <segue destination="ypj-rd-Ff8" kind="show" identifier="SelectCrops" id="lf1-Em-Fqe"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -144,13 +143,13 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Equipments for rice" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KyN-R4-OCr">
-                                <rect key="frame" x="20" y="203.66666666666666" width="191.66666666666666" height="25.333333333333343"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="21"/>
+                                <rect key="frame" x="20" y="203.66666666666666" width="232" height="33.666666666666657"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="211" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="AbA-SX-kvE">
-                                <rect key="frame" x="7" y="241" width="379" height="577"/>
+                                <rect key="frame" x="7" y="249.33333333333331" width="379" height="568.66666666666674"/>
                                 <color key="backgroundColor" red="0.63529413940000001" green="0.63137257099999999" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="cell" rowHeight="211" id="GWh-ke-N9Q" customClass="myTableViewCell" customModule="iKisanApp" customModuleProvider="target">
@@ -162,7 +161,7 @@
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Cultivators" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9U1-1e-GcA">
                                                     <rect key="frame" x="35" y="23" width="220" height="21"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
@@ -171,7 +170,7 @@
                                                     <subviews>
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="view All" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dfQ-Zv-Cnv">
                                                             <rect key="frame" x="0.0" y="0.0" width="58" height="34.333333333333336"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                            <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                             <nil key="textColor"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
@@ -202,7 +201,7 @@
                                                                 <rect key="frame" x="0.0" y="0.0" width="125" height="155"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                                 <subviews>
-                                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Image" translatesAutoresizingMaskIntoConstraints="NO" id="fMh-jK-QJY">
+                                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Image 2" translatesAutoresizingMaskIntoConstraints="NO" id="fMh-jK-QJY">
                                                                         <rect key="frame" x="18" y="8" width="90" height="90"/>
                                                                         <constraints>
                                                                             <constraint firstAttribute="width" constant="90" id="1d0-0F-AS4"/>
@@ -211,7 +210,7 @@
                                                                     </imageView>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Paddle Wheel" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4og-05-rG1">
                                                                         <rect key="frame" x="5" y="106" width="115" height="21"/>
-                                                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                                         <nil key="textColor"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
@@ -252,6 +251,7 @@
                                         </tableViewCellContentView>
                                         <color key="backgroundColor" red="0.63529413940000001" green="0.63137257099999999" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <connections>
+                                            <outlet property="EquipmentTypeLabel" destination="9U1-1e-GcA" id="sX1-k3-4wx"/>
                                             <outlet property="myCollectionView" destination="sC2-oA-sSd" id="8dj-UF-0Un"/>
                                         </connections>
                                     </tableViewCell>
@@ -277,6 +277,8 @@
                     </view>
                     <navigationItem key="navigationItem" id="KOj-xd-ssj"/>
                     <connections>
+                        <outlet property="EquipmentsForCropsLabel" destination="KyN-R4-OCr" id="ZaV-WK-RUG"/>
+                        <outlet property="cropNameLabel" destination="CcJ-ID-H05" id="zk4-ks-Jjj"/>
                         <outlet property="myTable" destination="AbA-SX-kvE" id="Nt4-SM-dI9"/>
                     </connections>
                 </viewController>
@@ -319,7 +321,7 @@
                                                 </imageView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Paddle Wheel" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WUS-Sc-5vk">
                                                     <rect key="frame" x="9" y="118" width="113" height="21"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
@@ -426,10 +428,11 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="M8X-4H-y2n"/>
+        <segue reference="QrW-yY-pOw"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="Image" width="313" height="205"/>
+        <image name="Image 2" width="244" height="144"/>
         <image name="chevron.right" catalog="system" width="97" height="128"/>
         <image name="lightbulb.max" catalog="system" width="121" height="128"/>
         <image name="lightbulb.min.fill" catalog="system" width="115" height="128"/>

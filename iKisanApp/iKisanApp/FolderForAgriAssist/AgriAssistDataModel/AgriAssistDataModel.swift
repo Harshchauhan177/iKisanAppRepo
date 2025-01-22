@@ -16,7 +16,7 @@ struct Crop {
 
 
 
-struct Equipment {
+struct Equipment1 {
     let id: UUID
     let name: String
     let type: String // Type of equipment (e.g., Cultivator, Harrow)

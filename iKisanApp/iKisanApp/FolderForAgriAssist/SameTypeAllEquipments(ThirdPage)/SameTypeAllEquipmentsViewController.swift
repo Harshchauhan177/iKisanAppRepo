@@ -29,7 +29,8 @@ class SameTypeAllEquipmentsViewController: UIViewController,UICollectionViewDele
     
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return Data.flatMap { $0.Equipmentsimage }.count
+//        return Data.flatMap { $0.Equipmentsimage }.count
+        5
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {

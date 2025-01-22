@@ -43,21 +43,21 @@
                     </imageView>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Purpose:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HzZ-VO-e8v">
                         <rect key="frame" x="19" y="273" width="74" height="21"/>
-                        <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GK7-f7-Obb">
-                        <rect key="frame" x="94" y="266" width="252" height="57"/>
+                        <rect key="frame" x="94" y="268" width="252" height="55"/>
                         <string key="text">Designed for use in flooded paddy fields.
 </string>
-                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleCallout"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Best for: " textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jjJ-Kl-Q4H">
                         <rect key="frame" x="19" y="325" width="75" height="21"/>
-                        <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
@@ -65,13 +65,13 @@
                         <rect key="frame" x="95" y="322" width="253" height="51"/>
                         <string key="text">Field area more than 4 acres.
 </string>
-                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleCallout"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Average cost :" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="w4G-ZH-Wvj">
                         <rect key="frame" x="19" y="381" width="117" height="21"/>
-                        <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
@@ -79,21 +79,19 @@
                         <rect key="frame" x="137" y="382" width="193" height="21"/>
                         <string key="text">₹1000/acer
 </string>
-                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleCallout"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Needs:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Uzb-j0-8hg">
                         <rect key="frame" x="19" y="423" width="58" height="21"/>
-                        <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
-                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WXw-K1-aAC">
-                        <rect key="frame" x="78" y="425" width="270" height="62"/>
-                        <string key="text">For operating this …read more   Designed for use in flooded paddy fields.
-</string>
-                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="For operating this …  Designed for use in flooded paddy fields.Field area " lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WXw-K1-aAC">
+                        <rect key="frame" x="80" y="421" width="270" height="40.333333333333314"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleCallout"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
@@ -106,12 +104,13 @@
                 <constraint firstItem="w4G-ZH-Wvj" firstAttribute="top" secondItem="IGj-WX-huI" secondAttribute="bottom" constant="8" symbolic="YES" id="1iU-k7-jqB"/>
                 <constraint firstItem="Uzb-j0-8hg" firstAttribute="top" secondItem="w4G-ZH-Wvj" secondAttribute="bottom" constant="21" id="27E-TU-Gvd"/>
                 <constraint firstAttribute="bottom" secondItem="wX0-Op-GEE" secondAttribute="bottom" constant="447" id="5DT-b7-3Dx"/>
+                <constraint firstAttribute="trailing" secondItem="WXw-K1-aAC" secondAttribute="trailing" constant="11" id="6hM-FD-n3V"/>
                 <constraint firstAttribute="bottom" secondItem="AGj-Q9-oeC" secondAttribute="bottom" constant="459" id="B5D-5U-3hf"/>
                 <constraint firstAttribute="trailing" secondItem="Ti7-fj-5cY" secondAttribute="trailing" constant="120" id="BD7-Ic-Q4O"/>
                 <constraint firstAttribute="trailing" secondItem="IGj-WX-huI" secondAttribute="trailing" constant="13" id="BeU-Gy-krs"/>
                 <constraint firstAttribute="bottom" secondItem="uDW-y8-m9e" secondAttribute="bottom" constant="97" id="Bra-au-oBa"/>
                 <constraint firstItem="bTD-v6-cri" firstAttribute="top" secondItem="wX0-Op-GEE" secondAttribute="bottom" constant="30" id="Cwg-fa-Wk4"/>
-                <constraint firstItem="GK7-f7-Obb" firstAttribute="top" secondItem="bTD-v6-cri" secondAttribute="bottom" constant="18" id="F3e-c2-m6E"/>
+                <constraint firstItem="GK7-f7-Obb" firstAttribute="top" secondItem="bTD-v6-cri" secondAttribute="bottom" constant="20" id="F3e-c2-m6E"/>
                 <constraint firstItem="Ti7-fj-5cY" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="19" id="GPK-JM-Qrg"/>
                 <constraint firstItem="uDW-y8-m9e" firstAttribute="leading" secondItem="w4G-ZH-Wvj" secondAttribute="trailing" constant="1" id="Grh-my-Jp9"/>
                 <constraint firstAttribute="bottom" secondItem="Uzb-j0-8hg" secondAttribute="bottom" constant="56" id="HCt-dF-Piq"/>
@@ -122,10 +121,7 @@
                 <constraint firstAttribute="bottom" secondItem="IGj-WX-huI" secondAttribute="bottom" constant="127" id="PK8-Yg-B70"/>
                 <constraint firstItem="AGj-Q9-oeC" firstAttribute="leading" secondItem="wX0-Op-GEE" secondAttribute="trailing" constant="2" id="Ryj-yN-AOm"/>
                 <constraint firstItem="IGj-WX-huI" firstAttribute="top" secondItem="bTD-v6-cri" secondAttribute="bottom" constant="74" id="TNK-Gs-POR"/>
-                <constraint firstItem="WXw-K1-aAC" firstAttribute="leading" secondItem="Uzb-j0-8hg" secondAttribute="trailing" constant="1" id="TPb-6t-7o3"/>
                 <constraint firstItem="uDW-y8-m9e" firstAttribute="top" secondItem="IGj-WX-huI" secondAttribute="bottom" constant="9" id="UJ6-aC-Gnq"/>
-                <constraint firstAttribute="trailing" secondItem="WXw-K1-aAC" secondAttribute="trailing" constant="13" id="VbB-FP-iab"/>
-                <constraint firstAttribute="bottom" secondItem="WXw-K1-aAC" secondAttribute="bottom" constant="13" id="Y5w-oK-4kg"/>
                 <constraint firstItem="Ti7-fj-5cY" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" constant="19" id="YWv-uR-t7d"/>
                 <constraint firstItem="jjJ-Kl-Q4H" firstAttribute="top" secondItem="HzZ-VO-e8v" secondAttribute="bottom" constant="31" id="Zl3-BY-YWZ"/>
                 <constraint firstItem="wX0-Op-GEE" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" constant="8" id="bgP-Ct-RkL"/>
@@ -137,8 +133,8 @@
                 <constraint firstAttribute="trailing" secondItem="Uzb-j0-8hg" secondAttribute="trailing" constant="284" id="ffU-99-Bdu"/>
                 <constraint firstItem="IGj-WX-huI" firstAttribute="leading" secondItem="jjJ-Kl-Q4H" secondAttribute="trailing" constant="1" id="gHM-6x-jSQ"/>
                 <constraint firstAttribute="bottom" secondItem="jjJ-Kl-Q4H" secondAttribute="bottom" constant="154" id="gK8-Sb-Vtv"/>
-                <constraint firstItem="WXw-K1-aAC" firstAttribute="top" secondItem="uDW-y8-m9e" secondAttribute="bottom" constant="22" id="gYL-Vh-Efk"/>
                 <constraint firstAttribute="trailing" secondItem="AGj-Q9-oeC" secondAttribute="trailing" constant="14" id="ghv-1L-4jc"/>
+                <constraint firstItem="WXw-K1-aAC" firstAttribute="leading" secondItem="Uzb-j0-8hg" secondAttribute="trailing" constant="3" id="gu9-V5-pwx"/>
                 <constraint firstItem="bTD-v6-cri" firstAttribute="centerX" secondItem="gTV-IL-0wX" secondAttribute="centerX" id="h8N-fP-yAC"/>
                 <constraint firstItem="wX0-Op-GEE" firstAttribute="leading" secondItem="Ti7-fj-5cY" secondAttribute="trailing" constant="19" id="hKU-Se-beW"/>
                 <constraint firstItem="GK7-f7-Obb" firstAttribute="leading" secondItem="HzZ-VO-e8v" secondAttribute="trailing" constant="1" id="i4k-2H-twD"/>
@@ -149,6 +145,7 @@
                 <constraint firstAttribute="bottom" secondItem="w4G-ZH-Wvj" secondAttribute="bottom" constant="98" id="w8D-ew-GCr"/>
                 <constraint firstAttribute="bottom" secondItem="HzZ-VO-e8v" secondAttribute="bottom" constant="206" id="wya-7a-6Ht"/>
                 <constraint firstAttribute="bottom" secondItem="GK7-f7-Obb" secondAttribute="bottom" constant="177" id="x15-Rz-KV0"/>
+                <constraint firstItem="WXw-K1-aAC" firstAttribute="top" secondItem="uDW-y8-m9e" secondAttribute="bottom" constant="18" id="zXu-IR-DtI"/>
             </constraints>
             <connections>
                 <outlet property="equipmentTypeAverageCostLabel" destination="uDW-y8-m9e" id="XK8-xA-ffZ"/>

@@ -8,29 +8,40 @@
 import UIKit
 
 
-var eData = [
+var eqData = [
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 3","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"])
-    
 ]
+
+
+
 
 class EquipmentsForCropsViewController: UIViewController,UITableViewDelegate,UITableViewDataSource {
 
     @IBOutlet weak var myTable: UITableView!
+    @IBOutlet weak var EquipmentsForCropsLabel: UILabel!
+    @IBOutlet weak var cropNameLabel: UILabel!
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        
+        cropNameLabel.text = eData.EquipmentsForCropsData[myIndex].cropName
+        EquipmentsForCropsLabel.text = eData.EquipmentsForCropsData[myIndex].EquipmentsForCrops
+        
         // Do any additional setup after loading the view.
     }
     
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return eData.count
+//        return eData.EquipmentsForCropsData.count
+        5
     }
     
 //    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
