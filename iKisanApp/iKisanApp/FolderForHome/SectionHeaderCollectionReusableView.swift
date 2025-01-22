@@ -12,7 +12,7 @@ class SectionHeaderCollectionReusableView: UICollectionReusableView {
     
     
     var headerLabel = UILabel()
-    //var button = UIButton(type: .system)
+  var button = UIButton(type: .system)
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -26,10 +26,11 @@ class SectionHeaderCollectionReusableView: UICollectionReusableView {
     
     func updateSectionHeader() {
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
-        //button.translatesAutoresizingMaskIntoConstraints = false
-    
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.tintColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+
         addSubview(headerLabel)
-       // addSubview(button)
+        addSubview(button)
         
         
         NSLayoutConstraint.activate([
@@ -38,10 +39,11 @@ class SectionHeaderCollectionReusableView: UICollectionReusableView {
             headerLabel.leadingAnchor.constraint(equalTo: leadingAnchor,constant: 16),
             headerLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
             
-//            button.topAnchor.constraint(equalTo: topAnchor),
-//            button.bottomAnchor.constraint(equalTo: bottomAnchor),
-//            button.trailingAnchor.constraint(equalTo: trailingAnchor),
-//            button.leadingAnchor.constraint(equalTo: leadingAnchor,constant : 300)
+       
+            button.topAnchor.constraint(equalTo: topAnchor),
+            button.bottomAnchor.constraint(equalTo: bottomAnchor),
+            button.trailingAnchor.constraint(equalTo: trailingAnchor),
+            button.leadingAnchor.constraint(equalTo: leadingAnchor,constant : 300)
         ])
     }
         

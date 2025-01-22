@@ -9,12 +9,15 @@ import UIKit
 
 class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     
+    var hasUpcomingBookings: Bool = false
+    
     @IBOutlet var collectionView: UICollectionView!
     
     var selectedIndexPath: IndexPath?
     override func viewDidLoad() {
         super.viewDidLoad()
         
+       
         
         let searchController = UISearchController()
         navigationItem.searchController = searchController
@@ -28,6 +31,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         
         // Registering Nibs for cells
         let discountsNib = UINib(nibName: "DiscountsCell", bundle: nil)
+        let upcomingBookingsNib = UINib(nibName: "UpcomingBookingsCollectionViewCell", bundle: nil)
+        collectionView.register(upcomingBookingsNib, forCellWithReuseIdentifier: "UpcomingBookingsCollectionViewCell")
         let suggestionNib = UINib(nibName: "SuggestionCell", bundle: nil)
         let exploreMoreNib = UINib(nibName: "ExploreMoreCell", bundle: nil)
         
@@ -51,7 +56,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 3 // Discounts, Suggestion, Explore More
+       
+        return 4
+        //hasUpcomingBookings ? 4 : 3
+        //return 3 // Discounts, Suggestion, Explore More
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -61,9 +69,15 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             return 6
             // Example: Discounts data count
         case 1:
-            return 3 // Example: Suggestion has 3 cards
+            return hasUpcomingBookings ? 3 : 0
+            //return 3 // Example: Suggestion has 3 cards
         case 2:
-            return 4// Example: Explore More data count
+            return  4// Number of Explore More items
+            //return 4// Example: Explore More data count
+            
+            //for additional view
+        case 3:
+            return 4
         default:
             return 0
         }
@@ -76,16 +90,27 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             cell.layer.cornerRadius = 10
             cell.updateDiscountsData(with: indexPath)
             return cell
+            
         case 1:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "UpcomingBookingsCollectionViewCell", for: indexPath) as! UpcomingBookingsCollectionViewCell
+                    cell.layer.cornerRadius = 13
+                    cell.updateUpcomingBookingsData(with: indexPath)
+                    return cell
+           
+        case 2:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SuggestionCell", for: indexPath) as! SuggestionCollectionViewCell
             cell.layer.cornerRadius = 13
             cell.updateSuggestionData(with: indexPath)
             return cell
-        case 2:
+           
+            
+        case 3:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ExploreMoreCell", for: indexPath) as! ExploreMoreCollectionViewCell
             cell.layer.cornerRadius = 13
             cell.updateExploreMoreData(with: indexPath)
             return cell
+           
+
         default:
             return UICollectionViewCell()
         }
@@ -99,11 +124,19 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             case 0:
                 section = self.generateDiscountSection()
             case 1:
-                section = self.generateSuggestionSection()
+                section = self.generateUpcomingBookingsSection()
             case 2:
+                section = self.generateSuggestionSection()
+            case 3:
                 section = self.generateExploreMoreSection()
             default:
                 section = self.generateDiscountSection()
+//            case 1:
+//                section = self.generateSuggestionSection()
+//            case 2:
+//                section = self.generateExploreMoreSection()
+//            default:
+//                section = self.generateDiscountSection()
             }
             
             let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(44))
@@ -133,6 +166,17 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         section.orthogonalScrollingBehavior = .continuous
         return section
     }
+    func generateUpcomingBookingsSection() -> NSCollectionLayoutSection {
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.9), heightDimension: .absolute(115))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0)
+        let section = NSCollectionLayoutSection(group: group)
+        section.orthogonalScrollingBehavior = .groupPagingCentered
+        return section
+    }
+    
 
     func generateSuggestionSection() -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
@@ -173,9 +217,18 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                 header.headerLabel.text = "Discounts"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
             case 1:
+                header.headerLabel.text =  hasUpcomingBookings ? "Upcoming Bookings" : ""
+                header.button.setTitle(hasUpcomingBookings ? "View All" : "", for: .normal)
+                header.button.addTarget(self, action: #selector(sectionButtonTapped(_:)), for: .touchUpInside)
+                //"Upcoming Bookings"
+                
+//                header.headerLabel.text = "Suggestion"
+                header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+                
+            case 2:
                 header.headerLabel.text = "Suggestion"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-            case 2:
+            case 3:
                 header.headerLabel.text = "Explore More"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
             default:
@@ -225,6 +278,17 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
        
     }
+    func userDidMakeBooking() {
+        hasUpcomingBookings = true
+        collectionView.reloadData()
+    }
     
+    @objc func sectionButtonTapped( _ sender: UIButton){
+        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+        let viewController = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingsListViewController") as!
+        UpcomingBookingsListViewController
+        //viewController.sectionNumber = sender.tag
+       navigationController?.pushViewController(viewController, animated: true)
+    }
     
 }

@@ -17,6 +17,9 @@ class DiscountsCollectionViewCell: UICollectionViewCell {
     @IBOutlet var realPrice: UILabel!
     @IBOutlet var rating: UILabel!
     
+    @IBOutlet var faderView: UIView!
+    
+    
     
     func updateDiscountsData(with indexPath: IndexPath) {
         equipmentImage.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
@@ -24,10 +27,9 @@ class DiscountsCollectionViewCell: UICollectionViewCell {
         discountedPrice.text = "\(EquipmentData.equipment[indexPath.row].pricePerHour)"
         rating.text = "⭐️\(EquipmentData.equipment[indexPath.row].rating)"
    
+        //faderView.backgroundColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 0.3)
         
-        
-//        countryFlagImageView.image = UIImage(named: ScreenData.section1Data[indexPath.row].countryFlagImageName)
-//        countryFlagImageView.layer.cornerRadius = 7
+
     }
     
     

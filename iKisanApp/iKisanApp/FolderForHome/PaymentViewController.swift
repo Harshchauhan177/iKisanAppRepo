@@ -35,12 +35,15 @@ class PaymentViewController: UIViewController {
     private func navigateToHomeScreen() {
         // Dismiss PaymentViewController if it was presented modally
         dismiss(animated: true) {
-            // Replace the navigation stack with HomeViewController
+        //     Replace the navigation stack with HomeViewController
             let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
             if let homeViewController = storyboard.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController {
                 homeViewController.modalPresentationStyle = .fullScreen
+               homeViewController.hasUpcomingBookings = true
                 UIApplication.shared.windows.first?.rootViewController = UINavigationController(rootViewController: homeViewController)
             }
+
+            
         }
     }
     
