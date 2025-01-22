@@ -1,9 +1,4 @@
-//
-//  CreateRequestViewController.swift
-//  iKisanApp
-//
-//  Created by chandan kumar on 21/01/25.
-//
+
 
 import UIKit
 
@@ -86,6 +81,7 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             cell.hostLabel.text = "Hosted by \(card.host)"
             cell.ratingLabel.text = "\(card.rating)"
             setOriginalPrice(card.oldPrice, for: cell)
+            cell.layer.cornerRadius=10
             return cell
             
         }
@@ -114,37 +110,28 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         }
     func generateSectionForCards() -> NSCollectionLayoutSection {
         let numberOfColumns: CGFloat = 2
-        let padding: CGFloat = 10 // Adjust space between items
+        let padding: CGFloat = 10
         let totalSpacing = (numberOfColumns + 1) * padding
         let itemWidth = (cardCollectionView.frame.size.width - totalSpacing) / numberOfColumns
         
         let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(itemWidth), heightDimension: .absolute(172))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        
-        // Define the group size for the two-column layout
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(172))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, item]) // Two items per row
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, item])
         
         group.contentInsets = NSDirectionalEdgeInsets(top: 8.0, leading: 8.0, bottom: 8.0, trailing: 8.0)
-        group.interItemSpacing = .fixed(padding) // Adjust spacing between items in a row
-        
-        // Create the section with the defined group
+        group.interItemSpacing = .fixed(padding)
         let section = NSCollectionLayoutSection(group: group)
-        
-        // Specify the section's orthogonal scrolling behavior (no horizontal scrolling in this case)
         section.orthogonalScrollingBehavior = .none
         
         return section
     }
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
             super.viewWillTransition(to: size, with: coordinator)
-            
-            // Recalculate the number of columns based on the new width
             let isLandscape = size.width > size.height
-            numberOfColumns = isLandscape ? 3 : 2  // Adjust to 3 columns for landscape, 2 for portrait
-            
+            numberOfColumns = isLandscape ? 3 : 2
             coordinator.animate(alongsideTransition: { _ in
-                self.updateItemSize()  // Update the item size when the orientation changes
+                self.updateItemSize()
             }, completion: nil)
         }
     func setOriginalPrice(_ originalPrice: String?, for cell: CardCell) {

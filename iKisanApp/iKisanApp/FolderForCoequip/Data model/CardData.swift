@@ -16,3 +16,13 @@ struct CardData{
     let host: String
     let imageName: UIImage
 }
+
+class Person {
+    var name: String
+    var image: UIImage?
+    
+    init(name: String, image: UIImage?) {
+        self.name = name
+        self.image = image
+    }
+}

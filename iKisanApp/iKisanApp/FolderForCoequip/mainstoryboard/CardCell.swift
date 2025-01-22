@@ -25,8 +25,8 @@ class CardCell: UICollectionViewCell {
     override func awakeFromNib() {
             super.awakeFromNib()
             
-        ImageView.contentMode = .scaleAspectFill // To properly fit image
-                TitleLabel.numberOfLines = 2 // Ensure title doesn't overflow
+        ImageView.contentMode = .scaleAspectFill
+                TitleLabel.numberOfLines = 2 
                 PriceLabel.numberOfLines = 1
                 hostLabel.numberOfLines = 1
                 ratingLabel.numberOfLines = 1
