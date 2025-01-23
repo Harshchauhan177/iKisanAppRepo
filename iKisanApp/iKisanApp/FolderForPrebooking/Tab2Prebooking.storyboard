@@ -47,7 +47,16 @@
                             <constraint firstItem="vDu-zF-Fre" firstAttribute="trailing" secondItem="qUG-Sl-ltk" secondAttribute="trailing" id="hGV-co-IVA"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Pre Booking" id="tJS-h9-xc2"/>
+                    <navigationItem key="navigationItem" title="Pre Booking" id="tJS-h9-xc2">
+                        <barButtonItem key="rightBarButtonItem" style="plain" id="a2W-Y2-Ckx">
+                            <button key="customView" opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" id="sip-v2-YGd">
+                                <rect key="frame" x="-37" y="-17" width="87" height="33"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Button"/>
+                            </button>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="collectionView" destination="qUG-Sl-ltk" id="cul-h6-gB0"/>
                     </connections>

@@ -7,20 +7,31 @@
 
 import UIKit
 
-class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICollectionViewDelegate  {
+class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICollectionViewDelegate {
+    
+    var hasAddPreBook : Bool = false  //
     
     @IBOutlet weak var collectionView: UICollectionView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        let searchController = UISearchController()
+        navigationItem.searchController = searchController
+        searchController.obscuresBackgroundDuringPresentation = false
+//        navigationItem.hidesSearchBarWhenScrolling = false
+        
         let firstNib = UINib(nibName: "preBookingEquipmentSection1CollectionViewCell", bundle: nil)
         let secondNib = UINib(nibName: "preBookingEquipmentSection2CollectionViewCell", bundle: nil)
         let thirdNib = UINib(nibName: "preBookingEquipmentSection3CollectionViewCell", bundle: nil)
         let fourthNib = UINib(nibName: "preBookingEquipmentSection4CollectionViewCell", bundle: nil)
+        let fifthNib = UINib(nibName: "preBookingEquipmentSectionAddPreBookCollectionViewCell", bundle: nil)
         collectionView.register(firstNib, forCellWithReuseIdentifier: "First")
         collectionView.register(secondNib, forCellWithReuseIdentifier: "Second")
         collectionView.register(thirdNib, forCellWithReuseIdentifier: "Third")
         collectionView.register(fourthNib, forCellWithReuseIdentifier: "Fourth")
+        collectionView.register(fifthNib, forCellWithReuseIdentifier: "Fifth")
 
         collectionView.register(PreBookingSectionHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "PreBookingSectionHeader")
         collectionView.setCollectionViewLayout(generateLayout(), animated: true)
@@ -40,9 +51,11 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         case 1:
             1
         case 2:
-            PreBookingScreenData.preBookingSection3Data.count
+            PreBookingScreenData.preBookingSection3Data.count 
         case 3:
             3
+        case 4:
+            2
         default:
             0
         }
@@ -63,11 +76,18 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         case 2:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Third", for: indexPath) as! preBookingEquipmentSection3CollectionViewCell
             cell.updatePreBookingSection3Data(with: indexPath)
+            cell.equipmentImageView.layer.cornerRadius = 7
             cell.layer.cornerRadius = 12
             return cell
         case 3:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Fourth", for: indexPath) as! preBookingEquipmentSection4CollectionViewCell
             cell.updatePreBookingSection4Data(with: indexPath)
+            cell.layer.cornerRadius = 12
+            return cell
+        case 4:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Fifth", for: indexPath) as! preBookingEquipmentSectionAddPreBookCollectionViewCell
+//            cell.updatePreBookingSection4Data(with: indexPath)
+            cell.equipmentImageView.layer.cornerRadius = 7
             cell.layer.cornerRadius = 12
             return cell
         default:
@@ -92,6 +112,8 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
                     section = self.generatePreBookingSection3Layout()
                 case 3:
                     section = self.generatePreBookingSection4Layout()
+                case 4:
+                    section = self.generatePreBookingSectionAddPreBookLayout()
                 default:
                     print("wrong section")
                     return self.generatePreBookingSection1Layout()
@@ -149,8 +171,8 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     func generatePreBookingSection3Layout() -> NSCollectionLayoutSection {
             let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92), heightDimension: .absolute(500))
-            let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitem: item, count: 4)
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92), heightDimension: .absolute(560))
+            let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitem: item, count: 5)
             group.interItemSpacing = .fixed(10.0)
             group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
             let section = NSCollectionLayoutSection(group: group)
@@ -170,6 +192,17 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             return section
         }
     
+    func generatePreBookingSectionAddPreBookLayout() -> NSCollectionLayoutSection {
+            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92), heightDimension: .absolute(210))
+            let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitem: item, count: 2)
+            group.interItemSpacing = .fixed(10.0)
+            group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+            let section = NSCollectionLayoutSection(group: group)
+            section.orthogonalScrollingBehavior = .groupPagingCentered
+            return section
+        }
     
     
     

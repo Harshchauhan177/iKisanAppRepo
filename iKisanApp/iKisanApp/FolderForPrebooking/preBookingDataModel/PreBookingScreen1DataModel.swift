@@ -47,7 +47,8 @@ class PreBookingScreenData {
         
         PreBookingSection3Data(equipmentName: "Welding Machine", equipmentImage: "Image 8", equipmentDate: "2021-02-25", equipmentStatus: "Confirmed"),
         
-        PreBookingSection3Data(equipmentName: "Concrete Mixer", equipmentImage: "Image 6", equipmentDate: "2020-03-01", equipmentStatus: "Pending")
+        PreBookingSection3Data(equipmentName: "Concrete Mixer", equipmentImage: "Image 6", equipmentDate: "2020-03-01", equipmentStatus: "Pending"),
+        PreBookingSection3Data(equipmentName: "Hammer Drill", equipmentImage: "Image 7", equipmentDate: "2019-02-15", equipmentStatus: "Confirmed")
     ]
     
     
@@ -64,7 +65,8 @@ class PreBookingScreenData {
         "Recommended for You ",
         "Calendar",
         "Your Prebookings",
-        "Need Help?"
+        "Need Help?",
+        "added prebooking"
     ]
 }
 

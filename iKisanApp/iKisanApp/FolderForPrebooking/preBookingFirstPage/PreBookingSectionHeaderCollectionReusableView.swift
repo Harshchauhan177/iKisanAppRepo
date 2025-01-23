@@ -36,6 +36,4 @@ class PreBookingSectionHeaderCollectionReusableView: UICollectionReusableView {
                                     ])
     }
     
-    
-    
 }
