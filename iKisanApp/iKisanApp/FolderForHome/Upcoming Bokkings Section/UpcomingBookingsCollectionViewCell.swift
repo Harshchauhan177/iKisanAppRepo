@@ -7,6 +7,10 @@
 
 import UIKit
 
+protocol UpcomingBookingsCollectionViewCellDelegate: AnyObject {
+    func didTapViewButton(on cell: UpcomingBookingsCollectionViewCell)
+}
+
 class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
 
     
@@ -22,6 +26,8 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
     @IBOutlet var imageView: UIImageView!
     
     @IBOutlet var coEquipedOrNotLabel: UILabel!
+    
+    weak var delegate: UpcomingBookingsCollectionViewCellDelegate?
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
@@ -30,7 +36,7 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
     func updateUpcomingBookingsData(with indexPath: IndexPath) {
         imageView.image = UIImage(named: "4.jpeg")//UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
         imageView.layer.cornerRadius = 7
-        equipmentNameLabel.text = "Hello"//EquipmentData.equipment[indexPath.row].name
+        equipmentNameLabel.text = "Rice Equipment"//EquipmentData.equipment[indexPath.row].name
         bookingDateLabel.text = "Wed, 25 Dec Afternoon"
         bookingStatusLabel.text = "Confirmed"
         coEquipedOrNotLabel.text = "Co-Equiped"
@@ -42,6 +48,14 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
     
     
     @IBAction func viewButtonTapped(_ sender: Any) {
+        delegate?.didTapViewButton(on: self)
+        
+//        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+//        let viewController = storyboard.instantiateViewController(withIdentifier: " BookingDetailsViewController") as!
+//        BookingDetailsViewController
+//        //viewController.sectionNumber = sender.tag
+//       navigationController?.pushViewController(viewController, animated: true)
+   
     }
     
 }

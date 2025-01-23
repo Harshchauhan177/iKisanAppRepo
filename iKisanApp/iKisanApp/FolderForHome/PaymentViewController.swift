@@ -36,13 +36,29 @@ class PaymentViewController: UIViewController {
         // Dismiss PaymentViewController if it was presented modally
         dismiss(animated: true) {
         //     Replace the navigation stack with HomeViewController
-            let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-            if let homeViewController = storyboard.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController {
-                homeViewController.modalPresentationStyle = .fullScreen
-               homeViewController.hasUpcomingBookings = true
-                UIApplication.shared.windows.first?.rootViewController = UINavigationController(rootViewController: homeViewController)
+            
+            if let tabBarController = UIApplication.shared.windows.first?.rootViewController as? UITabBarController {
+                // Ensure we're in the correct tab (e.g., index 0 for "Home")
+                tabBarController.selectedIndex = 0
+                
+                // Access the NavigationController within the TabBarController
+                if let navigationController = tabBarController.viewControllers?.first as? UINavigationController {
+                    let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+                    if let homeViewController = storyboard.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController {
+                        homeViewController.hasUpcomingBookings = true
+                        
+                        // Replace or push to the HomeViewController
+                        navigationController.setViewControllers([homeViewController], animated: true)
+                    }
+                }
+                
+                //            let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+                //            if let homeViewController = storyboard.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController {
+                //                homeViewController.modalPresentationStyle = .fullScreen
+                //               homeViewController.hasUpcomingBookings = true
+                //               UIApplication.shared.windows.first?.rootViewController = UINavigationController(rootViewController: homeViewController)
+                //            }
             }
-
             
         }
     }

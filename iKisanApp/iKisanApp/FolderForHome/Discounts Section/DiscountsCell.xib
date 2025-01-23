@@ -20,6 +20,13 @@
                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="K0H-yb-MG5">
                         <rect key="frame" x="0.0" y="0.0" width="130" height="116"/>
                     </imageView>
+                    <view alpha="0.80000000000000004" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6ev-Te-9jG">
+                        <rect key="frame" x="0.0" y="82" width="130" height="34"/>
+                        <color key="backgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="34" id="VU6-oy-OZ2"/>
+                        </constraints>
+                    </view>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Equipment Name" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="XmD-9n-fqB">
                         <rect key="frame" x="7" y="81.666666666666671" width="102.66666666666667" height="14.333333333333329"/>
                         <fontDescription key="fontDescription" type="boldSystem" pointSize="12"/>
@@ -51,14 +58,17 @@
                     </stackView>
                 </subviews>
                 <constraints>
+                    <constraint firstItem="6ev-Te-9jG" firstAttribute="leading" secondItem="Zki-TS-2bS" secondAttribute="leading" id="1yd-6n-clS"/>
                     <constraint firstItem="K0H-yb-MG5" firstAttribute="leading" secondItem="Zki-TS-2bS" secondAttribute="leading" id="2n5-E0-jgR"/>
                     <constraint firstItem="K0H-yb-MG5" firstAttribute="top" secondItem="Zki-TS-2bS" secondAttribute="top" id="6IB-nn-WNu"/>
                     <constraint firstAttribute="trailing" secondItem="K0H-yb-MG5" secondAttribute="trailing" id="7Zg-qV-pvH"/>
+                    <constraint firstAttribute="trailing" secondItem="6ev-Te-9jG" secondAttribute="trailing" id="REy-k9-Pfk"/>
                     <constraint firstAttribute="bottom" secondItem="jS1-KA-v2H" secondAttribute="bottom" constant="4" id="a3G-HK-TPe"/>
                     <constraint firstAttribute="trailing" secondItem="jS1-KA-v2H" secondAttribute="trailing" constant="7" id="awA-zi-brp"/>
                     <constraint firstItem="XmD-9n-fqB" firstAttribute="leading" secondItem="Zki-TS-2bS" secondAttribute="leading" constant="7" id="boS-3c-uUK"/>
                     <constraint firstItem="jS1-KA-v2H" firstAttribute="top" secondItem="XmD-9n-fqB" secondAttribute="bottom" constant="4" id="jRh-3R-uac"/>
                     <constraint firstAttribute="bottom" secondItem="K0H-yb-MG5" secondAttribute="bottom" id="ppy-w2-LHH"/>
+                    <constraint firstAttribute="bottom" secondItem="6ev-Te-9jG" secondAttribute="bottom" id="qeB-cM-dH7"/>
                     <constraint firstItem="jS1-KA-v2H" firstAttribute="leading" secondItem="Zki-TS-2bS" secondAttribute="leading" constant="7" id="u1s-TQ-70o"/>
                 </constraints>
             </collectionViewCellContentView>
@@ -75,7 +85,7 @@
     </objects>
     <resources>
         <systemColor name="systemOrangeColor">
-            <color red="1" green="0.58431372550000005" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.58431372549019611" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

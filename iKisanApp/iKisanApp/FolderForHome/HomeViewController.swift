@@ -7,7 +7,9 @@
 
 import UIKit
 
-class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UpcomingBookingsCollectionViewCellDelegate {
+   
+    
     
     var hasUpcomingBookings: Bool = false
     
@@ -94,6 +96,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 1:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "UpcomingBookingsCollectionViewCell", for: indexPath) as! UpcomingBookingsCollectionViewCell
                     cell.layer.cornerRadius = 13
+            cell.delegate = self
                     cell.updateUpcomingBookingsData(with: indexPath)
                     return cell
            
@@ -289,6 +292,24 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         UpcomingBookingsListViewController
         //viewController.sectionNumber = sender.tag
        navigationController?.pushViewController(viewController, animated: true)
+    }
+    override func unwind(for unwindSegue: UIStoryboardSegue, towards subsequentVC: UIViewController) {
+        
+    }
+    
+    func didTapViewButton(on cell: UpcomingBookingsCollectionViewCell) {
+        // Get the indexPath of the cell
+        if let indexPath = collectionView.indexPath(for: cell) {
+            print("View button tapped on cell at index: \(indexPath.row)")
+        }
+        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+        if let viewController = storyboard.instantiateViewController(withIdentifier: "BookingDetailsViewController") as? BookingDetailsViewController {
+            //viewController.modalTransitionStyle = .crossDissolve
+            viewController.modalPresentationStyle = .fullScreen // Optional: Set presentation style
+            //present(viewController, animated: true, completion: nil)
+            navigationController?.pushViewController(viewController, animated: true)
+        }
+        
     }
     
 }

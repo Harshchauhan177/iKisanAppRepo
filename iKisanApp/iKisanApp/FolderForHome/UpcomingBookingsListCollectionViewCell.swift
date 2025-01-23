@@ -7,6 +7,10 @@
 
 import UIKit
 
+protocol UpcomingBookingsListCellDelegate: AnyObject {
+    func didTapViewButton(on cell: UpcomingBookingsListCollectionViewCell)
+}
+
 class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
     
     @IBOutlet var imageView: UIImageView!
@@ -18,8 +22,12 @@ class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
     @IBOutlet var bokkingStatusLabel: UILabel!
     
     
+    //
+    weak var delegate: UpcomingBookingsListCellDelegate?
+    
+    
     func updateCellData(with indexPath:IndexPath) {
-        equipmentNameLabel.text = "hello"
+        equipmentNameLabel.text = "Rice Equipment"
         imageView.layer.cornerRadius = 7
     }
     
@@ -35,7 +43,7 @@ class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
     }
     
     func updateCellUI () {
-        self.layer.cornerRadius = 5
+        self.layer.cornerRadius = 10
         self.backgroundColor = .white
         
     
@@ -47,6 +55,8 @@ class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
     
     
     @IBAction func viewButtonTapped(_ sender: Any) {
-    }
+        delegate?.didTapViewButton(on: self)
+   
+ }
     
 }
