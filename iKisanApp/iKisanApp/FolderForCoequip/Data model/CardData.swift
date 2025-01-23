@@ -26,3 +26,9 @@ class Person {
         self.image = image
     }
 }
+struct PersonList {
+    var name: String
+    var image: UIImage
+    var isSelected: Bool // Add a boolean to track selection state
+}
+

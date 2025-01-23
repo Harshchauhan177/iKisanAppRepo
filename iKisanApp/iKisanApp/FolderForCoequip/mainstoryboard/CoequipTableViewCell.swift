@@ -2,7 +2,7 @@
 //  CoequipTableViewCell.swift
 //  iKisanApp
 //
-//  Created by Batch - 1 on 22/01/25.
+//  Created by chandan kumar on 22/01/25.
 //
 
 import UIKit
@@ -18,30 +18,31 @@ class CoequipTableViewCell: UITableViewCell {
     
     @IBOutlet weak var DateLabel: UILabel!
     
-    
-    @IBOutlet weak var pendingButton: UIButton?
-    
-    
-    @IBOutlet weak var confirmButton: UIButton?
+    @IBOutlet weak var PendingButtonTapped: UIButton!
     
     
+    @IBOutlet weak var ConfirmButtomTapped: UIButton!
     override func awakeFromNib() {
         super.awakeFromNib()
-        confirmButton?.isHidden = true
+        // Initialization code
+        ConfirmButtomTapped.isHidden = true
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
 
-        
+        // Configure the view for the selected state
     }
-
+    
     @IBAction func PendingButtonTapped(_ sender: Any) {
         print("pending button tapped")
     }
     
-    @IBAction func confirmButtomTapped(_ sender: Any) {
-        print("Confirm buttom tapped")
+    
+    @IBAction func ConfirmButtonTapped(_ sender: Any) {
+        print("confirm button tapped")
+        ConfirmButtomTapped.isHidden = false
     }
     
+
 }

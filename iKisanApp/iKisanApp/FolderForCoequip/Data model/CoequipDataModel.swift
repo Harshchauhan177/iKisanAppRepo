@@ -7,13 +7,15 @@
 
 import Foundation
 
+
+
 struct Equipment {
     var id: UUID
-    var name: String
+    var name: String? // Optional to handle missing names
     var pricePerHour: Double
     var pricePerArea: Double
     var rating: Double
-    var providerName: String
+    var providerName: String? // Optional to handle missing provider names
     var providerLocation: Location
     var imageURL: [URL]?
     var category: EquipmentCategory
@@ -21,6 +23,25 @@ struct Equipment {
     var description: String?
     var reviews: [Review]?
 }
+
+struct Request {
+    var id: UUID
+    var equipmentId: UUID
+    var requestedBy: UUID
+    var status: RequestStatus
+    var requestedDate: Date
+    var requestedTimeSlot: String
+    var area: Double
+    var location: Location
+    var providerId: UUID
+    var discountThreshold: Double
+    var joinedFarmers: [UUID]
+    var minimumAreaForDiscount: Double
+    var paymentStatus: PaymentStatus
+    var statusUpdatedDate: Date?
+    var notes: String?
+}
+
 struct Review {
     var userId: UUID
     var rating: Double
@@ -42,23 +63,6 @@ struct Location {
     var latitude: Double
     var longitude: Double
     var area: String
-}
-struct Request {
-    var id: UUID
-    var equipmentId: UUID
-    var requestedBy: UUID
-    var status: RequestStatus
-    var requestedDate: Date
-    var requestedTimeSlot: String
-    var area: Double
-    var location: Location
-    var providerId: UUID
-    var discountThreshold: Double
-    var joinedFarmers: [UUID]
-    var minimumAreaForDiscount: Double
-    var paymentStatus: PaymentStatus
-    var statusUpdatedDate: Date?
-    var notes: String?
 }
 
 enum PaymentStatus: String {
