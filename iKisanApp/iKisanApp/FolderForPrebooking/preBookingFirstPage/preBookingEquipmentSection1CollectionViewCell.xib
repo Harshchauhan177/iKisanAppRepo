@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="First" id="gTV-IL-0wX" customClass="preBookingEquipmentSection1CollectionViewCell" customModule="iKisanApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="150"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="150"/>
+                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <subviews>
+                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Image 2" translatesAutoresizingMaskIntoConstraints="NO" id="Ks8-86-rNF">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="150"/>
+                    </imageView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Trailed Sprayers" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="y7L-au-tvV">
+                        <rect key="frame" x="8" y="107.66666666666667" width="277" height="20.333333333333329"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Pre-book today for seamless spraying this season." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8jZ-Fi-uIp">
+                        <rect key="frame" x="10" y="127" width="306" height="16"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+            </view>
+            <viewLayoutGuide key="safeArea" id="ZTg-uK-7eu"/>
+            <color key="backgroundColor" systemColor="systemGray3Color"/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="y7L-au-tvV" secondAttribute="trailing" constant="35" id="01e-lu-Mkz"/>
+                <constraint firstAttribute="bottom" secondItem="8jZ-Fi-uIp" secondAttribute="bottom" constant="7" id="2E8-30-kRr"/>
+                <constraint firstAttribute="bottom" secondItem="y7L-au-tvV" secondAttribute="bottom" constant="22" id="8Dg-gE-kcC"/>
+                <constraint firstAttribute="bottom" secondItem="Ks8-86-rNF" secondAttribute="bottom" id="9xf-cW-NgD"/>
+                <constraint firstItem="y7L-au-tvV" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="8" id="SX9-p2-A4u"/>
+                <constraint firstAttribute="trailing" secondItem="8jZ-Fi-uIp" secondAttribute="trailing" constant="4" id="TXT-as-42a"/>
+                <constraint firstItem="Ks8-86-rNF" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="g6y-Yx-ih8"/>
+                <constraint firstItem="8jZ-Fi-uIp" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="10" id="iwD-au-bCp"/>
+                <constraint firstItem="Ks8-86-rNF" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="oFJ-JP-5dj"/>
+                <constraint firstAttribute="trailing" secondItem="Ks8-86-rNF" secondAttribute="trailing" id="sAr-ys-rJZ"/>
+            </constraints>
+            <connections>
+                <outlet property="equipmentDescriptionLabel" destination="8jZ-Fi-uIp" id="Gre-ef-dFO"/>
+                <outlet property="equipmentImageView" destination="Ks8-86-rNF" id="iM2-q1-LR9"/>
+                <outlet property="equipmentNameLabel" destination="y7L-au-tvV" id="kxc-gu-SoC"/>
+            </connections>
+            <point key="canvasLocation" x="138.93129770992365" y="19.718309859154932"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="Image 2" width="244" height="144"/>
+        <systemColor name="systemGray3Color">
+            <color red="0.78039215689999997" green="0.78039215689999997" blue="0.80000000000000004" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
+</document>

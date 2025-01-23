@@ -10,7 +10,7 @@ import UIKit
 class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSource,UICollectionViewDelegate {
     
     @IBOutlet weak var collectionView: UICollectionView!
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -120,16 +120,7 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
     }
     
     func generateSection2Layout() -> NSCollectionLayoutSection {
-//        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
-//        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-//        let groupSize = NSCollectionLayoutSize(widthDimension: .absolute(196.67), heightDimension: .absolute(120))
-//        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-//        group.interItemSpacing = .fixed(8.0)
-//        group.contentInsets = NSDirectionalEdgeInsets(top: 8.0, leading: 8.0, bottom: 8.0, trailing: 0.0)
-//        let section = NSCollectionLayoutSection(group: group)
-//        section.orthogonalScrollingBehavior = .groupPaging
-//        return section
-        
+
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
                     heightDimension: .fractionalHeight(1.0))
                 
@@ -147,32 +138,5 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
 
                 return section
     }
-    
-//    @objc func SectionButtonTapped(_ sender: UIButton){
-//        let storyBoard = UIStoryboard(name: "Main", bundle: nil)
-//        let viewController = storyBoard.instantiateViewController(withIdentifier: "SectionDetailViewController") as! SectionDetailViewController
-//        viewController.sectionNumber = sender.tag
-//        navigationController?.pushViewController(viewController, animated: true)
-//    }
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
+  
 }

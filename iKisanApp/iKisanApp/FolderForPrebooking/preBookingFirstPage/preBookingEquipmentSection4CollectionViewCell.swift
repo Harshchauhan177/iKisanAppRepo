@@ -1,0 +1,27 @@
+//
+//  preBookingEquipmentSection4CollectionViewCell.swift
+//  iKisanApp
+//
+//  Created by Batch - 1 on 23/01/25.
+//
+
+import UIKit
+
+class preBookingEquipmentSection4CollectionViewCell: UICollectionViewCell {
+
+    @IBOutlet weak var needHelpLabel: UILabel!
+    
+    
+    
+    func updatePreBookingSection4Data(with indexPath :IndexPath){
+        needHelpLabel.text = PreBookingScreenData.preBookingSection4Data[indexPath.row].needHelp
+
+    }
+    
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        // Initialization code
+    }
+
+}

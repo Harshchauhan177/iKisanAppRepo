@@ -113,7 +113,9 @@
         <scene sceneID="Gg3-bU-eBh">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="zkZ-9V-WfK" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Item" image="lightbulb.max" catalog="system" selectedImage="lightbulb.min.fill" id="w2z-cG-5hd"/>
+                    <tabBarItem key="tabBarItem" title="Item" image="lightbulb.max" catalog="system" selectedImage="lightbulb.min.fill" id="w2z-cG-5hd">
+                        <color key="badgeColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                    </tabBarItem>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="VCw-hR-Bmv">
                         <rect key="frame" x="0.0" y="59" width="393" height="44"/>
