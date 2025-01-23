@@ -70,7 +70,7 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         if let datePicker = sender.superview?.subviews.compactMap({ $0 as? UIDatePicker }).first {
             selectedDate = datePicker.date
             updateDateLabel()
-            filterCardsByDate() // Filter cards based on the selected date
+            filterCardsByDate()
             dismiss(animated: true, completion: nil)
         }
     }
@@ -85,27 +85,20 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         if let selectedDate = selectedDate {
             filteredCard = card.filter { isEquipmentAvailable(on: selectedDate, for: $0) }
         } else {
-            filteredCard = card // No date filter, show all cards if no date is selected
+            filteredCard = card
         }
-
-        // Reload the card collection view with the filtered results
         cardCollectionView.reloadData()
     }
-
-    // Example function to check if the equipment is available on the selected date
     func isEquipmentAvailable(on date: Date, for card: CardData) -> Bool {
-        // Replace this with your actual logic to check availability
-        return true // For now, assuming all equipment is available
+        return true
     }
-
-    
     func highlightSelectedCategory() {
         for cell in categoryCollectionView.visibleCells {
             if let categoryCell = cell as? CategoryCell {
                 if categoryCell.titleLabel.text == selectedCategory {
-                    categoryCell.backgroundColor = UIColor.green  // Green for selected category
+                    categoryCell.backgroundColor = UIColor.green
                 } else {
-                    categoryCell.backgroundColor = UIColor.white  // Default color for others
+                    categoryCell.backgroundColor = UIColor.white
                 }
             }
         }
@@ -114,11 +107,8 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             if !searchText.isEmpty {
                 filteredCard = card.filter { $0.title.lowercased().contains(searchText.lowercased()) }
             } else {
-                // If search is empty, reset to the selected category
                 filterCardsByCategory()
             }
-            
-            // Reload the card collection view after filtering
             cardCollectionView.reloadData()
         }
 
@@ -179,23 +169,17 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
 
         func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
             if collectionView == cardCollectionView {
-                    // Get the selected card data
                     let selectedCard = filteredCard[indexPath.row]
-                    
-                    // Perform the segue to the InfoTableViewController
                     performSegue(withIdentifier: "showInfoDetails", sender: selectedCard)
                 }
             if collectionView == categoryCollectionView {
-                    // Get the selected category
                     selectedCategory = categories[indexPath.row]
-
-                    // Highlight the selected category (Green color)
                     for cell in collectionView.visibleCells {
                         if let categoryCell = cell as? CategoryCell {
                             if categoryCell.titleLabel.text == selectedCategory {
-                                categoryCell.backgroundColor = UIColor.green  // Green for selected category
+                                categoryCell.backgroundColor = UIColor.green
                             } else {
-                                categoryCell.backgroundColor = UIColor.white  // Default color for others
+                                categoryCell.backgroundColor = UIColor.white
                             }
                         }
                     }
@@ -207,20 +191,15 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         func filterCardsByCategory() {
             if let selectedCategory = selectedCategory {
                 if selectedCategory == "Combine" {
-                    // If Combine category is selected, show all cards related to Combine
-                    filteredCard = card // Assuming all cards belong to "Combine"
+                    filteredCard = card
                 } else {
-                    // Filter cards based on the selected category
                     filteredCard = card.filter { $0.title.contains(selectedCategory) }
                 }
             } else {
-                // If no category is selected, show all cards
                 filteredCard = card
             }
-
             cardCollectionView.reloadData()
         }
-
         func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
             if collectionView == categoryCollectionView {
                 return CGSize(width: 100, height: 40)
@@ -256,16 +235,10 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             let attributedPrice = NSAttributedString(string: price, attributes: attributes)
             cell.OrigianlPriceLabel.attributedText = attributedPrice
         }
-    // In the source view controller (e.g., CreateRequestViewController)
-
-    
-
-    // Prepare for the segue to pass data to InfoTableViewController
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showInfoDetails" {
             if let destinationVC = segue.destination as? InfoTableViewController {
                 if let selectedCard = sender as? CardData {
-                    // Pass data to the InfoTableViewController
                     destinationVC.cardData = selectedCard
                 }
             }

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="collection view cell content view" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Area" id="H9e-Mn-XLn" customClass="AreaCollectionViewCell" customModule="iKisanApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="88"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="BM3-W3-fnE">
+                <rect key="frame" x="0.0" y="0.0" width="393" height="88"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="brX-LF-jcn">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="88"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hUK-K6-C0p">
+                                <rect key="frame" x="0.0" y="43.666666666666664" width="393" height="1"/>
+                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="1" id="7bt-4z-QwA"/>
+                                    <constraint firstAttribute="width" constant="393" id="wgm-Fm-hMj"/>
+                                </constraints>
+                            </view>
+                            <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XCd-vV-BM9">
+                                <rect key="frame" x="17" y="52.666666666666664" width="179" height="20.666666666666664"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Current Area :" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ORr-eD-2MN">
+                                        <rect key="frame" x="0.0" y="0.0" width="106.33333333333333" height="20.666666666666668"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="30 Acres " textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jEx-4Z-IxN">
+                                        <rect key="frame" x="106.33333333333331" y="0.0" width="72.666666666666686" height="20.666666666666668"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                            <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Qvb-Rb-rnh">
+                                <rect key="frame" x="18.666666666666657" y="13.999999999999998" width="356" height="20.333333333333329"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Minimum Area Required for Discount :" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QTe-z2-exa">
+                                        <rect key="frame" x="0.0" y="0.0" width="287.66666666666669" height="20.333333333333332"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="40 Acres" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RAo-Nv-NH5">
+                                        <rect key="frame" x="287.66666666666663" y="0.0" width="68.333333333333314" height="20.333333333333332"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="XCd-vV-BM9" secondAttribute="bottom" constant="14.67" id="1o9-7E-ffH"/>
+                            <constraint firstItem="XCd-vV-BM9" firstAttribute="top" secondItem="hUK-K6-C0p" secondAttribute="bottom" constant="8.3300000000000001" id="EMQ-dS-QZP"/>
+                            <constraint firstItem="XCd-vV-BM9" firstAttribute="leading" secondItem="brX-LF-jcn" secondAttribute="leading" constant="17" id="L8X-AA-xEe"/>
+                            <constraint firstItem="hUK-K6-C0p" firstAttribute="centerY" secondItem="brX-LF-jcn" secondAttribute="centerY" id="bVJ-qc-F4r"/>
+                            <constraint firstItem="Qvb-Rb-rnh" firstAttribute="centerX" secondItem="brX-LF-jcn" secondAttribute="centerX" id="c6O-Gb-6yO"/>
+                            <constraint firstItem="Qvb-Rb-rnh" firstAttribute="top" secondItem="brX-LF-jcn" secondAttribute="top" constant="14" id="gK0-ex-lYb"/>
+                            <constraint firstAttribute="trailing" secondItem="XCd-vV-BM9" secondAttribute="trailing" constant="197" id="mqr-Xl-FRG"/>
+                            <constraint firstItem="hUK-K6-C0p" firstAttribute="leading" secondItem="brX-LF-jcn" secondAttribute="leading" id="uRF-fU-oUe"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="trailing" secondItem="brX-LF-jcn" secondAttribute="trailing" id="ZVB-Ck-Pyo"/>
+                    <constraint firstItem="brX-LF-jcn" firstAttribute="leading" secondItem="BM3-W3-fnE" secondAttribute="leading" id="f8W-YT-eGj"/>
+                    <constraint firstItem="brX-LF-jcn" firstAttribute="top" secondItem="BM3-W3-fnE" secondAttribute="top" id="gKA-zf-dlq"/>
+                    <constraint firstAttribute="bottom" secondItem="brX-LF-jcn" secondAttribute="bottom" id="i4c-1D-ZgQ"/>
+                </constraints>
+            </collectionViewCellContentView>
+            <size key="customSize" width="253" height="84"/>
+            <connections>
+                <outlet property="CurrentAreaLabel" destination="jEx-4Z-IxN" id="QRp-0I-DAs"/>
+                <outlet property="MinimumAreaLabel" destination="RAo-Nv-NH5" id="wGC-jB-YC7"/>
+            </connections>
+            <point key="canvasLocation" x="330.53435114503816" y="-7.042253521126761"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

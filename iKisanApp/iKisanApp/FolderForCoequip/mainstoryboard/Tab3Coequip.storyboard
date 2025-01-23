@@ -147,6 +147,7 @@ Noida, U.P</string>
                     <connections>
                         <outlet property="CoequipSegmentedControl" destination="7mE-Ty-olc" id="wEA-Mz-2Mg"/>
                         <outlet property="CoequipTableView" destination="3km-tB-whC" id="bzk-8d-8fZ"/>
+                        <segue destination="4OG-O8-py8" kind="show" id="ctz-zB-3xf"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -156,25 +157,25 @@ Noida, U.P</string>
         <!--My Requests-->
         <scene sceneID="lWz-wQ-C4U">
             <objects>
-                <viewController id="4OG-O8-py8" sceneMemberID="viewController">
+                <viewController id="4OG-O8-py8" customClass="MyRequestViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="94z-0K-G4S">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="c86-qZ-dmJ">
-                                <rect key="frame" x="0.0" y="59" width="393" height="759"/>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="ySc-yg-OMg">
+                                <rect key="frame" x="0.0" y="103" width="393" height="715"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                                <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="Fdg-ot-itv">
+                                <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="BLn-jm-evw">
                                     <size key="itemSize" width="128" height="128"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
                                     <size key="footerReferenceSize" width="0.0" height="0.0"/>
                                     <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 </collectionViewFlowLayout>
                                 <cells>
-                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="OmF-tN-IxY">
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="6oj-h0-Xdt">
                                         <rect key="frame" x="0.0" y="0.0" width="127.99999999999997" height="128"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="sXL-i8-r52">
+                                        <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="TMd-Pk-YZt">
                                             <rect key="frame" x="0.0" y="0.0" width="127.99999999999997" height="128"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </collectionViewCellContentView>
@@ -185,17 +186,17 @@ Noida, U.P</string>
                         <viewLayoutGuide key="safeArea" id="yP4-cP-9A7"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="yP4-cP-9A7" firstAttribute="bottom" secondItem="c86-qZ-dmJ" secondAttribute="bottom" id="1kT-2H-D4H"/>
-                            <constraint firstItem="c86-qZ-dmJ" firstAttribute="top" secondItem="yP4-cP-9A7" secondAttribute="top" id="7GG-vb-16x"/>
-                            <constraint firstItem="yP4-cP-9A7" firstAttribute="trailing" secondItem="c86-qZ-dmJ" secondAttribute="trailing" id="kJc-nD-d4h"/>
-                            <constraint firstItem="c86-qZ-dmJ" firstAttribute="leading" secondItem="yP4-cP-9A7" secondAttribute="leading" id="wxs-4d-cvS"/>
+                            <constraint firstItem="yP4-cP-9A7" firstAttribute="bottom" secondItem="ySc-yg-OMg" secondAttribute="bottom" id="Mjh-Og-T2D"/>
+                            <constraint firstItem="ySc-yg-OMg" firstAttribute="leading" secondItem="yP4-cP-9A7" secondAttribute="leading" id="ORl-Bf-Tn6"/>
+                            <constraint firstItem="yP4-cP-9A7" firstAttribute="trailing" secondItem="ySc-yg-OMg" secondAttribute="trailing" id="cac-FX-TaG"/>
+                            <constraint firstItem="ySc-yg-OMg" firstAttribute="top" secondItem="yP4-cP-9A7" secondAttribute="top" id="oUX-Mx-QhV"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="My Requests" id="LIt-4P-Ikh"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gLd-RB-VpZ" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2314" y="698"/>
+            <point key="canvasLocation" x="2373" y="714"/>
         </scene>
         <!--search Equipment-->
         <scene sceneID="b62-Gu-6yz">
@@ -260,7 +261,7 @@ Noida, U.P</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="rUR-WN-w2B" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4594.6564885496182" y="-2.1126760563380285"/>
+            <point key="canvasLocation" x="4833" y="-30"/>
         </scene>
         <!--Create Request-->
         <scene sceneID="Wbr-TI-hnU">
@@ -377,7 +378,7 @@ Noida, U.P</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="hUe-QF-8pc" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5259" y="-2"/>
+            <point key="canvasLocation" x="5625" y="-13"/>
         </scene>
         <!--Create Request-->
         <scene sceneID="Phx-cO-Heb">
@@ -494,7 +495,7 @@ Noida, U.P</string>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Murshadpur, Greater Noida, U.P" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="O00-D6-L3V">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="240" text="Murshadpur, Greater Noida, U.P" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="O00-D6-L3V">
                                                     <rect key="frame" x="22" y="37" width="233" height="38"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
@@ -741,12 +742,12 @@ Noida, U.P</string>
                         <outlet property="TitleLabel" destination="jmM-VF-ZPU" id="Y1G-gK-Jtw"/>
                         <outlet property="hostName" destination="o4j-M3-oL3" id="Kh3-9I-vBY"/>
                         <outlet property="priceLabel" destination="Uxh-Uu-KS6" id="Pe2-Zp-jxH"/>
-                        <segue destination="785-LV-hes" kind="presentation" identifier="goToList" id="lAs-g7-zaQ"/>
+                        <segue destination="dgn-2B-T6F" kind="presentation" identifier="goToList" id="byu-O8-30E"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2SE-S5-s1e" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5944.2748091603053" y="19.718309859154932"/>
+            <point key="canvasLocation" x="6434" y="13"/>
         </scene>
         <!--Selecte people-->
         <scene sceneID="we3-5u-Vjj">
@@ -815,8 +816,8 @@ Noida, U.P</string>
                                         </tableViewCellContentView>
                                         <connections>
                                             <outlet property="ImageLabel" destination="Av3-fk-SOR" id="lQ3-vD-30A"/>
-                                            <outlet property="NameLabel" destination="CcT-C9-HYs" id="Fvy-0u-OSN"/>
                                             <outlet property="checkboxButton" destination="fHG-aF-yAa" id="fc4-nK-ZQq"/>
+                                            <outlet property="nameLabel" destination="CcT-C9-HYs" id="Rg5-Ef-vKm"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
@@ -854,7 +855,7 @@ Noida, U.P</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BDS-Z3-hOB" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="8083.2061068702287" y="-25.35211267605634"/>
+            <point key="canvasLocation" x="7869" y="24"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="TwS-TZ-Aft">
@@ -890,25 +891,25 @@ Noida, U.P</string>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="u5c-OE-dpt" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3667.9389312977096" y="-2.1126760563380285"/>
+            <point key="canvasLocation" x="3833" y="-30"/>
         </scene>
         <!--Navigation Controller-->
-        <scene sceneID="W5U-Sv-OJd">
+        <scene sceneID="wtA-6x-QWe">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="785-LV-hes" sceneMemberID="viewController">
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="dgn-2B-T6F" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="kft-Zm-r9F">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="q2l-Qc-V6R">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="56"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
                     <connections>
-                        <segue destination="eKY-ja-h1T" kind="relationship" relationship="rootViewController" id="Qvz-tJ-cvG"/>
+                        <segue destination="eKY-ja-h1T" kind="relationship" relationship="rootViewController" id="cNL-p4-d2W"/>
                     </connections>
                 </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="nqT-lD-bV0" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="2uM-zp-uJT" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="7156.4885496183206" y="-25.35211267605634"/>
+            <point key="canvasLocation" x="7131" y="24"/>
         </scene>
     </scenes>
     <resources>

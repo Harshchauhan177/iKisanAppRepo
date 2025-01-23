@@ -28,7 +28,16 @@ class Person {
 }
 struct PersonList {
     var name: String
-    var image: UIImage
+    var image: String
     var isSelected: Bool // Add a boolean to track selection state
 }
 
+class pupil{
+    static var allPeopleData: [PersonList] = [
+            PersonList(name: "John Doe", image: "person1", isSelected: false),
+            PersonList(name: "Jane Smith", image: "person2", isSelected: false),
+            PersonList(name: "Paul Walker", image: "person3", isSelected: false),
+            PersonList(name: "Robert Johnson", image: "person4", isSelected: false),
+            PersonList(name: "Emily Davis", image:"person5", isSelected: false)
+        ]
+}
