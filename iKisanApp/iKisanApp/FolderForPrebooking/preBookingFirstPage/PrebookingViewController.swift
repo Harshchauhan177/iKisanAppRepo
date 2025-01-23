@@ -77,18 +77,18 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Third", for: indexPath) as! preBookingEquipmentSection3CollectionViewCell
             cell.updatePreBookingSection3Data(with: indexPath)
             cell.equipmentImageView.layer.cornerRadius = 7
-            cell.layer.cornerRadius = 12
+            cell.layer.cornerRadius = 15
             return cell
         case 3:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Fourth", for: indexPath) as! preBookingEquipmentSection4CollectionViewCell
             cell.updatePreBookingSection4Data(with: indexPath)
-            cell.layer.cornerRadius = 12
+            cell.layer.cornerRadius = 10
             return cell
         case 4:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Fifth", for: indexPath) as! preBookingEquipmentSectionAddPreBookCollectionViewCell
 //            cell.updatePreBookingSection4Data(with: indexPath)
             cell.equipmentImageView.layer.cornerRadius = 7
-            cell.layer.cornerRadius = 12
+            cell.layer.cornerRadius = 15
             return cell
         default:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "First", for: indexPath) as! preBookingEquipmentSection1CollectionViewCell
