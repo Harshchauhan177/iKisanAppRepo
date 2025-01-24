@@ -28,6 +28,7 @@ class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
     
     func updateCellData(with indexPath:IndexPath) {
         equipmentNameLabel.text = "Rice Equipment"
+        coEquippedStatusLabel.text = "Co-Equipped"
         imageView.layer.cornerRadius = 7
     }
     

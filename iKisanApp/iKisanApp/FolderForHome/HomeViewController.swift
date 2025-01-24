@@ -7,7 +7,9 @@
 
 import UIKit
 
-class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UpcomingBookingsCollectionViewCellDelegate {
+class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UpcomingBookingsCollectionViewCellDelegate, ExploreMoreCollectionViewCellDelegate {
+   
+    
    
     
     
@@ -265,10 +267,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
           controller.coEquipDetail = "\(selectedEquipment.coEquipDetail)"
           controller.location = "\(selectedEquipment.location)"
           controller.rating = "\(selectedEquipment.rating)"
-          controller.bigImage = "\(selectedEquipment.equipmentMoreImages.images[0])"
-          controller.smallImage1 = "\(selectedEquipment.equipmentMoreImages.images[1])"
-          controller.smallImage2 = "\(selectedEquipment.equipmentMoreImages.images[2])"
-          controller.smallImage3 = "\(selectedEquipment.equipmentMoreImages.images[3])"
+          controller.bigImage = "\(selectedEquipment.equipmentImage)"//equipmentMoreImages.images[0])"
+          controller.smallImage1 = "\(selectedEquipment.equipmentImage)"//.equipmentMoreImages.images[1])"
+          controller.smallImage2 = "\(selectedEquipment.equipmentImage)"//.equipmentMoreImages.images[2])"
+          controller.smallImage3 = "\(selectedEquipment.equipmentImage)"//.equipmentMoreImages.images[3])"
           controller.more = "\(selectedEquipment.equipmentMoreImages.images.count)"
           controller.ratingOutOf5 = "\(selectedEquipment.rating)"
           controller.equipmentLocationDetailed = "\(selectedEquipment.location)"
@@ -310,6 +312,18 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             navigationController?.pushViewController(viewController, animated: true)
         }
         
+    }
+    func didTapViewButton(on cell: ExploreMoreCollectionViewCell) {
+        if let indexPath = collectionView.indexPath(for: cell) {
+            print("View button tapped on cell at index: \(indexPath.row)")
+        }
+        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+        if let viewController = storyboard.instantiateViewController(withIdentifier: "ReviewBookingTableViewController") as? ReviewBookingTableViewController {
+            //viewController.modalTransitionStyle = .crossDissolve
+            viewController.modalPresentationStyle = .fullScreen // Optional: Set presentation style
+            //present(viewController, animated: true, completion: nil)
+            navigationController?.pushViewController(viewController, animated: true)
+        }
     }
     
 }

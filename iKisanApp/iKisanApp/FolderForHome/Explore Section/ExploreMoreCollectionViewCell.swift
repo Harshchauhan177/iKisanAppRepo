@@ -7,6 +7,10 @@
 
 import UIKit
 
+protocol ExploreMoreCollectionViewCellDelegate: AnyObject {
+    func didTapViewButton(on cell: ExploreMoreCollectionViewCell)
+}
+
 class ExploreMoreCollectionViewCell: UICollectionViewCell {
     
     var faderView: UIView? = nil
@@ -19,6 +23,7 @@ class ExploreMoreCollectionViewCell: UICollectionViewCell {
     @IBOutlet var ratingLabel: UILabel!
     @IBOutlet var providerNameLabel: UILabel!
     
+    weak var delegate: ExploreMoreCollectionViewCellDelegate?
     func updateExploreMoreData(with indexPath: IndexPath) {
         
         exploreEquipmentImageView.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
@@ -112,7 +117,10 @@ class ExploreMoreCollectionViewCell: UICollectionViewCell {
 //        return faderView
 //       }
 //    
-    @IBOutlet var bookNowButtonTapped: UIButton!
+   
+    @IBAction func bookNowButtonTapped(_ sender: Any) {
+        delegate?.didTapViewButton(on: self)
+    }
     
     
 }
