@@ -1,9 +1,4 @@
-//
-//  CoequipTableViewCell.swift
-//  iKisanApp
-//
-//  Created by chandan kumar on 22/01/25.
-//
+
 
 import UIKit
 
@@ -24,14 +19,12 @@ class CoequipTableViewCell: UITableViewCell {
     @IBOutlet weak var ConfirmButtomTapped: UIButton!
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
         ConfirmButtomTapped.isHidden = true
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
 
-        // Configure the view for the selected state
     }
     
     @IBAction func PendingButtonTapped(_ sender: Any) {

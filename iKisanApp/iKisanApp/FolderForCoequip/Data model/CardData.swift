@@ -1,9 +1,4 @@
-//
-//  CardData.swift
-//  iKisanApp
-//
-//  Created by chandan kumar on 21/01/25.
-//
+
 
 import Foundation
 import UIKit
@@ -29,7 +24,7 @@ class Person {
 struct PersonList {
     var name: String
     var image: String
-    var isSelected: Bool // Add a boolean to track selection state
+    var isSelected: Bool 
 }
 
 class pupil{

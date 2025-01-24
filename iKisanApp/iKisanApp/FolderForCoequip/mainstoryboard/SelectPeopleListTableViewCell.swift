@@ -1,9 +1,4 @@
-//
-//  SelectPeopleListTableViewCell.swift
-//  iKisanApp
-//
-//  Created by chandan kumar on 23/01/25.
-//
+
 
 import UIKit
 
@@ -23,8 +18,6 @@ class SelectPeopleListTableViewCell: UITableViewCell {
     
     var newName:String? = "Hello"
     var newCheck:String?
-//    var newcheckboxButton:String?
-    
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -38,34 +31,13 @@ class SelectPeopleListTableViewCell: UITableViewCell {
         print("Cell layoutSubviews called")
     }
 
-//    func UpdateCellData(with peo: IndexPath){
-    func UpdateCellData(with people: PersonList){
-//        NameLabel.text = people.name
-        print("Inside UpdateCellData :\(people.name)")
-        
-        nameLabel.text = people.name
 
-//        ImageLabel.image = UIImage(named: people.image)
+    func UpdateCellData(with people: PersonList){
+        print("Inside UpdateCellData :\(people.name)")
+        nameLabel.text = people.name
         
     }
-        //NameLabel.text = pupil.allPeopleData[indexPath.row].name
-       // ImageLabel.image = UIImage(named: pupil.allPeopleData[indexPath.row].image)
-        
-        
-//        guard NameLabel != nil else {
-//               print("NameLabel is nil!")
-//               return
-//           }
-//           
-//           guard indexPath.row < pupil.allPeopleData.count else {
-//               print("Index out of range")
-//               return
-//           }
-//           
-//           NameLabel.text = pupil.allPeopleData[indexPath.row].name ?? "Unknown"
-    
-
-    
+   
     @IBAction func CheckBoxButtonTapped(_ sender: UIButton) {
         isSelectedState.toggle()
             

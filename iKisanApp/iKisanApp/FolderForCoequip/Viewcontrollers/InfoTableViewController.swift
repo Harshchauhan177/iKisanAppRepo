@@ -1,9 +1,4 @@
-//
-//  InfoTableViewController.swift
-//  iKisanApp
-//
-//  Created by Batch - 1 on 22/01/25.
-//
+
 
 import UIKit
 

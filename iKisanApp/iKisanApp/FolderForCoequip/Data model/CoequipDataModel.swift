@@ -6,18 +6,19 @@
 //
 
 import Foundation
+import UIKit
 
 
 
 struct Equipment {
     var id: UUID
-    var name: String? // Optional to handle missing names
+    var name: String?
     var pricePerHour: Double
     var pricePerArea: Double
     var rating: Double
-    var providerName: String? // Optional to handle missing provider names
+    var providerName: String? 
     var providerLocation: Location
-    var imageURL: [URL]?
+    var imageURL: UIImage
     var category: EquipmentCategory
     var availability: [Availability]
     var description: String?
@@ -32,7 +33,7 @@ struct Request {
     var requestedDate: Date
     var requestedTimeSlot: String
     var area: Double
-    var location: Location
+    var location: String
     var providerId: UUID
     var discountThreshold: Double
     var joinedFarmers: [UUID]
@@ -82,7 +83,7 @@ struct User {
     var name: String
     var phoneNumber: String
     var email: String?
-    var location: Location
+    var location: String
     var rating: Double
     var profileImage: URL?
     var equipmentOwned: [Equipment]
