@@ -29,10 +29,10 @@ struct PersonList {
 
 class pupil{
     static var allPeopleData: [PersonList] = [
-            PersonList(name: "John Doe", image: "person1", isSelected: false),
-            PersonList(name: "Jane Smith", image: "person2", isSelected: false),
-            PersonList(name: "Paul Walker", image: "person3", isSelected: false),
-            PersonList(name: "Robert Johnson", image: "person4", isSelected: false),
-            PersonList(name: "Emily Davis", image:"person5", isSelected: false)
+            PersonList(name: "Harsh Singh", image: "person1", isSelected: false),
+            PersonList(name: "Vikash Kumar", image: "person2", isSelected: false),
+            PersonList(name: "Ram pal", image: "person3", isSelected: false),
+            PersonList(name: "Vicky ", image: "person4", isSelected: false),
+            PersonList(name: "Rahul kumar", image:"person5", isSelected: false)
         ]
 }

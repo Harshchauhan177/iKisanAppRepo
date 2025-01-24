@@ -2,6 +2,11 @@
 
 import UIKit
 
+protocol MyRequestTableViewCellDelegate: AnyObject {
+    func didTapConfirmButton(cell: MyRequestTableViewCell)
+    func didTapPendingButton(cell: MyRequestTableViewCell)
+}
+
 class MyRequestTableViewCell: UITableViewCell {
 
     
@@ -15,17 +20,26 @@ class MyRequestTableViewCell: UITableViewCell {
     
     @IBOutlet weak var PendingButtonTapped: UIButton!
     
-    @IBOutlet weak var ConfirmButtonTapped: UIButton!
+    @IBOutlet weak var ConfirmButtonLabel: UIButton!
     
+    weak var delegate: MyRequestTableViewCellDelegate?
+    
+   
     
     override func awakeFromNib() {
         super.awakeFromNib()
        
     }
 
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
 
+    
+    @IBAction func ConfirmButtonTapped(_ sender: Any) {
+        delegate?.didTapConfirmButton(cell: self)
+    }
+    
+    @IBAction func PendingButtonTapped(_ sender: Any) {
+        delegate?.didTapPendingButton(cell: self)
+       
     }
     
 }

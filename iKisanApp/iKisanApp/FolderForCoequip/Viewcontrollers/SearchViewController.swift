@@ -50,6 +50,4 @@ class SearchViewController: UIViewController,UISearchBarDelegate, UITableViewDel
                 return cell
     }
 
-
-
 }

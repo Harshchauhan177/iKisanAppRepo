@@ -12,6 +12,7 @@ class SelectPeopleViewController: UIViewController,UITableViewDelegate,UITableVi
     
     @IBOutlet weak var ListTableViewCell: UITableView!
     
+    @IBOutlet weak var filterLabel: UIButton!
     
     var peoplesData = pupil.allPeopleData
       
@@ -54,9 +55,13 @@ class SelectPeopleViewController: UIViewController,UITableViewDelegate,UITableVi
         
     
     @IBAction func FilterbuttonTapped(_ sender: Any) {
+        
     }
     
-   
+    @IBAction func DoneButtonTapped(_ sender: Any) {
+        performSegue(withIdentifier: "unwindToInfo", sender: self)
+    }
+    
 
 }
 extension SelectPeopleViewController: UISearchBarDelegate {

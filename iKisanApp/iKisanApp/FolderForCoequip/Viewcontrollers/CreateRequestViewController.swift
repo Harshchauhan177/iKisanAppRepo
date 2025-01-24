@@ -37,7 +37,7 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         categoryCollectionView.register(UINib(nibName: "CategoryCell", bundle: nil), forCellWithReuseIdentifier: "CategoryCell")
         cardCollectionView.register(UINib(nibName: "CardCell", bundle: nil), forCellWithReuseIdentifier: "CardCell")
         
-        card=[CardData(title: "Rice Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Raj Pal", imageName: UIImage(named: "101")!),CardData(title: "Rice Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Raj Pal", imageName: UIImage(named: "102")!),CardData(title: "Rice Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Raj Pal", imageName: UIImage(named: "103")!),CardData(title: "Rice Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Raj Pal", imageName: UIImage(named: "104")!)]
+        card=[CardData(title: "Rice Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Ram Pal", imageName: UIImage(named: "101")!),CardData(title: "Rice Harvester", price: "1500", oldPrice:"2250", rating: "4.5", host: "Veer singh", imageName: UIImage(named: "102")!),CardData(title: "Wheat Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Muskesh", imageName: UIImage(named: "103")!),CardData(title: "soyabean", price: "700", oldPrice:"1750", rating: "4.5", host: "Raj Pal", imageName: UIImage(named: "104")!)]
         
         
         selectedCategory = categories.first
@@ -148,8 +148,9 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCell", for: indexPath) as! CategoryCell
                 cell.titleLabel.text = categories[indexPath.row]
                 cell.titleLabel.textAlignment = .center
-                cell.layer.cornerRadius = 10
+                cell.layer.cornerRadius = 17
                 cell.layer.borderWidth = 1
+                cell.backgroundColor = .white
                 cell.layer.borderColor = UIColor.lightGray.cgColor
                 return cell
             } else {
@@ -177,15 +178,18 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
                     for cell in collectionView.visibleCells {
                         if let categoryCell = cell as? CategoryCell {
                             if categoryCell.titleLabel.text == selectedCategory {
-                                categoryCell.backgroundColor = UIColor.green
+                                categoryCell.backgroundColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+                                categoryCell.titleLabel.textColor = .white
                             } else {
                                 categoryCell.backgroundColor = UIColor.white
+                                categoryCell.titleLabel.textColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
                             }
                         }
                     }
 
                     filterCardsByCategory()
             }
+           
         }
 
         func filterCardsByCategory() {

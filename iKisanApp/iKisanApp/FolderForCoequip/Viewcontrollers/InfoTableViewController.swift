@@ -66,6 +66,14 @@ class InfoTableViewController: UITableViewController {
         
         return (lowerTime, upperTime)
     }
+    
+    @IBAction func unwindToInfoTableViewController(segue: UIStoryboardSegue) {
+        if let sourceVC = segue.source as? SelectPeopleViewController {
+            let selectedPeopleNames = sourceVC.selectedPeople.map { $0.name }.joined(separator: ", ")
+            FarmerListLabel.text = "Selected Farmers: \(selectedPeopleNames)"
+        }
+    }
+
 //    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
 //            if let inputText = InputAreaLabel.text, let numberOfSlots = Int(inputText), numberOfSlots > 0 {
 //                let (lowerTime, upperTime) = calculateTimeSlots(for: numberOfSlots)

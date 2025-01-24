@@ -10,17 +10,17 @@ import UIKit
 
 
 
-struct Equipment {
+struct CoequipEquipment {
     var id: UUID
     var name: String?
     var pricePerHour: Double
     var pricePerArea: Double
     var rating: Double
     var providerName: String? 
-    var providerLocation: Location
+    var providerLocation: CoequipLocation
     var imageURL: UIImage
     var category: EquipmentCategory
-    var availability: [Availability]
+    var availability: [CoequipAvailability]
     var description: String?
     var reviews: [Review]?
 }
@@ -55,12 +55,12 @@ enum EquipmentCategory: String {
     case irrigation
 }
 
-struct Availability {
+struct CoequipAvailability {
     var date: Date
     var timeSlot: String
     var isAvailable: Bool
 }
-struct Location {
+struct CoequipLocation {
     var latitude: Double
     var longitude: Double
     var area: String
@@ -78,7 +78,7 @@ enum RequestStatus: String {
     case canceled
 }
 
-struct User {
+struct CoequipUser {
     var id: UUID
     var name: String
     var phoneNumber: String
@@ -86,7 +86,7 @@ struct User {
     var location: String
     var rating: Double
     var profileImage: URL?
-    var equipmentOwned: [Equipment]
+    var equipmentOwned: [CoequipEquipment]
     var coEquipRequests: [Request]
     var userType: UserType
 }

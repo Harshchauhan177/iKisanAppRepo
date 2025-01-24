@@ -2,6 +2,12 @@
 
 import UIKit
 
+protocol AcceptRequestTableViewCellDelegate: AnyObject {
+    func acceptButtonTapped(in cell: AcceptRequestTableViewCell)
+    func rejectButtonTapped(in cell: AcceptRequestTableViewCell)
+}
+
+
 class AcceptRequestTableViewCell: UITableViewCell {
 
     @IBOutlet weak var EquipmentIimageLabel: UIImageView!
@@ -16,15 +22,25 @@ class AcceptRequestTableViewCell: UITableViewCell {
     
     @IBOutlet weak var CreatorLabel: UIImageView!
     
+    @IBOutlet weak var AcceptButtonLabel: UIButton!
+    
+    @IBOutlet weak var RejectButtonTapped: UIButton!
+    
+    weak var delegate: AcceptRequestTableViewCellDelegate?
+   
     
     override func awakeFromNib() {
         super.awakeFromNib()
        
     }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
+    
+    @IBAction func AccepctButtonTapped(_ sender: Any) {
+        delegate?.acceptButtonTapped(in: self)
     }
+    
+    @IBAction func RejectButtonTapped(_ sender: Any) {
+        delegate?.rejectButtonTapped(in: self)
+    }
+    
     
 }
