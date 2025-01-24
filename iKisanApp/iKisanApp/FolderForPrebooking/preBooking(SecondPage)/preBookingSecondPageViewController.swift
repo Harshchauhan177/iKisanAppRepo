@@ -1,13 +1,13 @@
 //
-//  PrebookingViewController.swift
+//  preBookingSecondPageViewController.swift
 //  iKisanApp
 //
-//  Created by Batch - 1 on 15/01/25.
+//  Created by Batch - 1 on 23/01/25.
 //
 
 import UIKit
 
-class PrebookingViewController: UIViewController {
+class preBookingSecondPageViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
