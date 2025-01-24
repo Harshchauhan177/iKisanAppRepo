@@ -19,7 +19,7 @@ class SuggestionCollectionViewCell: UICollectionViewCell {
     func updateSuggestionData(with indexPath: IndexPath){
         suggestionImageView.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
         suggestionNameLabel.text = EquipmentData.equipment[indexPath.row].name
-        suggestionDescriptionLabel.text = "Available in your area - Book Now!"//EquipmentData.equipment[indexPath.row].description
+        suggestionDescriptionLabel.text = "Available in your area."//EquipmentData.equipment[indexPath.row].description
     }
     
 }

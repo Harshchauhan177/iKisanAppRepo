@@ -264,7 +264,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
           controller.realPriceHr = "\(selectedEquipment.realPricePerHour)"
           controller.discountedPriceAc = "\(selectedEquipment.pricePerAcre)"
           controller.realPriceAc = "\(selectedEquipment.realPricePerAcre)"
-          controller.coEquipDetail = "\(selectedEquipment.coEquipDetail)"
+          controller.coEquipDetail = "\(selectedEquipment.coEquipDetail) For CoEquip"
           controller.location = "\(selectedEquipment.location)"
           controller.rating = "\(selectedEquipment.rating)"
           controller.bigImage = "\(selectedEquipment.equipmentImage)"//equipmentMoreImages.images[0])"

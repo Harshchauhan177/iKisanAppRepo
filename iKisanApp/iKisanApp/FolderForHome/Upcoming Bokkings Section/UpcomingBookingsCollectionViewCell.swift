@@ -39,7 +39,7 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
         equipmentNameLabel.text = "Rice Equipment"//EquipmentData.equipment[indexPath.row].name
         bookingDateLabel.text = "Wed, 25 Dec Afternoon"
         bookingStatusLabel.text = "Confirmed"
-        coEquipedOrNotLabel.text = "Co-Equiped"
+        coEquipedOrNotLabel.text = ""
         bookingStatusLabel.textColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
         
         

@@ -28,9 +28,10 @@ class ExploreMoreCollectionViewCell: UICollectionViewCell {
         
         exploreEquipmentImageView.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
         equipmentNameLabel.text = EquipmentData.equipment[indexPath.row].name
-        discountedPriceLabel.text = "\(EquipmentData.equipment[indexPath.row].pricePerHour)"
-        realPriceLabel.text = "\(EquipmentData.equipment[indexPath.row].pricePerHour)"
-        ratingLabel.text = "\(EquipmentData.equipment[indexPath.row].rating)"
+        discountedPriceLabel.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
+        realPriceLabel.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
+        ratingLabel.text = "⭐️\(EquipmentData.equipment[indexPath.row].rating)"
+        providerNameLabel.text = "VeerPal"
 //        // Adjust fader view transparency based on image color
 //        if let image = exploreEquipmentImageView.image {
 //            let brightness = calculateBrightness(of: image)
