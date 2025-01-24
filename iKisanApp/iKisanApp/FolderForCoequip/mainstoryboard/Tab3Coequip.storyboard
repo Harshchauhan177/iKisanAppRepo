@@ -76,7 +76,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4096.9465648854957" y="-30.281690140845072"/>
+            <point key="canvasLocation" x="5023.6641221374048" y="-30.281690140845072"/>
         </scene>
         <!--My Request-->
         <scene sceneID="jNI-fn-9oQ">
@@ -124,7 +124,9 @@
                                                     <rect key="frame" x="277" y="35.666666666666664" width="61" height="34.999999999999993"/>
                                                     <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     <state key="normal" title="Button"/>
-                                                    <buttonConfiguration key="configuration" style="filled" title="View"/>
+                                                    <buttonConfiguration key="configuration" style="filled" title="View" cornerStyle="capsule">
+                                                        <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                                    </buttonConfiguration>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kSW-uC-OzI">
                                                     <rect key="frame" x="167" y="51" width="48" height="24"/>
@@ -182,20 +184,20 @@
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="uMk-O7-JRo">
-                                        <rect key="frame" x="20" y="260.99999809265137" width="353" height="43"/>
+                                        <rect key="frame" x="20" y="260.99999809265137" width="353" height="42.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="uMk-O7-JRo" id="l8A-Ef-Qyp">
-                                            <rect key="frame" x="0.0" y="0.0" width="353" height="43"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="353" height="42.666667938232422"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Current Area :" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BN0-Eh-8lm">
-                                                    <rect key="frame" x="20" y="12.666666666666664" width="96" height="18"/>
+                                                    <rect key="frame" x="20" y="12.333333333333336" width="96" height="18"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="14 Acres" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vWX-Gv-Vua">
-                                                    <rect key="frame" x="132" y="11" width="66" height="21"/>
+                                                    <rect key="frame" x="132" y="11.000000000000002" width="66" height="20.666666666666671"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -215,7 +217,7 @@
                             <tableViewSection headerTitle="Accepted By" id="b6Q-xE-31b">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="Gik-IG-JRA">
-                                        <rect key="frame" x="20" y="359.99999809265137" width="353" height="43.666667938232422"/>
+                                        <rect key="frame" x="20" y="359.66666603088379" width="353" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Gik-IG-JRA" id="AR3-5J-39B">
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="43.666667938232422"/>
@@ -244,7 +246,7 @@
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="SAc-gO-wD7">
-                                        <rect key="frame" x="20" y="403.66666603088379" width="353" height="43.666667938232422"/>
+                                        <rect key="frame" x="20" y="403.33333396911621" width="353" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="SAc-gO-wD7" id="7K1-Bs-803">
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="43.666667938232422"/>
@@ -269,7 +271,7 @@
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="Dc0-Hj-4VQ">
-                                        <rect key="frame" x="20" y="447.33333396911621" width="353" height="43.666667938232422"/>
+                                        <rect key="frame" x="20" y="447.00000190734863" width="353" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Dc0-Hj-4VQ" id="DY2-vk-i9u">
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="43.666667938232422"/>
@@ -298,7 +300,7 @@
                             <tableViewSection id="4lH-4o-eUk">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" rowHeight="180" id="kTK-EW-ibT">
-                                        <rect key="frame" x="20" y="527.00000190734863" width="353" height="180"/>
+                                        <rect key="frame" x="20" y="526.66666984558105" width="353" height="180"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="kTK-EW-ibT" id="bzD-XQ-vQM">
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="180"/>
@@ -311,7 +313,9 @@
                                                     </constraints>
                                                     <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     <state key="normal" title="Button"/>
-                                                    <buttonConfiguration key="configuration" style="filled" title="Modify Request"/>
+                                                    <buttonConfiguration key="configuration" style="filled" title="Modify Request">
+                                                        <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                                    </buttonConfiguration>
                                                 </button>
                                                 <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zC2-GY-tut">
                                                     <rect key="frame" x="0.0" y="100" width="353" height="56"/>
@@ -320,7 +324,9 @@
                                                     </constraints>
                                                     <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     <state key="normal" title="Button"/>
-                                                    <buttonConfiguration key="configuration" style="filled" title="Delete Request"/>
+                                                    <buttonConfiguration key="configuration" style="filled" title="Delete Request">
+                                                        <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                                    </buttonConfiguration>
                                                 </button>
                                             </subviews>
                                             <constraints>
@@ -406,7 +412,9 @@
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     <state key="normal" title="Button"/>
-                                                    <buttonConfiguration key="configuration" style="filled" title="View"/>
+                                                    <buttonConfiguration key="configuration" style="filled" title="View" cornerStyle="capsule">
+                                                        <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                                    </buttonConfiguration>
                                                     <connections>
                                                         <action selector="viewButtonTapped:" destination="T1p-f7-KBv" eventType="touchUpInside" id="Iua-tU-ttO"/>
                                                     </connections>
@@ -596,7 +604,9 @@
                                                     </constraints>
                                                     <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     <state key="normal" title="Button"/>
-                                                    <buttonConfiguration key="configuration" style="filled" title="Accept"/>
+                                                    <buttonConfiguration key="configuration" style="filled" title="Accept">
+                                                        <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                                    </buttonConfiguration>
                                                     <connections>
                                                         <action selector="AcceptButtonTapped:" destination="T1p-f7-KBv" eventType="touchUpInside" id="JI7-4E-LKB"/>
                                                     </connections>
@@ -698,7 +708,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="rUR-WN-w2B" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4833" y="-30"/>
+            <point key="canvasLocation" x="5759.5419847328239" y="-30.281690140845072"/>
         </scene>
         <!--Create Request-->
         <scene sceneID="Wbr-TI-hnU">
@@ -755,7 +765,7 @@
                                         </connections>
                                     </button>
                                     <datePicker contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="gam-LJ-3mS">
-                                        <rect key="frame" x="51" y="0.0" width="120" height="50"/>
+                                        <rect key="frame" x="50.666666666666671" y="0.0" width="120.00000000000001" height="50"/>
                                     </datePicker>
                                 </subviews>
                             </stackView>
@@ -813,7 +823,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="hUe-QF-8pc" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5625" y="-13"/>
+            <point key="canvasLocation" x="6550.3816793893129" y="-13.380281690140846"/>
         </scene>
         <!--Create Request-->
         <scene sceneID="Phx-cO-Heb">
@@ -889,7 +899,9 @@
                                                     <rect key="frame" x="277" y="35.666666666666664" width="61" height="34.999999999999993"/>
                                                     <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     <state key="normal" title="Button"/>
-                                                    <buttonConfiguration key="configuration" style="filled" title="View"/>
+                                                    <buttonConfiguration key="configuration" style="filled" title="View" cornerStyle="capsule">
+                                                        <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                                    </buttonConfiguration>
                                                 </button>
                                             </subviews>
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -1149,7 +1161,9 @@
                                                     </constraints>
                                                     <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     <state key="normal" title="Button"/>
-                                                    <buttonConfiguration key="configuration" style="filled" title="Create"/>
+                                                    <buttonConfiguration key="configuration" style="filled" title="Create">
+                                                        <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                                    </buttonConfiguration>
                                                     <connections>
                                                         <segue destination="ILg-pW-uN5" kind="unwind" unwindAction="unwindToInfoTableViewControllerWithSegue:" id="plZ-AI-K2s"/>
                                                     </connections>
@@ -1186,7 +1200,7 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2SE-S5-s1e" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <exit id="ILg-pW-uN5" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
-            <point key="canvasLocation" x="6432.8244274809158" y="12.67605633802817"/>
+            <point key="canvasLocation" x="7359.5419847328239" y="12.67605633802817"/>
         </scene>
         <!--Selecte people-->
         <scene sceneID="we3-5u-Vjj">
@@ -1299,12 +1313,13 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BDS-Z3-hOB" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <exit id="kZd-OM-Zyz" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
-            <point key="canvasLocation" x="8015" y="13"/>
+            <point key="canvasLocation" x="8941.221374045801" y="12.67605633802817"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--CoEquip-->
         <scene sceneID="TwS-TZ-Aft">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="jaW-8q-4AQ" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="CoEquip" image="person.3" catalog="system" selectedImage="person.3.fill" id="nak-6R-kMV"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="piM-Wq-AbX">
                         <rect key="frame" x="0.0" y="59" width="393" height="44"/>
@@ -1317,7 +1332,7 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="DEm-ev-B6B" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3360" y="-30"/>
+            <point key="canvasLocation" x="4286.259541984733" y="-30.281690140845072"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="wtA-6x-QWe">
@@ -1335,7 +1350,7 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2uM-zp-uJT" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="7268" y="13"/>
+            <point key="canvasLocation" x="8194.6564885496173" y="12.67605633802817"/>
         </scene>
     </scenes>
     <resources>
@@ -1349,6 +1364,7 @@
         <image name="line.horizontal.3.decrease.circle.fill" catalog="system" width="128" height="123"/>
         <image name="mappin" catalog="system" width="106" height="128"/>
         <image name="mappin.and.ellipse" catalog="system" width="110" height="128"/>
+        <image name="person.3" catalog="system" width="128" height="66"/>
         <image name="person.3.fill" catalog="system" width="128" height="66"/>
         <image name="person.circle" catalog="system" width="128" height="123"/>
         <image name="plus" catalog="system" width="128" height="113"/>

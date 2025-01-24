@@ -27,7 +27,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         navigationItem.searchController = searchController
 
         searchController.obscuresBackgroundDuringPresentation = false
-
+        
+        //searchController.
         //searchController.searchResultsUpdater = self
 
         navigationItem.hidesSearchBarWhenScrolling = false
