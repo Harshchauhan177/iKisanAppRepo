@@ -19,7 +19,7 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
         collectionView.register(firstNib, forCellWithReuseIdentifier: "First")
         collectionView.register(secondNib, forCellWithReuseIdentifier: "Second")
         
-        collectionView.register(SectionHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "SectionHeader")
+        collectionView.register(AgriSectionHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "SectionHeader")
         
         collectionView.setCollectionViewLayout(generateLayout(), animated: true)
         collectionView.dataSource = self
@@ -88,7 +88,7 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         if kind == UICollectionView.elementKindSectionHeader {
-            let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as! SectionHeaderCollectionReusableView
+            let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as! AgriSectionHeaderCollectionReusableView
             header.headerLabel.text = ScreenData.sectionHeaderNames[indexPath.section]
             header.headerLabel.font = UIFont.systemFont(ofSize: 18,weight: .bold)
             

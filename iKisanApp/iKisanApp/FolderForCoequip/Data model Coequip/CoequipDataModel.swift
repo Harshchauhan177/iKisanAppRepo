@@ -19,7 +19,7 @@ struct CoequipEquipment {
     var providerName: String? 
     var providerLocation: CoequipLocation
     var imageURL: UIImage
-    var category: EquipmentCategory
+    var category: CoequipEquipmentCategory
     var availability: [CoequipAvailability]
     var description: String?
     var reviews: [Review]?
@@ -48,7 +48,7 @@ struct Review {
     var rating: Double
     var comment: String
 }
-enum EquipmentCategory: String {
+enum CoequipEquipmentCategory: String {
     case tractor
     case plow
     case harvester
@@ -98,7 +98,7 @@ enum UserType {
 
 struct Filter {
     var searchText: String
-    var category: EquipmentCategory?
+    var category: CoequipEquipmentCategory?
     var locationRange: Double
     var minimumRating: Double?
 }

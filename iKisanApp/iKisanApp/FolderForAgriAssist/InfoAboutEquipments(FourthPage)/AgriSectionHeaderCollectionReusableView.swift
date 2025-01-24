@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SectionHeaderCollectionReusableView: UICollectionReusableView {
+class AgriSectionHeaderCollectionReusableView: UICollectionReusableView {
     var headerLabel = UILabel()
     var button = UIButton(type: .system)
     override init(frame: CGRect) {
