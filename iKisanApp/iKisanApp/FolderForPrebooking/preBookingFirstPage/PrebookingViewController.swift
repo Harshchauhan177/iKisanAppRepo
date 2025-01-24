@@ -9,7 +9,7 @@ import UIKit
 
 class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICollectionViewDelegate {
     
-    var hasAddPreBook : Bool = false  //
+    var hasAddPreBook : Bool = true //
     
     @IBOutlet weak var collectionView: UICollectionView!
     
@@ -41,7 +41,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        PreBookingScreenData.sectionHeaderNames.count
+        PreBookingScreenData.preBookingSectionHeaderNames.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -51,11 +51,13 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         case 1:
             1
         case 2:
-            PreBookingScreenData.preBookingSection3Data.count 
+            hasAddPreBook ? 2 : 0
+//            2
         case 3:
-            3
+//            PreBookingScreenData.preBookingSection3Data.count
+            5
         case 4:
-            2
+            3
         default:
             0
         }
@@ -74,22 +76,26 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             cell.layer.cornerRadius = 12
             return cell
         case 2:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Fifth", for: indexPath) as! preBookingEquipmentSectionAddPreBookCollectionViewCell
+//            cell.updatePreBookingSection4Data(with: indexPath)
+           // cell.delegate = self
+            cell.equipmentImageView.layer.cornerRadius = 7
+            
+            cell.layer.cornerRadius = 15
+            return cell
+            
+        case 3:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Third", for: indexPath) as! preBookingEquipmentSection3CollectionViewCell
             cell.updatePreBookingSection3Data(with: indexPath)
             cell.equipmentImageView.layer.cornerRadius = 7
             cell.layer.cornerRadius = 15
             return cell
-        case 3:
+        case 4:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Fourth", for: indexPath) as! preBookingEquipmentSection4CollectionViewCell
             cell.updatePreBookingSection4Data(with: indexPath)
             cell.layer.cornerRadius = 10
             return cell
-        case 4:
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Fifth", for: indexPath) as! preBookingEquipmentSectionAddPreBookCollectionViewCell
-//            cell.updatePreBookingSection4Data(with: indexPath)
-            cell.equipmentImageView.layer.cornerRadius = 7
-            cell.layer.cornerRadius = 15
-            return cell
+            
         default:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "First", for: indexPath) as! preBookingEquipmentSection1CollectionViewCell
             cell.updatePreBookingSection1Data(with: indexPath)
@@ -109,11 +115,11 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
                 case 1:
                     section = self.generatePreBookingSection2Layout()
                 case 2:
-                    section = self.generatePreBookingSection3Layout()
-                case 3:
-                    section = self.generatePreBookingSection4Layout()
-                case 4:
                     section = self.generatePreBookingSectionAddPreBookLayout()
+                case 3:
+                    section = self.generatePreBookingSection3Layout()
+                case 4:
+                    section = self.generatePreBookingSection4Layout()
                 default:
                     print("wrong section")
                     return self.generatePreBookingSection1Layout()
@@ -130,7 +136,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         if kind == UICollectionView.elementKindSectionHeader {
             let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "PreBookingSectionHeader", for: indexPath) as! PreBookingSectionHeaderCollectionReusableView
-            header.headerLabel.text = PreBookingScreenData.sectionHeaderNames[indexPath.section]
+            header.headerLabel.text = PreBookingScreenData.preBookingSectionHeaderNames[indexPath.section]
             header.headerLabel.font = UIFont.systemFont(ofSize: 18,weight: .bold)
             header.button.tag = indexPath.section
 //            header.button.addTarget(self, action: #selector(SectionButtonTapped(_:)), for: .touchUpInside)
@@ -203,6 +209,21 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             section.orthogonalScrollingBehavior = .groupPagingCentered
             return section
         }
+    
+    func userSearched(){
+        hasAddPreBook = false
+        collectionView.reloadData()
+    }
+    
+    
+    @IBAction func searchPreBookingButtonTapped(_ sender: Any) {
+        
+    //hasAddPreBook = true
+//        collectionView.reloadData()
+        
+       userSearched()
+    }
+    
     
     
     

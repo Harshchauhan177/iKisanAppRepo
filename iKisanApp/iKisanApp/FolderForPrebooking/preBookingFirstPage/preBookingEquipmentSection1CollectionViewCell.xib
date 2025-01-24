@@ -17,47 +17,61 @@
                 <rect key="frame" x="0.0" y="0.0" width="320" height="150"/>
                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                 <subviews>
-                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Image 2" translatesAutoresizingMaskIntoConstraints="NO" id="Ks8-86-rNF">
+                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Image 6" translatesAutoresizingMaskIntoConstraints="NO" id="Ks8-86-rNF">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="150"/>
                     </imageView>
-                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Trailed Sprayers" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="y7L-au-tvV">
-                        <rect key="frame" x="8" y="107.66666666666667" width="277" height="20.333333333333329"/>
-                        <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
-                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        <nil key="highlightedColor"/>
-                    </label>
-                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Pre-book today for seamless spraying this season." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8jZ-Fi-uIp">
-                        <rect key="frame" x="10" y="127" width="306" height="16"/>
-                        <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
-                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        <nil key="highlightedColor"/>
-                    </label>
+                    <view alpha="0.80000000000000004" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="9RH-06-TNU">
+                        <rect key="frame" x="0.0" y="100" width="320" height="50"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="RKX-IE-aRX">
+                                <rect key="frame" x="16" y="4" width="305.66666666666669" height="38"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Trailed Sprayers" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Rcz-Ll-xLC">
+                                        <rect key="frame" x="0.0" y="0.0" width="129" height="20.333333333333332"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Pre-book today for seamless spraying this season." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="POB-3C-fEu">
+                                        <rect key="frame" x="0.0" y="22.333333333333329" width="305.66666666666669" height="15.666666666666664"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                                        <color key="textColor" red="0.99991661310000002" green="1" blue="0.99987846609999997" alpha="0.80494451519999999" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <color key="backgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <constraints>
+                            <constraint firstItem="RKX-IE-aRX" firstAttribute="leading" secondItem="9RH-06-TNU" secondAttribute="leading" constant="16" id="FcT-Xp-UG1"/>
+                            <constraint firstAttribute="height" constant="50" id="Fip-Sb-28M"/>
+                            <constraint firstAttribute="bottom" secondItem="RKX-IE-aRX" secondAttribute="bottom" constant="8" id="RqE-1z-fnn"/>
+                        </constraints>
+                    </view>
                 </subviews>
             </view>
             <viewLayoutGuide key="safeArea" id="ZTg-uK-7eu"/>
             <color key="backgroundColor" systemColor="systemGray3Color"/>
             <constraints>
-                <constraint firstAttribute="trailing" secondItem="y7L-au-tvV" secondAttribute="trailing" constant="35" id="01e-lu-Mkz"/>
-                <constraint firstAttribute="bottom" secondItem="8jZ-Fi-uIp" secondAttribute="bottom" constant="7" id="2E8-30-kRr"/>
-                <constraint firstAttribute="bottom" secondItem="y7L-au-tvV" secondAttribute="bottom" constant="22" id="8Dg-gE-kcC"/>
                 <constraint firstAttribute="bottom" secondItem="Ks8-86-rNF" secondAttribute="bottom" id="9xf-cW-NgD"/>
-                <constraint firstItem="y7L-au-tvV" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="8" id="SX9-p2-A4u"/>
-                <constraint firstAttribute="trailing" secondItem="8jZ-Fi-uIp" secondAttribute="trailing" constant="4" id="TXT-as-42a"/>
+                <constraint firstItem="9RH-06-TNU" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="EgJ-gF-XWd"/>
+                <constraint firstAttribute="trailing" secondItem="9RH-06-TNU" secondAttribute="trailing" id="Y8L-yV-x97"/>
+                <constraint firstItem="9RH-06-TNU" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="ZhI-Vi-6Zm"/>
+                <constraint firstAttribute="bottom" secondItem="9RH-06-TNU" secondAttribute="bottom" id="bCe-y8-IIB"/>
                 <constraint firstItem="Ks8-86-rNF" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="g6y-Yx-ih8"/>
-                <constraint firstItem="8jZ-Fi-uIp" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="10" id="iwD-au-bCp"/>
                 <constraint firstItem="Ks8-86-rNF" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="oFJ-JP-5dj"/>
                 <constraint firstAttribute="trailing" secondItem="Ks8-86-rNF" secondAttribute="trailing" id="sAr-ys-rJZ"/>
             </constraints>
             <connections>
-                <outlet property="equipmentDescriptionLabel" destination="8jZ-Fi-uIp" id="Gre-ef-dFO"/>
+                <outlet property="equipmentDescriptionLabel" destination="POB-3C-fEu" id="c3C-ry-0vX"/>
                 <outlet property="equipmentImageView" destination="Ks8-86-rNF" id="iM2-q1-LR9"/>
-                <outlet property="equipmentNameLabel" destination="y7L-au-tvV" id="kxc-gu-SoC"/>
+                <outlet property="equipmentNameLabel" destination="Rcz-Ll-xLC" id="5o4-Ix-qPZ"/>
             </connections>
             <point key="canvasLocation" x="138.93129770992365" y="19.718309859154932"/>
         </collectionViewCell>
     </objects>
     <resources>
-        <image name="Image 2" width="244" height="144"/>
+        <image name="Image 6" width="600" height="300"/>
         <systemColor name="systemGray3Color">
             <color red="0.78039215689999997" green="0.78039215689999997" blue="0.80000000000000004" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>

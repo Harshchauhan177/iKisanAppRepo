@@ -41,14 +41,14 @@ class PreBookingScreenData {
     ]
     
     static var preBookingSection3Data: [PreBookingSection3Data] = [
-        PreBookingSection3Data(equipmentName: "Hammer Drill", equipmentImage: "Image 7", equipmentDate: "2019-02-15", equipmentStatus: "Confirmed"),
+        PreBookingSection3Data(equipmentName: "Hammer Drill", equipmentImage: "Image 7", equipmentDate: "Fri, 24 Jan", equipmentStatus: "Confirmed"),
         
-        PreBookingSection3Data(equipmentName: "Angle Grinder", equipmentImage: "Image 6", equipmentDate: "2015-02-20", equipmentStatus: "Pending"),
+        PreBookingSection3Data(equipmentName: "Angle Grinder", equipmentImage: "Image 6", equipmentDate: "Sat, 22 Jan", equipmentStatus: "Pending"),
         
-        PreBookingSection3Data(equipmentName: "Welding Machine", equipmentImage: "Image 8", equipmentDate: "2021-02-25", equipmentStatus: "Confirmed"),
+        PreBookingSection3Data(equipmentName: "Welding Machine", equipmentImage: "Image 8", equipmentDate: "Sun, 21 Jan", equipmentStatus: "Confirmed"),
         
-        PreBookingSection3Data(equipmentName: "Concrete Mixer", equipmentImage: "Image 6", equipmentDate: "2020-03-01", equipmentStatus: "Pending"),
-        PreBookingSection3Data(equipmentName: "Hammer Drill", equipmentImage: "Image 7", equipmentDate: "2019-02-15", equipmentStatus: "Confirmed")
+        PreBookingSection3Data(equipmentName: "Concrete Mixer", equipmentImage: "Image 6", equipmentDate: "Mon, 20 Jan", equipmentStatus: "Pending"),
+        PreBookingSection3Data(equipmentName: "Hammer Drill", equipmentImage: "Image 7", equipmentDate: "Tue, 25 Jan", equipmentStatus: "Confirmed")
     ]
     
     
@@ -61,12 +61,13 @@ class PreBookingScreenData {
     ]
 
     
-    static var sectionHeaderNames:[String] = [
+    static var preBookingSectionHeaderNames:[String] = [
         "Recommended for You ",
         "Calendar",
+        "Available Equipments",
         "Your Prebookings",
-        "Need Help?",
-        "added prebooking"
+        "Need Help?"
+       
     ]
 }
 

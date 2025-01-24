@@ -8,7 +8,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Agri Assist View Controller-->
+        <!--Select Crop-->
         <scene sceneID="s0d-6b-0kx">
             <objects>
                 <viewController id="Y6W-OH-hqX" customClass="AgriAssistViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
@@ -16,14 +16,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Select Crop" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZWe-KQ-xo2">
-                                <rect key="frame" x="16" y="111.00000000000001" width="184.66666666666666" height="39.666666666666671"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="34"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <searchBar contentMode="redraw" placeholder="Select Crop" translatesAutoresizingMaskIntoConstraints="NO" id="EWY-Ca-xz7">
-                                <rect key="frame" x="0.0" y="151.66666666666666" width="393" height="56"/>
+                                <rect key="frame" x="0.0" y="175" width="393" height="56"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <color key="tintColor" red="0.63529413940000001" green="0.63137257099999999" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -32,13 +26,13 @@
                                 </connections>
                             </searchBar>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Crops categories" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VeT-zk-pPE">
-                                <rect key="frame" x="16" y="237.66666666666666" width="270.66666666666669" height="40.666666666666657"/>
+                                <rect key="frame" x="16" y="261" width="270.66666666666669" height="40.666666666666686"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="34"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="y4s-fN-kIk">
-                                <rect key="frame" x="0.0" y="288.33333333333331" width="393" height="529.66666666666674"/>
+                                <rect key="frame" x="0.0" y="321.66666666666674" width="393" height="496.33333333333326"/>
                                 <color key="backgroundColor" red="0.63529413940000001" green="0.63137257099999999" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="CropCell" id="pnF-Ct-Mq1" customClass="CropTableViewCell" customModule="iKisanApp" customModuleProvider="target">
@@ -87,18 +81,16 @@
                         <constraints>
                             <constraint firstItem="vDu-zF-Fre" firstAttribute="bottom" secondItem="y4s-fN-kIk" secondAttribute="bottom" id="5fq-Wa-QMJ"/>
                             <constraint firstItem="EWY-Ca-xz7" firstAttribute="leading" secondItem="vDu-zF-Fre" secondAttribute="leading" id="Afh-wS-I2r"/>
+                            <constraint firstItem="EWY-Ca-xz7" firstAttribute="top" secondItem="vDu-zF-Fre" secondAttribute="top" constant="20" id="CdP-50-gs8"/>
                             <constraint firstItem="vDu-zF-Fre" firstAttribute="trailing" secondItem="y4s-fN-kIk" secondAttribute="trailing" id="DV5-Ie-A7m"/>
-                            <constraint firstItem="y4s-fN-kIk" firstAttribute="top" secondItem="VeT-zk-pPE" secondAttribute="bottom" constant="10" id="F0a-pU-fZE"/>
-                            <constraint firstItem="ZWe-KQ-xo2" firstAttribute="leading" secondItem="vDu-zF-Fre" secondAttribute="leading" constant="16" id="ISg-7t-8Um"/>
+                            <constraint firstItem="y4s-fN-kIk" firstAttribute="top" secondItem="VeT-zk-pPE" secondAttribute="bottom" constant="20" id="F0a-pU-fZE"/>
                             <constraint firstItem="y4s-fN-kIk" firstAttribute="leading" secondItem="vDu-zF-Fre" secondAttribute="leading" id="VCU-hZ-0NG"/>
-                            <constraint firstItem="ZWe-KQ-xo2" firstAttribute="top" secondItem="vDu-zF-Fre" secondAttribute="top" constant="8" id="WgD-Wz-WfQ"/>
                             <constraint firstItem="EWY-Ca-xz7" firstAttribute="trailing" secondItem="vDu-zF-Fre" secondAttribute="trailing" id="bk7-dU-a5h"/>
-                            <constraint firstItem="EWY-Ca-xz7" firstAttribute="top" secondItem="ZWe-KQ-xo2" secondAttribute="bottom" constant="1" id="ceN-to-5gd"/>
                             <constraint firstItem="VeT-zk-pPE" firstAttribute="leading" secondItem="vDu-zF-Fre" secondAttribute="leading" constant="16" id="hAK-r1-foX"/>
                             <constraint firstItem="VeT-zk-pPE" firstAttribute="top" secondItem="EWY-Ca-xz7" secondAttribute="bottom" constant="30" id="zul-Tx-Npy"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" id="3FN-yw-Y2R"/>
+                    <navigationItem key="navigationItem" title="Select Crop" id="3FN-yw-Y2R"/>
                     <connections>
                         <outlet property="cropSearchBar" destination="EWY-Ca-xz7" id="VLR-Gj-ncn"/>
                         <outlet property="tableView" destination="y4s-fN-kIk" id="QHf-c2-kWa"/>
@@ -109,16 +101,16 @@
             </objects>
             <point key="canvasLocation" x="5561" y="-311"/>
         </scene>
-        <!--Item-->
+        <!--AgriAssist-->
         <scene sceneID="Gg3-bU-eBh">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="zkZ-9V-WfK" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Item" image="lightbulb.max" catalog="system" selectedImage="lightbulb.min.fill" id="w2z-cG-5hd">
+                    <tabBarItem key="tabBarItem" title="AgriAssist" image="lightbulb.max" catalog="system" selectedImage="lightbulb.min.fill" id="w2z-cG-5hd">
                         <color key="badgeColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                     </tabBarItem>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="VCw-hR-Bmv">
-                        <rect key="frame" x="0.0" y="59" width="393" height="44"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="VCw-hR-Bmv">
+                        <rect key="frame" x="0.0" y="59" width="393" height="96"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -130,7 +122,7 @@
             </objects>
             <point key="canvasLocation" x="4844" y="-310"/>
         </scene>
-        <!--Equipments For Crops View Controller-->
+        <!--Equipments for rice-->
         <scene sceneID="sYb-Pz-ev0">
             <objects>
                 <viewController id="ypj-rd-Ff8" customClass="EquipmentsForCropsViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
@@ -138,20 +130,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CcJ-ID-H05">
-                                <rect key="frame" x="16" y="133" width="76.333333333333329" height="40.666666666666657"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="34"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Equipments for rice" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KyN-R4-OCr">
-                                <rect key="frame" x="20" y="203.66666666666666" width="232" height="33.666666666666657"/>
-                                <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="211" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="AbA-SX-kvE">
-                                <rect key="frame" x="7" y="249.33333333333331" width="379" height="568.66666666666674"/>
+                                <rect key="frame" x="7" y="160" width="379" height="658"/>
                                 <color key="backgroundColor" red="0.63529413940000001" green="0.63137257099999999" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="cell" rowHeight="211" id="GWh-ke-N9Q" customClass="myTableViewCell" customModule="iKisanApp" customModuleProvider="target">
@@ -269,18 +249,13 @@
                         <constraints>
                             <constraint firstItem="fI0-Kv-iNU" firstAttribute="bottom" secondItem="AbA-SX-kvE" secondAttribute="bottom" id="7cc-I6-zQI"/>
                             <constraint firstItem="fI0-Kv-iNU" firstAttribute="trailing" secondItem="AbA-SX-kvE" secondAttribute="trailing" constant="7" id="RIJ-08-kWU"/>
-                            <constraint firstItem="KyN-R4-OCr" firstAttribute="leading" secondItem="fI0-Kv-iNU" secondAttribute="leading" constant="20" id="pUr-8q-fDK"/>
-                            <constraint firstItem="CcJ-ID-H05" firstAttribute="top" secondItem="fI0-Kv-iNU" secondAttribute="top" constant="30" id="qgh-pR-Miu"/>
-                            <constraint firstItem="CcJ-ID-H05" firstAttribute="leading" secondItem="fI0-Kv-iNU" secondAttribute="leading" constant="16" id="siA-ik-YdT"/>
-                            <constraint firstItem="KyN-R4-OCr" firstAttribute="top" secondItem="CcJ-ID-H05" secondAttribute="bottom" constant="30" id="t4N-dA-Ht2"/>
-                            <constraint firstItem="AbA-SX-kvE" firstAttribute="top" secondItem="KyN-R4-OCr" secondAttribute="bottom" constant="12" id="uVU-iz-qx3"/>
+                            <constraint firstItem="AbA-SX-kvE" firstAttribute="top" secondItem="fI0-Kv-iNU" secondAttribute="top" constant="5" id="vVv-wy-ayh"/>
                             <constraint firstItem="AbA-SX-kvE" firstAttribute="leading" secondItem="fI0-Kv-iNU" secondAttribute="leading" constant="7" id="wTV-aa-O6H"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" id="KOj-xd-ssj"/>
+                    <navigationItem key="navigationItem" title="Equipments for rice" id="KOj-xd-ssj"/>
                     <connections>
-                        <outlet property="EquipmentsForCropsLabel" destination="KyN-R4-OCr" id="ZaV-WK-RUG"/>
-                        <outlet property="cropNameLabel" destination="CcJ-ID-H05" id="zk4-ks-Jjj"/>
+                        <outlet property="EquipmentsForCropsLabel" destination="KOj-xd-ssj" id="0Pc-a1-ETt"/>
                         <outlet property="myTable" destination="AbA-SX-kvE" id="Nt4-SM-dI9"/>
                     </connections>
                 </viewController>
@@ -297,17 +272,17 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="lOV-hC-WWy">
-                                <rect key="frame" x="0.0" y="103" width="393" height="715"/>
+                                <rect key="frame" x="0.0" y="155" width="393" height="663"/>
                                 <color key="backgroundColor" red="0.63529413940000001" green="0.63137257099999999" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="0.0" minimumInteritemSpacing="0.0" id="FTl-13-ak3">
                                     <size key="itemSize" width="130" height="158"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
                                     <size key="footerReferenceSize" width="0.0" height="0.0"/>
-                                    <inset key="sectionInset" minX="5" minY="5" maxX="5" maxY="5"/>
+                                    <inset key="sectionInset" minX="0.0" minY="5" maxX="0.0" maxY="5"/>
                                 </collectionViewFlowLayout>
                                 <cells>
                                     <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="cell" id="6xq-Gv-1Bx" customClass="SameTypeAllEquipmentsCollectionViewCell" customModule="iKisanApp" customModuleProvider="target">
-                                        <rect key="frame" x="5" y="5" width="130" height="158"/>
+                                        <rect key="frame" x="0.0" y="5" width="130" height="158"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="t3G-xo-Bjm">
                                             <rect key="frame" x="0.0" y="0.0" width="130" height="158"/>
@@ -430,7 +405,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="QrW-yY-pOw"/>
+        <segue reference="M8X-4H-y2n"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="Image" width="313" height="205"/>

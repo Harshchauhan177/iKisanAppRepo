@@ -26,6 +26,11 @@ class preBookingEquipmentSection3CollectionViewCell: UICollectionViewCell {
         equipmentDateLabel.text = PreBookingScreenData.preBookingSection3Data[indexPath.row].equipmentDate
         
         equipmentStatusLabel.text = PreBookingScreenData.preBookingSection3Data[indexPath.row].equipmentStatus
+        if equipmentStatusLabel.text == "Pending"{
+            equipmentStatusLabel.textColor = .systemBlue
+        }else {
+            equipmentStatusLabel.textColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+        }
         
     }
     

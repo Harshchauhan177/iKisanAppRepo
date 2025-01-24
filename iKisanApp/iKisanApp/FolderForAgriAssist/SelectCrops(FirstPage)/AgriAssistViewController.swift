@@ -7,15 +7,15 @@
 
 import UIKit
 
-var crops: [Crop] = [
-    Crop(id: 1, name: "Rice", imageName: UIImage(named: "Rice") ?? UIImage()),
-    Crop(id: 2, name: "Wheat", imageName: UIImage(named: "Wheat") ?? UIImage()),
-    Crop(id: 3, name: "Oats", imageName: UIImage(named: "Oats") ?? UIImage()),
-    Crop(id: 4, name: "Cotton", imageName: UIImage(named: "Cotton") ?? UIImage()),
-    Crop(id: 5, name: "Tea", imageName: UIImage(named: "Tea") ?? UIImage()),
-    Crop(id: 6, name: "Maize", imageName: UIImage(named: "Maize") ?? UIImage()),
-    Crop(id: 7, name: "Tobacco", imageName: UIImage(named: "Tobacco") ?? UIImage()),
-    Crop(id: 8, name: "Sugarcane", imageName: UIImage(named: "Sugarcane") ?? UIImage())
+var crops: [AgriCrop] = [
+    AgriCrop(id: 1, name: "Rice", imageName: UIImage(named: "Rice") ?? UIImage()),
+    AgriCrop(id: 2, name: "Wheat", imageName: UIImage(named: "Wheat") ?? UIImage()),
+    AgriCrop(id: 3, name: "Oats", imageName: UIImage(named: "Oats") ?? UIImage()),
+    AgriCrop(id: 4, name: "Cotton", imageName: UIImage(named: "Cotton") ?? UIImage()),
+    AgriCrop(id: 5, name: "Tea", imageName: UIImage(named: "Tea") ?? UIImage()),
+    AgriCrop(id: 6, name: "Maize", imageName: UIImage(named: "Maize") ?? UIImage()),
+    AgriCrop(id: 7, name: "Tobacco", imageName: UIImage(named: "Tobacco") ?? UIImage()),
+    AgriCrop(id: 8, name: "Sugarcane", imageName: UIImage(named: "Sugarcane") ?? UIImage())
 ]
 
 var myIndex = 0
@@ -29,7 +29,7 @@ class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableV
 //    let suggestions = ["Rice", "Wheat", "Oats", "Cotton", "Tea", "Maize", "Tobacco", "Sugarcane"]
 //        var filteredCrops: [String] = []
     
-    var filteredCrops: [Crop] = []
+    var filteredCrops: [AgriCrop] = []
 //   
     
     override func viewDidLoad() {

@@ -23,17 +23,14 @@ var eqData = [
 class EquipmentsForCropsViewController: UIViewController,UITableViewDelegate,UITableViewDataSource {
 
     @IBOutlet weak var myTable: UITableView!
-    @IBOutlet weak var EquipmentsForCropsLabel: UILabel!
-    @IBOutlet weak var cropNameLabel: UILabel!
+    @IBOutlet weak var EquipmentsForCropsLabel: UINavigationItem!
     
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        
-        cropNameLabel.text = eData.EquipmentsForCropsData[myIndex].cropName
-        EquipmentsForCropsLabel.text = eData.EquipmentsForCropsData[myIndex].EquipmentsForCrops
+        EquipmentsForCropsLabel.title = eData.EquipmentsForCropsData[myIndex].EquipmentsForCrops
+        //        EquipmentsForCropsLabel.text = eData.EquipmentsForCropsData[myIndex].EquipmentsForCrops
         
         // Do any additional setup after loading the view.
     }
