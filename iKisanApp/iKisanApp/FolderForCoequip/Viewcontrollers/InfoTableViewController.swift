@@ -20,8 +20,13 @@ class InfoTableViewController: UITableViewController {
     
     @IBOutlet weak var FarmerListLabel: UILabel!
     
+    
+        var location: String = "Some Location"
+        var timeSlot: String = "08:00 - 08:30"
+        var date: Date = Date()
     var cardData: CardData?
     let startTime = 8 * 60
+    var selectedUsers: [CoequipUser] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,9 +37,8 @@ class InfoTableViewController: UITableViewController {
             hostName.text = data.host
             ImageLabel.image = data.imageName
         }
-             
+        updateFarmerList()
     }
-    
     
     
     @IBAction func viewButtomTapped(_ sender: Any) {
@@ -42,15 +46,6 @@ class InfoTableViewController: UITableViewController {
     
     
     @IBAction func AddFarmerButtonTapped(_ sender: Any) {
-//        guard let inputText = InputAreaLabel.text, let numberOfSlots = Int(inputText), numberOfSlots > 0 else {
-//            let alert = UIAlertController(title: "Invalid Input", message: "Please enter a valid number of time slots.", preferredStyle: .alert)
-//            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-//            present(alert, animated: true, completion: nil)
-//         let (lowerTime, upperTime) = calculateTimeSlots(for: numberOfSlots)
-//        TimeSlotLabel.text = "Available Time: \(lowerTime) - \(upperTime)"
-//            return
-//        }
-
         performSegue(withIdentifier: "goToList", sender: sender)
     }
     func calculateTimeSlots(for slots: Int) -> (String, String) {
@@ -69,34 +64,37 @@ class InfoTableViewController: UITableViewController {
     
     @IBAction func unwindToInfoTableViewController(segue: UIStoryboardSegue) {
         if let sourceVC = segue.source as? SelectPeopleViewController {
-            let selectedPeopleNames = sourceVC.selectedPeople.map { $0.name }.joined(separator: ", ")
-            FarmerListLabel.text = "Selected Farmers: \(selectedPeopleNames)"
-        }
+                selectedUsers = sourceVC.selectedUsers
+                print("Selected Users in InfoViewController: \(selectedUsers)")  // Debugging
+            updateFarmerList()
+            }
     }
-
-//    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-//            if let inputText = InputAreaLabel.text, let numberOfSlots = Int(inputText), numberOfSlots > 0 {
-//                let (lowerTime, upperTime) = calculateTimeSlots(for: numberOfSlots)
-//                TimeSlotLabel.text = "Available Time: \(lowerTime) - \(upperTime)"
-//            }
-//            textField.resignFirstResponder()
-//            return true
-//        }
-//        func textFieldDidEndEditing(_ textField: UITextField) {
-//            if let inputText = InputAreaLabel.text, let numberOfSlots = Int(inputText), numberOfSlots > 0 {
-//                let (lowerTime, upperTime) = calculateTimeSlots(for: numberOfSlots)
-//                TimeSlotLabel.text = "Available Time: \(lowerTime) - \(upperTime)"
-//            }
-//        }
-//  override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-//            if segue.identifier == "goToList" {
-//                if let destinationVC = segue.destination as? SelectPeopleViewController {
-//                    if let slots = sender as? Int {
-//                       
-//                       destinationVC.numberOfSlots = slots
-//                    }
-//                }
-//            }
-//        }
+    // Method to display selected farmers in the label
+    func updateFarmerList() {
+        print("Selected Users: \(selectedUsers)") // Check if the data is being passed correctly
+            if selectedUsers.isEmpty {
+                FarmerListLabel.text = "No farmers selected"
+            } else {
+                let farmerNames = selectedUsers.compactMap { $0.name }.joined(separator: ", ")
+                FarmerListLabel.text = "Selected Farmers: \(farmerNames)"
+            }
     }
     
+    
+    @IBAction func CreateButtonTapped(_ sender: Any) {
+        performSegue(withIdentifier: "unwindToCoequip", sender: self)
+    }
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+            if segue.identifier == "unwindToCoequip" {
+                if let destinationVC = segue.destination as? CoequipViewController {
+                    // Here you are passing data back to CoequipViewController
+                    destinationVC.receivedRequestInfo = RequestInfo(
+                        selectedUsers: selectedUsers,
+                        location: location,
+                        timeSlot: timeSlot,
+                        date: date
+                    )
+                }
+            }
+        }
+}

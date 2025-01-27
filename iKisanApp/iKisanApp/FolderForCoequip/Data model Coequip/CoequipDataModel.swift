@@ -80,15 +80,9 @@ enum RequestStatus: String {
 
 struct CoequipUser {
     var id: UUID
-    var name: String
+    var name: String?
     var phoneNumber: String
-    var email: String?
     var location: String
-    var rating: Double
-    var profileImage: URL?
-    var equipmentOwned: [CoequipEquipment]
-    var coEquipRequests: [Request]
-    var userType: UserType
 }
 enum UserType {
     case farmer
@@ -102,4 +96,10 @@ struct Filter {
     var locationRange: Double
     var minimumRating: Double?
 }
-
+// Define sample users
+let sampleUsers: [CoequipUser] = [
+    CoequipUser(id: UUID(), name: "John Doe", phoneNumber: "123-456-7890", location: "California"),
+    CoequipUser(id: UUID(), name: "Jane Smith", phoneNumber: "987-654-3210", location: "Texas"),
+    CoequipUser(id: UUID(), name: "Bob Brown", phoneNumber: "555-123-4567", location: "Florida"),
+    CoequipUser(id: UUID(), name: "Alice White", phoneNumber: "555-765-4321", location: "New York")
+]
