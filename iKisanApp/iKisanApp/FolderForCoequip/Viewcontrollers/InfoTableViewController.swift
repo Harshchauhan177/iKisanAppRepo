@@ -2,7 +2,8 @@
 
 import UIKit
 
-class InfoTableViewController: UITableViewController {
+
+class InfoTableViewController: UITableViewController{
     
     
     @IBOutlet weak var ImageLabel: UIImageView!
@@ -71,30 +72,60 @@ class InfoTableViewController: UITableViewController {
     }
     // Method to display selected farmers in the label
     func updateFarmerList() {
-        print("Selected Users: \(selectedUsers)") // Check if the data is being passed correctly
-            if selectedUsers.isEmpty {
-                FarmerListLabel.text = "No farmers selected"
-            } else {
-                let farmerNames = selectedUsers.compactMap { $0.name }.joined(separator: ", ")
-                FarmerListLabel.text = "Selected Farmers: \(farmerNames)"
+        DispatchQueue.main.async {
+                if self.selectedUsers.isEmpty {
+                    self.FarmerListLabel.text = "farmers selected"
+                } else {
+                    let farmerNames = self.selectedUsers.compactMap { $0.name }.joined(separator: ", ")
+                    self.FarmerListLabel.text = "Selected Farmers: \(farmerNames)"
+                }
             }
     }
     
     
     @IBAction func CreateButtonTapped(_ sender: Any) {
-        performSegue(withIdentifier: "unwindToCoequip", sender: self)
-    }
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-            if segue.identifier == "unwindToCoequip" {
-                if let destinationVC = segue.destination as? CoequipViewController {
-                    // Here you are passing data back to CoequipViewController
-                    destinationVC.receivedRequestInfo = RequestInfo(
-                        selectedUsers: selectedUsers,
-                        location: location,
-                        timeSlot: timeSlot,
-                        date: date
-                    )
+        guard let title = TitleLabel.text, !title.isEmpty,
+                     let farmerList = FarmerListLabel.text, farmerList != "No farmers selected",
+                     !location.isEmpty, !timeSlot.isEmpty else {
+                    // Show alert if fields are missing
+                    let alert = UIAlertController(title: "Incomplete Information", message: "Please make sure all fields are filled before creating the request.", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                    self.present(alert, animated: true, completion: nil)
+                    return
                 }
-            }
-        }
+
+                // First alert confirming the request is created
+                let confirmationAlert = UIAlertController(title: "Request Created", message: "Your request has been successfully created. Tap Done to continue.", preferredStyle: .alert)
+                
+                // Add "Done" button to the alert
+                confirmationAlert.addAction(UIAlertAction(title: "Done", style: .default, handler: { _ in
+                    // After "Done" is clicked, show a second confirmation alert
+                    let successAlert = UIAlertController(title: "Request Submitted", message: "Your request has been successfully submitted!", preferredStyle: .alert)
+                    successAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+                        // Pass data to CoequipViewController when Done is clicked
+                        self.performSegue(withIdentifier: "goToCoequip", sender: self)
+                    }))
+                    self.present(successAlert, animated: true, completion: nil)
+                }))
+                
+                // Present the first confirmation alert
+                self.present(confirmationAlert, animated: true, completion: nil)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+           if segue.identifier == "goToCoequip" {
+               if let destinationVC = segue.destination as? CoequipViewController {
+                   // Pass necessary data (e.g., equipment info, selected users, etc.)
+                   destinationVC.receivedRequestInfo = RequestInfo(
+                       selectedUsers: selectedUsers,
+                       location: location,
+                       timeSlot: timeSlot,
+                       date: date,
+                       equipmentImage: ImageLabel.image,  // Pass the image
+                       equipmentName: TitleLabel.text,   // Pass the equipment name
+                       equipmentAddress: hostName.text   // Pass the host address
+                   )
+               }
+           }
+       }
 }

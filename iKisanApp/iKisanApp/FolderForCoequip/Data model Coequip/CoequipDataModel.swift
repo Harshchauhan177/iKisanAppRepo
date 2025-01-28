@@ -89,7 +89,15 @@ enum UserType {
     case provider
 }
 
-
+struct RequestInfo {
+    var selectedUsers: [CoequipUser]
+    var location: String
+    var timeSlot: String
+    var date: Date
+    var equipmentImage: UIImage?
+    var equipmentName: String?
+    var equipmentAddress: String?
+}
 struct Filter {
     var searchText: String
     var category: EquipmentCategory?

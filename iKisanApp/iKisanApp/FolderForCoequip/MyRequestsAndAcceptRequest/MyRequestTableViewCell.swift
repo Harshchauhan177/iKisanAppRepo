@@ -31,7 +31,16 @@ class MyRequestTableViewCell: UITableViewCell {
        
     }
 
-
+    func configureCell(for request: Request) {
+            // Configure the cell based on the request status
+            if request.status == .pending {
+                PendingButtonTapped.isHidden = false
+                ConfirmButtonLabel.isHidden = true
+            } else if request.status == .confirmed {
+                PendingButtonTapped.isHidden = true
+                ConfirmButtonLabel.isHidden = false
+            }
+        }
     
     @IBAction func ConfirmButtonTapped(_ sender: Any) {
         delegate?.didTapConfirmButton(cell: self)

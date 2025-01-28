@@ -2,10 +2,11 @@
 import UIKit
 
 class CoequipViewController: UIViewController {
-    
+    var receivedRequestInfo: RequestInfo?
     var equipmentItems: [CoequipEquipment] = []
   var requests: [Request] = []
     var acceptedRequests: [Request] = []
+    
     @IBOutlet weak var CoequipSegmentedControl: UISegmentedControl!
     @IBOutlet weak var CoequipTableView: UITableView!
     
@@ -16,23 +17,30 @@ class CoequipViewController: UIViewController {
         setupSampleData()
         CoequipTableView.register(UINib(nibName: "MyRequestTableViewCell", bundle: nil), forCellReuseIdentifier: "MyRequestTableViewCell")
              CoequipTableView.register(UINib(nibName: "AcceptRequestTableViewCell", bundle: nil), forCellReuseIdentifier: "AcceptRequestTableViewCell")
+       
+        setAllRequestsToPending()
     }
-    
+    func setAllRequestsToPending() {
+            for i in 0..<requests.count {
+                requests[i].status = .pending
+            }
+            CoequipTableView.reloadData()
+        }
     func setupSampleData() {
         equipmentItems = [
-            CoequipEquipment(id: UUID(), name: "Rice Harvester", pricePerHour: 100.0, pricePerArea: 50.0, rating: 4.5, providerName: "Murshadpur Greater Noida U.P", providerLocation: CoequipLocation(latitude: 28.7041, longitude: 77.1025, area: "Delhi"), imageURL: UIImage(named: "102")!, category: .tractor, availability: [], description: "Heavy-duty Harvester for farm work", reviews: []),
-            CoequipEquipment(id: UUID(), name: "Wheat Harvester", pricePerHour: 80.0, pricePerArea: 40.0, rating: 4.0, providerName: "Dankaur Greater Noida U.P", providerLocation: CoequipLocation(latitude: 28.7041, longitude: 77.1025, area: "Delhi"), imageURL: UIImage(named: "103")!, category: .plow, availability: [], description: "Efficient plow for soil tilling", reviews: [])
-        ]
-        
-        requests = [
-            Request(id: UUID(), equipmentId: equipmentItems[0].id, requestedBy: UUID(), status: .pending, requestedDate: Date(), requestedTimeSlot: "Morning", area: 10, location: "Delhi", providerId: UUID(), discountThreshold: 200, joinedFarmers: [], minimumAreaForDiscount: 50, paymentStatus: .pending, statusUpdatedDate: nil, notes: nil),
-            Request(id: UUID(), equipmentId: equipmentItems[1].id, requestedBy: UUID(), status: .confirmed, requestedDate: Date(), requestedTimeSlot: "Afternoon", area: 20, location: "Delhi", providerId: UUID(), discountThreshold: 150, joinedFarmers: [], minimumAreaForDiscount: 30, paymentStatus: .completed, statusUpdatedDate: nil, notes: nil)
-        ]
-        
-        acceptedRequests = [
-            requests[0],
-            requests[1]
-        ]
+                    CoequipEquipment(id: UUID(), name: "Rice Harvester", pricePerHour: 100.0, pricePerArea: 50.0, rating: 4.5, providerName: "Murshadpur Greater Noida U.P", providerLocation: CoequipLocation(latitude: 28.7041, longitude: 77.1025, area: "Delhi"), imageURL: UIImage(named: "102")!, category: .tractor, availability: [], description: "Heavy-duty Harvester for farm work", reviews: []),
+                    CoequipEquipment(id: UUID(), name: "Wheat Harvester", pricePerHour: 80.0, pricePerArea: 40.0, rating: 4.0, providerName: "Dankaur Greater Noida U.P", providerLocation: CoequipLocation(latitude: 28.7041, longitude: 77.1025, area: "Delhi"), imageURL: UIImage(named: "103")!, category: .plow, availability: [], description: "Efficient plow for soil tilling", reviews: [])
+                ]
+                
+                requests = [
+                    Request(id: UUID(), equipmentId: equipmentItems[0].id, requestedBy: UUID(), status: .pending, requestedDate: Date(), requestedTimeSlot: "Morning", area: 10, location: "Delhi", providerId: UUID(), discountThreshold: 200, joinedFarmers: [], minimumAreaForDiscount: 50, paymentStatus: .pending, statusUpdatedDate: nil, notes: nil),
+                    Request(id: UUID(), equipmentId: equipmentItems[1].id, requestedBy: UUID(), status: .confirmed, requestedDate: Date(), requestedTimeSlot: "Afternoon", area: 20, location: "Delhi", providerId: UUID(), discountThreshold: 150, joinedFarmers: [], minimumAreaForDiscount: 30, paymentStatus: .completed, statusUpdatedDate: nil, notes: nil)
+                ]
+                
+                acceptedRequests = [
+                    requests[0],
+                    requests[1]
+                ]
     }
     
     @IBAction func segmentedControlValueChanged(_ sender: UISegmentedControl) {
@@ -44,19 +52,18 @@ class CoequipViewController: UIViewController {
                 if let destinationVC = segue.destination as? AcceptRequestTableViewController {
                     if let indexPath = CoequipTableView.indexPathForSelectedRow {
                         let request = acceptedRequests[indexPath.row]
-                        destinationVC.request = request // Pass the selected request data
+                        destinationVC.request = request
                     }
                 }
             } else if segue.identifier == "goToMyRequest" {
                 if let destinationVC = segue.destination as? MyRequestViewController {
                     if let indexPath = CoequipTableView.indexPathForSelectedRow {
                         let request = requests[indexPath.row]
-                        destinationVC.request = request // Pass the selected request data
+                        destinationVC.request = request
                     }
                 }
             }
         }
-    
 }
 
 
@@ -131,6 +138,7 @@ extension CoequipViewController: MyRequestTableViewCellDelegate {
     func didTapPendingButton(cell: MyRequestTableViewCell) {
         if let indexPath = CoequipTableView.indexPath(for: cell) {
             let request = requests[indexPath.row]
+            requests[indexPath.row].status = .pending
             performSegue(withIdentifier: "goToMyRequest", sender: self)
         }
     }
@@ -140,14 +148,34 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
     func acceptButtonTapped(in cell: AcceptRequestTableViewCell) {
         if let indexPath = CoequipTableView.indexPath(for: cell) {
             let request = acceptedRequests[indexPath.row]
+           // selectedRequestIndexPath = indexPath
             performSegue(withIdentifier: "goToAcceptRequest", sender: self)
         }
     }
     
     func rejectButtonTapped(in cell: AcceptRequestTableViewCell) {
         if let indexPath = CoequipTableView.indexPath(for: cell) {
-            let request = acceptedRequests[indexPath.row]
-            
+                    let request = acceptedRequests[indexPath.row]
+                    
+                    // Show confirmation alert
+                    let alertController = UIAlertController(title: "Reject Request", message: "Are you sure you want to reject this request?", preferredStyle: .alert)
+                    
+                    // Add Cancel action
+                    let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+                    alertController.addAction(cancelAction)
+                    
+                    // Add Done action
+                    let doneAction = UIAlertAction(title: "Done", style: .destructive) { _ in
+                        // On confirmation, remove the request from acceptedRequests
+                        self.acceptedRequests.remove(at: indexPath.row)
+                        
+                        // Reload the table view to reflect the changes
+                        self.CoequipTableView.deleteRows(at: [indexPath], with: .automatic)
+                    }
+                    alertController.addAction(doneAction)
+                    
+                    // Present the alert
+                    self.present(alertController, animated: true, completion: nil)
         }
     }
     

@@ -34,6 +34,9 @@ class AcceptRequestTableViewCell: UITableViewCell {
        
     }
     
+    
+    
+    
     @IBAction func AccepctButtonTapped(_ sender: Any) {
         delegate?.acceptButtonTapped(in: self)
     }
