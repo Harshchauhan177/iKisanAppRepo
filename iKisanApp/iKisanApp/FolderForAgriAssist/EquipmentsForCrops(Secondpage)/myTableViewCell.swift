@@ -32,7 +32,7 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
         self.layer.shadowRadius = 4
         self.layer.masksToBounds = false
         
-        EquipmentTypeLabel.text = eData.EquipmentsForCropsData[myIndex].equipments[0].title
+        EquipmentTypeLabel.text = EData.EquipmentsForCropsData[myIndex].equipments[0].title
 
 //        EquipmentTypeLabel.text = "harsh 1"
         
@@ -61,8 +61,8 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = myCollectionView.dequeueReusableCell(withReuseIdentifier: "collectionCell", for: indexPath) as! myCollectionViewCell
         
-        cell.myEquipmentImage.image = UIImage(named: eqData[myCollectionView.tag].Equipmentsimage[indexPath.row])  //
-        cell.myEquipmentsName.text = eqData[myCollectionView.tag].EquipmentsName[indexPath.row]                    //
+        cell.myEquipmentImage.image = UIImage(named: EqData[myCollectionView.tag].Equipmentsimage[indexPath.row])  //
+        cell.myEquipmentsName.text = EqData[myCollectionView.tag].EquipmentsName[indexPath.row]                    //
         
         cell.myEquipmentImage.layer.cornerRadius = cell.myEquipmentImage.frame.size.width / 2
         cell.myEquipmentImage.layer.masksToBounds = true
