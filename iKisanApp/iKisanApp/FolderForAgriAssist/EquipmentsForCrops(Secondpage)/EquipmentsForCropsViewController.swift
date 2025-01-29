@@ -8,7 +8,7 @@
 import UIKit
 
 
-var eqData = [
+var EqData = [
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 3","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
@@ -29,7 +29,7 @@ class EquipmentsForCropsViewController: UIViewController,UITableViewDelegate,UIT
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        EquipmentsForCropsLabel.title = eData.EquipmentsForCropsData[myIndex].EquipmentsForCrops
+        EquipmentsForCropsLabel.title = EData.EquipmentsForCropsData[myIndex].EquipmentsForCrops
         //        EquipmentsForCropsLabel.text = eData.EquipmentsForCropsData[myIndex].EquipmentsForCrops
         
         // Do any additional setup after loading the view.

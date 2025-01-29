@@ -7,24 +7,7 @@
 
 import Foundation
 
-struct EquipmentAgri {
-    var name: String
-    var imageName: String
-}
-
-struct CropCategory {
-    var cropName: String
-    var EquipmentsForCrops : String
-    var equipments: [EquipmentCategory]
-}
-
-struct EquipmentCategory {
-    var title: String
-    var equipmentList: [EquipmentAgri]
-}
-
-
-class eData {
+class EData {
     static var EquipmentsForCropsData = [
         // Rice
         CropCategory(

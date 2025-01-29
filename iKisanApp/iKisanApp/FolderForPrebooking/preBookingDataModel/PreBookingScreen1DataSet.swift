@@ -6,25 +6,6 @@
 //
 
 import Foundation
-
-struct PreBookingSection1Data {
-    var equipmentName: String
-    var equipmentImage: String
-    var equipmentDescription: String
-}
-
-struct PreBookingSection3Data {
-    var equipmentName: String
-    var equipmentImage: String
-    var equipmentDate: String
-    var equipmentStatus: String
-}
-
-struct PreBookingSection4Data {
-    var needHelp: String
-}
-
-
 class PreBookingScreenData {
     
     static var preBookingSection1Data: [PreBookingSection1Data] = [
