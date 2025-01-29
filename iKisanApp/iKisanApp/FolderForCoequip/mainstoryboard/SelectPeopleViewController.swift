@@ -7,10 +7,10 @@ class SelectPeopleViewController: UIViewController, UITableViewDelegate, UITable
     @IBOutlet weak var ListTableViewCell: UITableView!
     @IBOutlet weak var filterLabel: UIButton!
 
-    var filteredUsers: [CoequipUser] = sampleUsers
+    var filteredUsers: [CoEquipUser] = sampleUsers
     var userSelected: [UUID: Bool] = [:]
-    var selectedUsers: [CoequipUser] = []
-    var allUsers: [CoequipUser] = sampleUsers
+    var selectedUsers: [CoEquipUser] = []
+    var allUsers: [CoEquipUser] = sampleUsers
 
     // Custom filter options table
     var filterOptionsTableView: UITableView!
@@ -134,7 +134,7 @@ class SelectPeopleViewController: UIViewController, UITableViewDelegate, UITable
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "unwindToInfo" {
                 if let destinationVC = segue.destination as? InfoTableViewController,
-                   let selectedUsers = sender as? [CoequipUser] {
+                   let selectedUsers = sender as? [CoEquipUser] {
                     destinationVC.selectedUsers = selectedUsers
                 }
             }    }

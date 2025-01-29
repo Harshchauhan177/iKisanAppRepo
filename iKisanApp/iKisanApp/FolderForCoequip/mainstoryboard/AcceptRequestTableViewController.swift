@@ -7,7 +7,7 @@ class AcceptRequestTableViewController: UITableViewController {
     
     @IBOutlet weak var imageLabel: UIImageView!
     
-    @IBOutlet weak var TitleLabel: UILabel!
+    @IBOutlet weak var titleLabel: UILabel!
     
     @IBOutlet weak var viewLabel: UIButton!
     @IBOutlet weak var priceLabel: UILabel!
@@ -16,11 +16,11 @@ class AcceptRequestTableViewController: UITableViewController {
     
     @IBOutlet weak var LocationLabel: UILabel!
     
-    @IBOutlet weak var DateLabel: UILabel!
+    @IBOutlet weak var dateLabel: UILabel!
     
-    @IBOutlet weak var IntputArea: UITextField!
+    @IBOutlet weak var intputArea: UITextField!
     
-    @IBOutlet weak var TimeSlotLabel: UILabel!
+    @IBOutlet weak var timeSlotLabel: UILabel!
     
     let validStartTime = "08:00"
 
@@ -30,8 +30,8 @@ class AcceptRequestTableViewController: UITableViewController {
       
     }
     @objc func areaInputChanged() {
-            // Check if the input is filled and then update the time slot
-        if let areaText = IntputArea.text, !areaText.isEmpty {
+    
+        if let areaText = intputArea.text, !areaText.isEmpty {
                     updateTimeSlot(basedOn: areaText)
                 }
         }
@@ -46,7 +46,7 @@ class AcceptRequestTableViewController: UITableViewController {
                 let endTime = getEndTime(from: startTime, durationInMinutes:durationInMinutes)
                 
                 // Update the TimeSlotLabel
-                TimeSlotLabel.text = "\(startTime) - \(endTime)"
+                timeSlotLabel.text = "\(startTime) - \(endTime)"
     }
     
     func getEndTime(from startTime: String,durationInMinutes: Int) -> String {
@@ -60,12 +60,12 @@ class AcceptRequestTableViewController: UITableViewController {
         }
     
     @IBAction func AcceptButtonTapped(_ sender: Any) {
-        guard let title = TitleLabel.text, !title.isEmpty,
+        guard let title = titleLabel.text, !title.isEmpty,
                       let location = LocationLabel.text, !location.isEmpty,
                       let price = priceLabel.text, !price.isEmpty,
                       let host = hostLabel.text, !host.isEmpty,
-                      let timeSlot = TimeSlotLabel.text, !timeSlot.isEmpty,
-                      let area = IntputArea.text, !area.isEmpty else {
+                      let timeSlot = timeSlotLabel.text, !timeSlot.isEmpty,
+                      let area = intputArea.text, !area.isEmpty else {
                           showAlert(title: "Missing Information", message: "Please fill in all the details before accepting the request.")
                           return
                 }

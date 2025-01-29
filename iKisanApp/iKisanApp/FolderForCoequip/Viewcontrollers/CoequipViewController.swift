@@ -3,7 +3,7 @@ import UIKit
 
 class CoequipViewController: UIViewController {
     var receivedRequestInfo: RequestInfo?
-    var equipmentItems: [CoequipEquipment] = []
+    var equipmentItems: [CoEquipEquipment] = []
   var requests: [Request] = []
     var acceptedRequests: [Request] = []
     
@@ -28,8 +28,8 @@ class CoequipViewController: UIViewController {
         }
     func setupSampleData() {
         equipmentItems = [
-                    CoequipEquipment(id: UUID(), name: "Rice Harvester", pricePerHour: 100.0, pricePerArea: 50.0, rating: 4.5, providerName: "Murshadpur Greater Noida U.P", providerLocation: CoequipLocation(latitude: 28.7041, longitude: 77.1025, area: "Delhi"), imageURL: UIImage(named: "102")!, category: .tractor, availability: [], description: "Heavy-duty Harvester for farm work", reviews: []),
-                    CoequipEquipment(id: UUID(), name: "Wheat Harvester", pricePerHour: 80.0, pricePerArea: 40.0, rating: 4.0, providerName: "Dankaur Greater Noida U.P", providerLocation: CoequipLocation(latitude: 28.7041, longitude: 77.1025, area: "Delhi"), imageURL: UIImage(named: "103")!, category: .plow, availability: [], description: "Efficient plow for soil tilling", reviews: [])
+                    CoEquipEquipment(id: UUID(), name: "Rice Harvester", pricePerHour: 100.0, pricePerArea: 50.0, rating: 4.5, providerName: "Murshadpur Greater Noida U.P", providerLocation: CoEquipLocation(latitude: 28.7041, longitude: 77.1025, area: "Delhi"), imageURL: UIImage(named: "102")!, category: .tractor, availability: [], description: "Heavy-duty Harvester for farm work", reviews: []),
+                    CoEquipEquipment(id: UUID(), name: "Wheat Harvester", pricePerHour: 80.0, pricePerArea: 40.0, rating: 4.0, providerName: "Dankaur Greater Noida U.P", providerLocation: CoEquipLocation(latitude: 28.7041, longitude: 77.1025, area: "Delhi"), imageURL: UIImage(named: "103")!, category: .plow, availability: [], description: "Efficient plow for soil tilling", reviews: [])
                 ]
                 
                 requests = [

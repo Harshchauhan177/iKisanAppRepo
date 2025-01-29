@@ -27,7 +27,7 @@ class InfoTableViewController: UITableViewController{
         var date: Date = Date()
     var cardData: CardData?
     let startTime = 8 * 60
-    var selectedUsers: [CoequipUser] = []
+    var selectedUsers: [CoEquipUser] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()

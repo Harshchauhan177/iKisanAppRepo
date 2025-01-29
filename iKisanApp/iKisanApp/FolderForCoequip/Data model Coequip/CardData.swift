@@ -27,7 +27,7 @@ struct PersonList {
     var isSelected: Bool 
 }
 
-class pupil{
+class Pupil{
     static var allPeopleData: [PersonList] = [
             PersonList(name: "Harsh Singh", image: "person1", isSelected: false),
             PersonList(name: "Vikash Kumar", image: "person2", isSelected: false),
