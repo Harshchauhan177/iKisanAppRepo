@@ -4,7 +4,7 @@ import UIKit
 class CoequipViewController: UIViewController {
     var receivedRequestInfo: RequestInfo?
     var equipmentItems: [CoEquipEquipment] = []
-  var requests: [Request] = []
+    var requests: [Request] = []
     var acceptedRequests: [Request] = []
     
     @IBOutlet weak var CoequipSegmentedControl: UISegmentedControl!
@@ -16,8 +16,7 @@ class CoequipViewController: UIViewController {
         CoequipTableView.delegate = self
         setupSampleData()
         CoequipTableView.register(UINib(nibName: "MyRequestTableViewCell", bundle: nil), forCellReuseIdentifier: "MyRequestTableViewCell")
-             CoequipTableView.register(UINib(nibName: "AcceptRequestTableViewCell", bundle: nil), forCellReuseIdentifier: "AcceptRequestTableViewCell")
-       
+        CoequipTableView.register(UINib(nibName: "AcceptRequestTableViewCell", bundle: nil), forCellReuseIdentifier: "AcceptRequestTableViewCell")
         setAllRequestsToPending()
     }
     func setAllRequestsToPending() {
@@ -68,7 +67,6 @@ class CoequipViewController: UIViewController {
 
 
 extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
-
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if CoequipSegmentedControl.selectedSegmentIndex == 0 {
             return requests.count
@@ -148,7 +146,6 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
     func acceptButtonTapped(in cell: AcceptRequestTableViewCell) {
         if let indexPath = CoequipTableView.indexPath(for: cell) {
             let request = acceptedRequests[indexPath.row]
-           // selectedRequestIndexPath = indexPath
             performSegue(withIdentifier: "goToAcceptRequest", sender: self)
         }
     }
@@ -156,25 +153,13 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
     func rejectButtonTapped(in cell: AcceptRequestTableViewCell) {
         if let indexPath = CoequipTableView.indexPath(for: cell) {
                     let request = acceptedRequests[indexPath.row]
-                    
-                    // Show confirmation alert
                     let alertController = UIAlertController(title: "Reject Request", message: "Are you sure you want to reject this request?", preferredStyle: .alert)
-                    
-                    // Add Cancel action
                     let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
                     alertController.addAction(cancelAction)
-                    
-                    // Add Done action
-                    let doneAction = UIAlertAction(title: "Done", style: .destructive) { _ in
-                        // On confirmation, remove the request from acceptedRequests
-                        self.acceptedRequests.remove(at: indexPath.row)
-                        
-                        // Reload the table view to reflect the changes
-                        self.CoequipTableView.deleteRows(at: [indexPath], with: .automatic)
+                    let doneAction = UIAlertAction(title: "Done", style: .destructive) { _ in self.acceptedRequests.remove(at: indexPath.row)
+                    self.CoequipTableView.deleteRows(at: [indexPath], with: .automatic)
                     }
                     alertController.addAction(doneAction)
-                    
-                    // Present the alert
                     self.present(alertController, animated: true, completion: nil)
         }
     }

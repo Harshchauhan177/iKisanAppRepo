@@ -27,7 +27,6 @@ class AcceptRequestTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         //IntputArea.addTarget(self, action: #selector(areaInputChanged), for: .editingChanged)
-      
     }
     @objc func areaInputChanged() {
     
@@ -36,16 +35,10 @@ class AcceptRequestTableViewController: UITableViewController {
                 }
         }
     func updateTimeSlot(basedOn areaText: String) {
-        let areaCount = areaText.split(separator: " ").count // Count the number of words (areas)
-
-                // Calculate the duration (30 minutes per area)
+        let areaCount = areaText.split(separator: " ").count
                 let durationInMinutes = areaCount * 30
-                
-                // Format the start and end times
                 let startTime = validStartTime
                 let endTime = getEndTime(from: startTime, durationInMinutes:durationInMinutes)
-                
-                // Update the TimeSlotLabel
                 timeSlotLabel.text = "\(startTime) - \(endTime)"
     }
     
@@ -53,10 +46,10 @@ class AcceptRequestTableViewController: UITableViewController {
         let formatter = DateFormatter()
                 formatter.dateFormat = "HH:mm"
                 if let startDate = formatter.date(from: startTime) {
-                    let endDate = startDate.addingTimeInterval(Double(durationInMinutes * 60)) // Adding the calculated duration
+                    let endDate = startDate.addingTimeInterval(Double(durationInMinutes * 60))
                     return formatter.string(from: endDate)
                 }
-                return startTime // Fallback if something goes wrong
+                return startTime
         }
     
     @IBAction func AcceptButtonTapped(_ sender: Any) {
@@ -73,11 +66,9 @@ class AcceptRequestTableViewController: UITableViewController {
         let areaCount = area.split(separator: " ").count
                 let expectedEndTime = getEndTime(from: validStartTime, durationInMinutes: areaCount * 30)
                 if timeSlot != "\(validStartTime) - \(expectedEndTime)" {
-                    showAlert(title: "Invalid Time Slot", message: "The time slot must start from 8 AM and last in intervals based on the number of areas (30 minutes per area).")
+                    showAlert(title: "Invalid Time Slot", message: "Please Enter Area Correctly")
                     return
                 }
-
-                // Show success alert after successfully accepting the request
                 showAlert(title: "Success", message: "You have successfully accepted the request.")
     }
     

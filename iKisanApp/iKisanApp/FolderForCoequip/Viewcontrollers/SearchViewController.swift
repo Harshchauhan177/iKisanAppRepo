@@ -15,7 +15,7 @@ class SearchViewController: UIViewController,UISearchBarDelegate, UITableViewDel
     @IBOutlet weak var tableViewLabel: UITableView!
     
     let suggestions = ["Harvester", "Harvester near you", "Rice harvester", "Tractor", "Plough"]
-        var filteredSuggestions: [String] = []
+    var filteredSuggestions: [String] = []
     var selectedSuggestion: String?
     
     override func viewDidLoad() {
