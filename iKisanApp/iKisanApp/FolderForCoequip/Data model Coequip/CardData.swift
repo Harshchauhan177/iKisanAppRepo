@@ -36,3 +36,11 @@ class Pupil{
             PersonList(name: "Rahul kumar", image:"person5", isSelected: false)
         ]
 }
+class MyRequestInfo {
+   var name: String
+    var image: String
+    init(name: String, image: String) {
+        self.name = name
+        self.image = image
+    }
+}

@@ -97,8 +97,11 @@ class SelectPeopleViewController: UIViewController, UITableViewDelegate, UITable
     }
     @IBAction func DoneButtonTapped(_ sender: Any) {
         selectedUsers = filteredUsers.filter { userSelected[$0.id] == true }
-            print("Selected Users: \(selectedUsers)")
-            performSegue(withIdentifier: "unwindToInfo", sender: selectedUsers)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil) 
+            if let destinationVC = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
+                destinationVC.selectedUsers = selectedUsers
+                navigationController?.pushViewController(destinationVC, animated: true)
+            }
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

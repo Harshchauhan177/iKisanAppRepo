@@ -23,9 +23,10 @@ class AcceptRequestTableViewController: UITableViewController {
     @IBOutlet weak var timeSlotLabel: UILabel!
     
     let validStartTime = "08:00"
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        imageLabel.layer.cornerRadius = 7
         //IntputArea.addTarget(self, action: #selector(areaInputChanged), for: .editingChanged)
     }
     @objc func areaInputChanged() {

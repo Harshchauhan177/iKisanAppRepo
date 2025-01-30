@@ -21,6 +21,7 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
     var numberOfColumns: CGFloat = 2
     var selectedCategory:String?
     var selectedDate: Date?
+    var selectedSuggestion: String?
 
     
     override func viewDidLoad() {
@@ -33,7 +34,9 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         searchBar.delegate=self
         
             
-        
+        if let suggestion = selectedSuggestion {
+                    searchBar.text = suggestion
+                }
         categoryCollectionView.register(UINib(nibName: "CategoryCell", bundle: nil), forCellWithReuseIdentifier: "CategoryCell")
         cardCollectionView.register(UINib(nibName: "CardCell", bundle: nil), forCellWithReuseIdentifier: "CardCell")
         
@@ -47,6 +50,9 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         highlightSelectedCategory()
         filterCardsByCategory()
     }
+//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+//            searchBar.resignFirstResponder()
+//        }
     
     @IBAction func calendarbuttonTapped(_ sender: Any) {
         let calendarVC = UIViewController()
@@ -208,8 +214,8 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             if collectionView == categoryCollectionView {
                 return CGSize(width: 100, height: 40)
             } else {
-                let padding: CGFloat = 10
-                let totalSpacing = (numberOfColumns + 1) * padding
+                let padding: CGFloat = 8
+               let totalSpacing = (numberOfColumns + 1) * padding
                 let itemWidth = (collectionView.bounds.size.width - totalSpacing) / numberOfColumns
                 return CGSize(width: itemWidth, height: 172)
             }

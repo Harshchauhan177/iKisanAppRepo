@@ -22,22 +22,25 @@ class InfoTableViewController: UITableViewController{
     @IBOutlet weak var FarmerListLabel: UILabel!
     
     
-        var location: String = "Some Location"
-        var timeSlot: String = "08:00 - 08:30"
-        var date: Date = Date()
+    var location: String = "Some Location"
+    var timeSlot: String = "08:00 - 08:30"
+    var date: Date = Date()
     var cardData: CardData?
     let startTime = 8 * 60
     var selectedUsers: [CoEquipUser] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        ImageLabel.layer.cornerRadius = 7
         
         if let data = cardData {
             TitleLabel.text = data.title
             priceLabel.text = "₹ \(data.price)"
             hostName.text = data.host
             ImageLabel.image = data.imageName
+            
         }
+        
         updateFarmerList()
     }
     
@@ -70,14 +73,12 @@ class InfoTableViewController: UITableViewController{
             }
     }
     func updateFarmerList() {
-        DispatchQueue.main.async {
-                if self.selectedUsers.isEmpty {
-                    self.FarmerListLabel.text = "farmers selected"
+        if selectedUsers.isEmpty {
+                    FarmerListLabel.text = "No users selected."
                 } else {
-                    let farmerNames = self.selectedUsers.compactMap { $0.name }.joined(separator: ", ")
-                    self.FarmerListLabel.text = "Selected Farmers: \(farmerNames)"
+                    let selectedUserNames = selectedUsers.map { $0.name ?? "Unknown" }.joined(separator: ", ")
+                    FarmerListLabel.text = "Selected Users: \(selectedUserNames)"
                 }
-            }
     }
     
     
@@ -94,26 +95,37 @@ class InfoTableViewController: UITableViewController{
                 confirmationAlert.addAction(UIAlertAction(title: "Done", style: .default, handler: { _ in
                     let successAlert = UIAlertController(title: "Request Submitted", message: "Your request has been successfully submitted!", preferredStyle: .alert)
                     successAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
-                        self.performSegue(withIdentifier: "goToCoequip", sender: self)
+                        if let coequipVC = self.storyboard?.instantiateViewController(withIdentifier: "CoequipViewController") as? CoequipViewController {
+                                    coequipVC.receivedRequestInfo = RequestInfo(
+                                        selectedUsers: self.selectedUsers,
+                                        location: self.location,
+                                        timeSlot: self.timeSlot,
+                                        date: self.date,
+                                        equipmentImage: self.ImageLabel.image,
+                                        equipmentName: self.TitleLabel.text,
+                                        equipmentAddress: self.hostName.text
+                                    )
+                                    self.navigationController?.pushViewController(coequipVC, animated: true)
+                                }
                     }))
                     self.present(successAlert, animated: true, completion: nil)
                 }))
                 self.present(confirmationAlert, animated: true, completion: nil)
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-           if segue.identifier == "goToCoequip" {
-               if let destinationVC = segue.destination as? CoequipViewController {
-                   destinationVC.receivedRequestInfo = RequestInfo(
-                       selectedUsers: selectedUsers,
-                       location: location,
-                       timeSlot: timeSlot,
-                       date: date,
-                       equipmentImage: ImageLabel.image,
-                       equipmentName: TitleLabel.text,
-                       equipmentAddress: hostName.text   
-                   )
-               }
-           }
-       }
+//    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+//           if segue.identifier == "unwindToCoequip" {
+//               if let destinationVC = segue.destination as? CoequipViewController {
+//                   destinationVC.receivedRequestInfo = RequestInfo(
+//                       selectedUsers: selectedUsers,
+//                       location: location,
+//                       timeSlot: timeSlot,
+//                       date: date,
+//                       equipmentImage: ImageLabel.image,
+//                       equipmentName: TitleLabel.text,
+//                       equipmentAddress: hostName.text   
+//                   )
+//               }
+//           }
+//       }
 }
