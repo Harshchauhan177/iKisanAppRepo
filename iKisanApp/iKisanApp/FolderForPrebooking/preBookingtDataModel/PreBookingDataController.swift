@@ -6,8 +6,9 @@
 //
 
 import Foundation
+
+//  PreBookingScreen1DataSet
 class PreBookingScreenData {
-    
     static var preBookingSection1Data: [PreBookingSection1Data] = [
         PreBookingSection1Data(equipmentName: "Hammer Drill", equipmentImage: "Image 7", equipmentDescription: "Pre-book today for seamless spraying this season."),
         
@@ -32,8 +33,6 @@ class PreBookingScreenData {
         PreBookingSection3Data(equipmentName: "Hammer Drill", equipmentImage: "Image 7", equipmentDate: "Tue, 25 Jan", equipmentStatus: "Confirmed")
     ]
     
-    
-    
     static var preBookingSection4Data:[PreBookingSection4Data] = [
         PreBookingSection4Data(needHelp: "How does prebooking work?"),
         PreBookingSection4Data(needHelp: "What if equipment is unavailable?"),
@@ -41,14 +40,12 @@ class PreBookingScreenData {
         
     ]
 
-    
     static var preBookingSectionHeaderNames:[String] = [
         "Recommended for You ",
         "Calendar",
         "Available Equipments",
         "Your Prebookings",
         "Need Help?"
-       
     ]
 }
 

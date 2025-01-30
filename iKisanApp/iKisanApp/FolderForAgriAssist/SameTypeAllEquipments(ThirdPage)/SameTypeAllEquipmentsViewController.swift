@@ -7,15 +7,6 @@
 
 import UIKit
 
-var Data = [
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["1","2","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle3","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle4","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle5","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle6","cultivater","harrow","hhaarrooww","herahero"])
-    
-]
 
 class SameTypeAllEquipmentsViewController: UIViewController,UICollectionViewDelegate,UICollectionViewDataSource {
     

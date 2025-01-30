@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 
+
 struct AgriCrop {
     let id: Int
     let name: String
@@ -17,8 +18,6 @@ struct EquipmentsForCrops {
     var Equipmentsimage:[String]
     var EquipmentsName:[String]
 }
-
-
 // For page two of AgriAssist
 struct EquipmentAgri {
     var name: String
@@ -34,5 +33,23 @@ struct EquipmentCategory {
     var equipmentList: [EquipmentAgri]
 }
 
+// InfoAboutEquipment(fourthPage)DataModel
 
+/// Section 1 Data Model for Equipment Types ///
+struct Section1Data {
+    var equipmentTypeName: String
+    var equipmentTypeImage: String
+    var equipmentTypeLikedBy: String
+    var equipmentTypePurpose: String
+    var equipmentTypeBestFor: String
+    var equipmentTypeAverageCost: String
+    var equipmentTypeNeeds: String
+}
 
+// Section 2 Data Model for Equipment Details
+struct Section2Data {
+    var equipmentName: String
+    var equipmentLikedBy: String
+    var equipmentImage: String
+//    var equipmentDescription: String
+}

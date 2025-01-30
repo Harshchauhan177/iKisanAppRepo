@@ -6,7 +6,10 @@
 //
 
 import Foundation
+import UIKit
 
+
+//   EquipmentsForCrops(Secondpage)  Data Set
 class EData {
     static var EquipmentsForCropsData = [
         // Rice
@@ -373,10 +376,97 @@ class EData {
                 )
             ]
         )
-        
     ]
-    
 }
 
 
 
+// EquipmentsForCrops(Secondpage)  Data Set ye romove hoga jab uper wale data set me se 3D array ka data fatch hojaega
+var EqData = [
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 3","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"])
+]
+
+
+
+
+
+
+// SelectCrops(FirstPage) dataSet
+var crops: [AgriCrop] = [
+    AgriCrop(id: 1, name: "Rice", imageName: UIImage(named: "Rice") ?? UIImage()),
+    AgriCrop(id: 2, name: "Wheat", imageName: UIImage(named: "Wheat") ?? UIImage()),
+    AgriCrop(id: 3, name: "Oats", imageName: UIImage(named: "Oats") ?? UIImage()),
+    AgriCrop(id: 4, name: "Cotton", imageName: UIImage(named: "Cotton") ?? UIImage()),
+    AgriCrop(id: 5, name: "Tea", imageName: UIImage(named: "Tea") ?? UIImage()),
+    AgriCrop(id: 6, name: "Maize", imageName: UIImage(named: "Maize") ?? UIImage()),
+    AgriCrop(id: 7, name: "Tobacco", imageName: UIImage(named: "Tobacco") ?? UIImage()),
+    AgriCrop(id: 8, name: "Sugarcane", imageName: UIImage(named: "Sugarcane") ?? UIImage())
+]
+
+
+
+
+
+
+
+
+// SameTypeAllEquipments(ThirdPage) DataSet
+var Data = [
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["1","2","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle3","cultivater","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle4","cultivater","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle5","cultivater","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle6","cultivater","harrow","hhaarrooww","herahero"])
+    
+]
+
+
+
+
+// InfoAboutEquipment(fourthPage)DataSet
+class ScreenData {
+    // Section 1 - Data for Equipment Types (Only one item for Section 1)
+    static var section1Data: [Section1Data] = [
+        Section1Data(equipmentTypeName: "Excavator",
+                     equipmentTypeImage: "Image",
+                     equipmentTypeLikedBy: "1000",
+                     equipmentTypePurpose: "Designed for use in flooded paddy fields.",
+                     equipmentTypeBestFor: "Field area more than 4 acres.Construction",
+                     equipmentTypeAverageCost: "$50,000",
+                     equipmentTypeNeeds: "Operator, Fuel.Field area more than 4 ac. Field more than 4 acres.")
+    ]
+    
+    // Section 2 - Data for Equipment Details (5 items for Section 2)
+    static var section2Data: [Section2Data] = [
+        Section2Data(equipmentName: "Hammer Drill",
+                     equipmentLikedBy: "800",
+                     equipmentImage: "Image"),
+        
+        Section2Data(equipmentName: "Angle Grinder",
+                     equipmentLikedBy: "12",
+                     equipmentImage: "Image 1"),
+        
+        Section2Data(equipmentName: "Welding Machine",
+                     equipmentLikedBy: "150",
+                     equipmentImage: "Image 2"),
+        
+        Section2Data(equipmentName: "Concrete Mixer",
+                     equipmentLikedBy: "2000",
+                     equipmentImage: "Image 3"),
+        
+        Section2Data(equipmentName: "Circular Saw",
+                     equipmentLikedBy: "90",
+                     equipmentImage: "Image 4")
+    ]
+    
+    static var sectionHeaderNames:[String] = [
+        "Type of cultivators",
+        "Similar"
+    ]
+}

@@ -77,20 +77,7 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
         return cell
         
     }
-    
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+  
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
 
