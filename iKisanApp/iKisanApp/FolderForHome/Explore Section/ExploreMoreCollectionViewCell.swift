@@ -29,8 +29,17 @@ class ExploreMoreCollectionViewCell: UICollectionViewCell {
         exploreEquipmentImageView.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
         equipmentNameLabel.text = EquipmentData.equipment[indexPath.row].name
         discountedPriceLabel.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
-        realPriceLabel.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
+        
+        let price = "\(EquipmentData.equipment[indexPath.row].realPricePerHour)"
+        let attributes: [NSAttributedString.Key: Any] = [
+            .strikethroughStyle: NSUnderlineStyle.single.rawValue,
+            .strikethroughColor: UIColor.white
+        ]
+        let attributedPrice = NSAttributedString(string: price, attributes: attributes)
+        realPriceLabel.attributedText = attributedPrice
+        //realPriceLabel.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
         ratingLabel.text = "⭐️\(EquipmentData.equipment[indexPath.row].rating)"
+        
 
     }
    

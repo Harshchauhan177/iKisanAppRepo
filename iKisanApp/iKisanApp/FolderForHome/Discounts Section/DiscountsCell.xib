@@ -34,22 +34,22 @@
                         <nil key="highlightedColor"/>
                     </label>
                     <stackView opaque="NO" contentMode="scaleToFill" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="jS1-KA-v2H">
-                        <rect key="frame" x="7" y="100" width="116" height="12"/>
+                        <rect key="frame" x="7" y="100" width="103.66666666666667" height="12"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" text="DPrice" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pWw-NA-Zul">
-                                <rect key="frame" x="0.0" y="0.0" width="32" height="12"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                                <rect key="frame" x="0.0" y="0.0" width="33.333333333333336" height="12"/>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="10"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" text="RPrice" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bUv-Be-NGE">
-                                <rect key="frame" x="36" y="0.0" width="31.333333333333329" height="12"/>
+                                <rect key="frame" x="37.333333333333336" y="0.0" width="31.333333333333336" height="12"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="10"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Rating" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RQS-OJ-mdf">
-                                <rect key="frame" x="71.333333333333329" y="0.0" width="44.666666666666671" height="12"/>
+                                <rect key="frame" x="72.666666666666671" y="0.0" width="31" height="12"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="10"/>
                                 <color key="textColor" systemColor="systemOrangeColor"/>
                                 <nil key="highlightedColor"/>
@@ -64,7 +64,6 @@
                     <constraint firstAttribute="trailing" secondItem="K0H-yb-MG5" secondAttribute="trailing" id="7Zg-qV-pvH"/>
                     <constraint firstAttribute="trailing" secondItem="6ev-Te-9jG" secondAttribute="trailing" id="REy-k9-Pfk"/>
                     <constraint firstAttribute="bottom" secondItem="jS1-KA-v2H" secondAttribute="bottom" constant="4" id="a3G-HK-TPe"/>
-                    <constraint firstAttribute="trailing" secondItem="jS1-KA-v2H" secondAttribute="trailing" constant="7" id="awA-zi-brp"/>
                     <constraint firstItem="XmD-9n-fqB" firstAttribute="leading" secondItem="Zki-TS-2bS" secondAttribute="leading" constant="7" id="boS-3c-uUK"/>
                     <constraint firstItem="jS1-KA-v2H" firstAttribute="top" secondItem="XmD-9n-fqB" secondAttribute="bottom" constant="4" id="jRh-3R-uac"/>
                     <constraint firstAttribute="bottom" secondItem="K0H-yb-MG5" secondAttribute="bottom" id="ppy-w2-LHH"/>

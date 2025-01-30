@@ -27,6 +27,7 @@ class ImageViewCollectionViewCell: UICollectionViewCell {
            super.awakeFromNib()
            imageView.contentMode = .scaleAspectFill
            imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = 13
        }
     
     required init?(coder: NSCoder) {

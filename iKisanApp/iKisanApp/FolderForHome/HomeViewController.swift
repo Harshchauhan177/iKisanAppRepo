@@ -177,7 +177,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.9), heightDimension: .absolute(115))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0)
+        group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8)
         let section = NSCollectionLayoutSection(group: group)
         section.orthogonalScrollingBehavior = .groupPagingCentered
         return section
@@ -189,8 +189,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.9), heightDimension: .absolute(200))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0)
+       group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8)
         let section = NSCollectionLayoutSection(group: group)
+
         section.orthogonalScrollingBehavior = .groupPagingCentered
         return section
     }
@@ -261,9 +262,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
          
           controller.equipmentName = selectedEquipment.name
         
-          controller.discountedPriceHr = "\(selectedEquipment.pricePerHour)"
+          controller.discountedPriceHr = "₹ \(selectedEquipment.pricePerHour)/hr"
           controller.realPriceHr = "\(selectedEquipment.realPricePerHour)"
-          controller.discountedPriceAc = "\(selectedEquipment.pricePerAcre)"
+          controller.discountedPriceAc = "₹ \(selectedEquipment.pricePerAcre)/ac"
           controller.realPriceAc = "\(selectedEquipment.realPricePerAcre)"
           controller.coEquipDetail = "\(selectedEquipment.coEquipDetail) For CoEquip"
           controller.location = "\(selectedEquipment.location)"
