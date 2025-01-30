@@ -77,7 +77,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             return hasUpcomingBookings ? 3 : 0
             //return 3 // Example: Suggestion has 3 cards
         case 2:
-            return  4// Number of Explore More items
+            return  EquipmentData.suggestionsEquipment.count// 4// Number of Explore More items
             //return 4// Example: Explore More data count
             
             //for additional view

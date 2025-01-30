@@ -15,8 +15,14 @@ struct Booking {
     var bookingDate: Date
     var fieldArea: Double
     var status: BookingStatus
+    var timeSlot: TimeSlot
 }
 
+enum TimeSlot: String {
+    case morning = "Morning"
+    case afternoon = "Afternoon"
+    case evening = "Evening"
+}
 enum BookingType: String {
     case onDemand = "On-Demand"
     case prebooking = "Prebooking"
