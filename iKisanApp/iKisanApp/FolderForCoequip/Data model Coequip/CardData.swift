@@ -27,7 +27,7 @@ struct PersonList {
     var isSelected: Bool 
 }
 
-class pupil{
+class Pupil{
     static var allPeopleData: [PersonList] = [
             PersonList(name: "Harsh Singh", image: "person1", isSelected: false),
             PersonList(name: "Vikash Kumar", image: "person2", isSelected: false),
@@ -35,4 +35,12 @@ class pupil{
             PersonList(name: "Vicky ", image: "person4", isSelected: false),
             PersonList(name: "Rahul kumar", image:"person5", isSelected: false)
         ]
+}
+class MyRequestInfo {
+   var name: String
+    var image: String
+    init(name: String, image: String) {
+        self.name = name
+        self.image = image
+    }
 }

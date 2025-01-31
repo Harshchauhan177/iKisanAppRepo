@@ -7,10 +7,6 @@ class SelectPeopleListTableViewCell: UITableViewCell {
     
     @IBOutlet weak var ImageLabel: UIImageView!
     
-    @IBOutlet weak var checkboxButton: UIButton!
-    
-    
-    
     @IBOutlet weak var nameLabel: UILabel!
     
     

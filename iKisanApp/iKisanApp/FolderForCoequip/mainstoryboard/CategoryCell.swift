@@ -1,9 +1,4 @@
-//
-//  CategoryCell.swift
-//  iKisanApp
-//
-//  Created by chandan kumar on 21/01/25.
-//
+
 
 import UIKit
 

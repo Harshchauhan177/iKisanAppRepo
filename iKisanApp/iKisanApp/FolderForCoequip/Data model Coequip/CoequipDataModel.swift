@@ -10,14 +10,14 @@ import UIKit
 
 
 
-struct CoequipEquipment {
+struct CoEquipEquipment {
     var id: UUID
     var name: String?
     var pricePerHour: Double
     var pricePerArea: Double
     var rating: Double
     var providerName: String? 
-    var providerLocation: CoequipLocation
+    var providerLocation: CoEquipLocation
     var imageURL: UIImage
     var category: CoequipEquipmentCategory
     var availability: [CoequipAvailability]
@@ -60,7 +60,7 @@ struct CoequipAvailability {
     var timeSlot: String
     var isAvailable: Bool
 }
-struct CoequipLocation {
+struct CoEquipLocation {
     var latitude: Double
     var longitude: Double
     var area: String
@@ -78,28 +78,36 @@ enum RequestStatus: String {
     case canceled
 }
 
-struct CoequipUser {
+struct CoEquipUser {
     var id: UUID
-    var name: String
+    var name: String?
     var phoneNumber: String
-    var email: String?
     var location: String
-    var rating: Double
-    var profileImage: URL?
-    var equipmentOwned: [CoequipEquipment]
-    var coEquipRequests: [Request]
-    var userType: UserType
 }
 enum UserType {
     case farmer
     case provider
 }
 
-
+struct RequestInfo {
+    var selectedUsers: [CoEquipUser]
+    var location: String
+    var timeSlot: String
+    var date: Date
+    var equipmentImage: UIImage?
+    var equipmentName: String?
+    var equipmentAddress: String?
+}
 struct Filter {
     var searchText: String
     var category: CoequipEquipmentCategory?
     var locationRange: Double
     var minimumRating: Double?
 }
-
+// Define sample users
+let sampleUsers: [CoEquipUser] = [
+    CoEquipUser(id: UUID(), name: "John Doe", phoneNumber: "123-456-7890", location: "California"),
+    CoEquipUser(id: UUID(), name: "Jane Smith", phoneNumber: "987-654-3210", location: "Texas"),
+    CoEquipUser(id: UUID(), name: "Bob Brown", phoneNumber: "555-123-4567", location: "Florida"),
+    CoEquipUser(id: UUID(), name: "Alice White", phoneNumber: "555-765-4321", location: "New York")
+]
