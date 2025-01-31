@@ -40,7 +40,7 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         categoryCollectionView.register(UINib(nibName: "CategoryCell", bundle: nil), forCellWithReuseIdentifier: "CategoryCell")
         cardCollectionView.register(UINib(nibName: "CardCell", bundle: nil), forCellWithReuseIdentifier: "CardCell")
         
-        card=[CardData(title: "Rice Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Ram Pal", imageName: UIImage(named: "101")!),CardData(title: "Rice Harvester", price: "1500", oldPrice:"2250", rating: "4.5", host: "Veer singh", imageName: UIImage(named: "102")!),CardData(title: "Wheat Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Muskesh", imageName: UIImage(named: "103")!),CardData(title: "soyabean", price: "700", oldPrice:"1750", rating: "4.5", host: "Raj Pal", imageName: UIImage(named: "104")!)]
+        card=[CardData(title: "Rice Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Ram Pal", imageName: UIImage(named: "101")!),CardData(title: "Rice Harvester", price: "1500", oldPrice:"2250", rating: "4.5", host: "Veer singh", imageName: UIImage(named: "102")!),CardData(title: "Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Muskesh", imageName: UIImage(named: "103")!),CardData(title: "soyabean", price: "700", oldPrice:"1750", rating: "4.5", host: "Raj Pal", imageName: UIImage(named: "104")!)]
         
         
         selectedCategory = categories.first
@@ -239,8 +239,8 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             let price = "₹\(originalPrice)"
             let attributes: [NSAttributedString.Key: Any] = [
                 .strikethroughStyle: NSUnderlineStyle.single.rawValue,
-                .strikethroughColor: UIColor.red,
-                .font: UIFont.systemFont(ofSize: 14, weight: .light)
+                .strikethroughColor: UIColor.darkGray
+//                .font: UIFont.systemFont(ofSize: 14, weight: .light)
             ]
             let attributedPrice = NSAttributedString(string: price, attributes: attributes)
             cell.OrigianlPriceLabel.attributedText = attributedPrice
