@@ -50,7 +50,7 @@
                         </subviews>
                     </stackView>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Host" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AnG-10-J2R">
-                        <rect key="frame" x="10" y="158.66666666666666" width="127" height="6.3333333333333428"/>
+                        <rect key="frame" x="10" y="155.66666666666666" width="127" height="11.333333333333343"/>
                         <fontDescription key="fontDescription" type="system" pointSize="10"/>
                         <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <nil key="highlightedColor"/>
@@ -97,8 +97,8 @@
                     <constraint firstAttribute="trailing" secondItem="hpN-4Y-a9m" secondAttribute="trailing" constant="5" id="1eG-Td-NvP"/>
                     <constraint firstAttribute="trailing" secondItem="9Kw-lu-s2r" secondAttribute="trailing" id="34o-P1-0C5"/>
                     <constraint firstItem="cmL-cs-LPm" firstAttribute="top" secondItem="1PA-df-1at" secondAttribute="bottom" constant="3.3333333333333144" id="954-yJ-hES"/>
-                    <constraint firstItem="AnG-10-J2R" firstAttribute="top" secondItem="cmL-cs-LPm" secondAttribute="bottom" constant="8" symbolic="YES" id="AgE-Th-4J0"/>
-                    <constraint firstAttribute="bottom" secondItem="AnG-10-J2R" secondAttribute="bottom" constant="7" id="F5Q-YV-1Zp"/>
+                    <constraint firstItem="AnG-10-J2R" firstAttribute="top" secondItem="cmL-cs-LPm" secondAttribute="bottom" constant="5" id="AgE-Th-4J0"/>
+                    <constraint firstAttribute="bottom" secondItem="AnG-10-J2R" secondAttribute="bottom" constant="5" id="F5Q-YV-1Zp"/>
                     <constraint firstItem="hpN-4Y-a9m" firstAttribute="leading" secondItem="h97-jr-I7G" secondAttribute="trailing" constant="4" id="FuF-KE-rRb"/>
                     <constraint firstItem="AnG-10-J2R" firstAttribute="leading" secondItem="F6W-U5-t4X" secondAttribute="leading" constant="10" id="IuV-l1-kOo"/>
                     <constraint firstAttribute="bottom" secondItem="cmL-cs-LPm" secondAttribute="bottom" constant="21.333333333333343" id="Lcp-XW-hQq"/>
