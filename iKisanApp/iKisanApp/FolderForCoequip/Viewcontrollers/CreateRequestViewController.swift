@@ -21,6 +21,7 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
     var numberOfColumns: CGFloat = 2
     var selectedCategory:String?
     var selectedDate: Date?
+    var selectedSuggestion: String?
 
     
     override func viewDidLoad() {
@@ -33,11 +34,13 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         searchBar.delegate=self
         
             
-        
+        if let suggestion = selectedSuggestion {
+                    searchBar.text = suggestion
+                }
         categoryCollectionView.register(UINib(nibName: "CategoryCell", bundle: nil), forCellWithReuseIdentifier: "CategoryCell")
         cardCollectionView.register(UINib(nibName: "CardCell", bundle: nil), forCellWithReuseIdentifier: "CardCell")
         
-        card=[CardData(title: "Rice Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Ram Pal", imageName: UIImage(named: "101")!),CardData(title: "Rice Harvester", price: "1500", oldPrice:"2250", rating: "4.5", host: "Veer singh", imageName: UIImage(named: "102")!),CardData(title: "Wheat Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Muskesh", imageName: UIImage(named: "103")!),CardData(title: "soyabean", price: "700", oldPrice:"1750", rating: "4.5", host: "Raj Pal", imageName: UIImage(named: "104")!)]
+        card=[CardData(title: "Rice Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Ram Pal", imageName: UIImage(named: "101")!),CardData(title: "Rice Harvester", price: "1500", oldPrice:"2250", rating: "4.5", host: "Veer singh", imageName: UIImage(named: "102")!),CardData(title: "Harvester", price: "4000", oldPrice:"5000", rating: "4.5", host: "Muskesh", imageName: UIImage(named: "103")!),CardData(title: "soyabean", price: "700", oldPrice:"1750", rating: "4.5", host: "Raj Pal", imageName: UIImage(named: "104")!)]
         
         
         selectedCategory = categories.first
@@ -47,6 +50,9 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         highlightSelectedCategory()
         filterCardsByCategory()
     }
+//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+//            searchBar.resignFirstResponder()
+//        }
     
     @IBAction func calendarbuttonTapped(_ sender: Any) {
         let calendarVC = UIViewController()
@@ -208,8 +214,8 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             if collectionView == categoryCollectionView {
                 return CGSize(width: 100, height: 40)
             } else {
-                let padding: CGFloat = 10
-                let totalSpacing = (numberOfColumns + 1) * padding
+                let padding: CGFloat = 8
+               let totalSpacing = (numberOfColumns + 1) * padding
                 let itemWidth = (collectionView.bounds.size.width - totalSpacing) / numberOfColumns
                 return CGSize(width: itemWidth, height: 172)
             }
@@ -233,8 +239,8 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             let price = "₹\(originalPrice)"
             let attributes: [NSAttributedString.Key: Any] = [
                 .strikethroughStyle: NSUnderlineStyle.single.rawValue,
-                .strikethroughColor: UIColor.red,
-                .font: UIFont.systemFont(ofSize: 14, weight: .light)
+                .strikethroughColor: UIColor.darkGray
+//                .font: UIFont.systemFont(ofSize: 14, weight: .light)
             ]
             let attributedPrice = NSAttributedString(string: price, attributes: attributes)
             cell.OrigianlPriceLabel.attributedText = attributedPrice

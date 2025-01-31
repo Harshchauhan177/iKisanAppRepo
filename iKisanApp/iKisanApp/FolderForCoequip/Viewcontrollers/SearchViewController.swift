@@ -15,7 +15,7 @@ class SearchViewController: UIViewController,UISearchBarDelegate, UITableViewDel
     @IBOutlet weak var tableViewLabel: UITableView!
     
     let suggestions = ["Harvester", "Harvester near you", "Rice harvester", "Tractor", "Plough"]
-        var filteredSuggestions: [String] = []
+    var filteredSuggestions: [String] = []
     var selectedSuggestion: String?
     
     override func viewDidLoad() {
@@ -49,5 +49,16 @@ class SearchViewController: UIViewController,UISearchBarDelegate, UITableViewDel
                 cell.textLabel?.text = filteredSuggestions[indexPath.row]
                 return cell
     }
+//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+//            selectedSuggestion = filteredSuggestions[indexPath.row] // Store the selected suggestion
+//            performSegue(withIdentifier: "showSecondViewController", sender: selectedSuggestion) // Pass the selected suggestion
+//        }
 
+        override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+            if segue.identifier == "showSecondViewController" {
+                if let secondVC = segue.destination as? CreateRequestViewController {
+                    secondVC.selectedSuggestion = sender as? String
+                }
+            }
+        }
 }
