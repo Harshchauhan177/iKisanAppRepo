@@ -56,6 +56,9 @@
                         <buttonConfiguration key="configuration" style="filled" title="Pre Book" cornerStyle="capsule">
                             <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         </buttonConfiguration>
+                        <connections>
+                            <action selector="preBookingButton1:" destination="gTV-IL-0wX" eventType="touchUpInside" id="1NC-Hq-kps"/>
+                        </connections>
                     </button>
                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="circlebadge.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="RA6-RE-8Ud">
                         <rect key="frame" x="108" y="48" width="18" height="12.666666666666664"/>

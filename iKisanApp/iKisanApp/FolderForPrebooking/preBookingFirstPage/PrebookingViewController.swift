@@ -7,7 +7,10 @@
 
 import UIKit
 
-class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICollectionViewDelegate {
+class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICollectionViewDelegate, preBookingEquipmentSectionAddPreBookCollectionViewCellDelegate{
+    
+    
+    
     
     var hasAddPreBook : Bool = true //
     var selectedIndexPath: IndexPath?
@@ -78,7 +81,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         case 2:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Fifth", for: indexPath) as! preBookingEquipmentSectionAddPreBookCollectionViewCell
 //            cell.updatePreBookingSection4Data(with: indexPath)
-           // cell.delegate = self
+           cell.delegate = self
             cell.equipmentImageView.layer.cornerRadius = 7
             
             cell.layer.cornerRadius = 15
@@ -261,6 +264,21 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             }
            
         }
+    
+    func didTapViewButton(on cell: preBookingEquipmentSectionAddPreBookCollectionViewCell) {
+        if let indexPath = collectionView.indexPath(for: cell) {
+            print("View button tapped on cell at index: \(indexPath.row)")
+        }
+        let storyboard = UIStoryboard(name: "Tab2Prebooking", bundle: nil)
+        if let viewController = storyboard.instantiateViewController(withIdentifier: "reviewPreBookingTableViewController") as? reviewPreBookingTableViewController {
+            //viewController.modalTransitionStyle = .crossDissolve
+            viewController.modalPresentationStyle = .fullScreen // Optional: Set presentation style
+            //present(viewController, animated: true, completion: nil)
+            navigationController?.pushViewController(viewController, animated: true)
+        }
+    }
+    
+    
     
     
     
