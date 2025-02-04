@@ -12,13 +12,26 @@ class reviewPreBookingTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
 
+    @IBAction func sendRequestButtonTapped(_ sender: Any) {
+        
+        let alert = UIAlertController(title: "Request Sent", message: "Your request for Rice Harvester has been sent.", preferredStyle: .alert)
+            
+            alert.addAction(UIAlertAction(title: "View", style: .default, handler: { _ in
+                print("View tapped")
+                if let prebookingVC = self.storyboard?.instantiateViewController(withIdentifier: "PrebookingViewController") as? PrebookingViewController {
+                            self.navigationController?.pushViewController(prebookingVC, animated: true)
+                        }
+            }))
+            
+            alert.addAction(UIAlertAction(title: "Done", style: .default, handler: { _ in
+                print("Done tapped")
+            }))
+            
+            present(alert, animated: true, completion: nil)
+        
+    }
     
 
     
