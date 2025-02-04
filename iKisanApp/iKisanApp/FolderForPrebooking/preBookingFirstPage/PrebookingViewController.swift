@@ -10,7 +10,7 @@ import UIKit
 class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICollectionViewDelegate {
     
     var hasAddPreBook : Bool = true //
-    
+    var selectedIndexPath: IndexPath?
     @IBOutlet weak var collectionView: UICollectionView!
     
     override func viewDidLoad() {
@@ -224,7 +224,43 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
        userSearched()
     }
     
-    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+           selectedIndexPath = indexPath
+    //
+          let selectedEquipment = EquipmentData.equipment[indexPath.row]
+    //      let controller = EquipmentDescriptionTableViewController.instantiate()
+    //        print("inside didselect")
+            
+           
+            let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+          if let controller = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
+              print("EquipmentDescriptionTableViewController")
+             
+              controller.equipmentName = selectedEquipment.name
+            
+              controller.discountedPriceHr = "₹ \(selectedEquipment.pricePerHour)/hr"
+              controller.realPriceHr = "\(selectedEquipment.realPricePerHour)"
+              controller.discountedPriceAc = "₹ \(selectedEquipment.pricePerAcre)/ac"
+              controller.realPriceAc = "\(selectedEquipment.realPricePerAcre)"
+              controller.coEquipDetail = "\(selectedEquipment.coEquipDetail) For CoEquip"
+              controller.location = "\(selectedEquipment.location)"
+              controller.rating = "\(selectedEquipment.rating)"
+              controller.bigImage = "\(selectedEquipment.equipmentImage)"//equipmentMoreImages.images[0])"
+              controller.smallImage1 = "\(selectedEquipment.equipmentImage)"//.equipmentMoreImages.images[1])"
+              controller.smallImage2 = "\(selectedEquipment.equipmentImage)"//.equipmentMoreImages.images[2])"
+              controller.smallImage3 = "\(selectedEquipment.equipmentImage)"//.equipmentMoreImages.images[3])"
+              controller.more = "\(selectedEquipment.equipmentMoreImages.images.count)"
+              controller.ratingOutOf5 = "\(selectedEquipment.rating)"
+              controller.equipmentLocationDetailed = "\(selectedEquipment.location)"
+              controller.model = "\(selectedEquipment.modelYear)"
+              controller.capacity = "\(selectedEquipment.capacity)"
+              controller.mileage = "\(selectedEquipment.mielage)"
+              controller.moreImages = selectedEquipment.equipmentMoreImages.images
+
+              navigationController?.pushViewController(controller, animated: true)
+            }
+           
+        }
     
     
     
