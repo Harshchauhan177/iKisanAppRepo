@@ -1,16 +1,14 @@
-//
 //  PrebookingViewController.swift
 //  iKisanApp
-//
 //  Created by Batch - 1 on 15/01/25.
-//
 
 import UIKit
 
 class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICollectionViewDelegate, preBookingEquipmentSectionAddPreBookCollectionViewCellDelegate{
     
     
-    
+    var targetSection: Int? // Store the section we want to scroll to
+
     
     var hasAddPreBook : Bool = true //
     var selectedIndexPath: IndexPath?
@@ -19,10 +17,19 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     override func viewDidLoad() {
         super.viewDidLoad()
         
+//        // Scroll to the target section if it's set
+        if let section = targetSection {
+            DispatchQueue.main.async {
+                self.scrollToSection(section: section)
+            }
+        }
         
         let searchController = UISearchController()
         navigationItem.searchController = searchController
+
         searchController.obscuresBackgroundDuringPresentation = false
+        
+    
 //        navigationItem.hidesSearchBarWhenScrolling = false
         
         let firstNib = UINib(nibName: "preBookingEquipmentSection1CollectionViewCell", bundle: nil)
@@ -148,6 +155,8 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         }
         print("Supplementry item not header")
         return UICollectionReusableView()
+        
+        
     }
     
     func generatePreBookingSection1Layout() -> NSCollectionLayoutSection {
@@ -278,9 +287,36 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         }
     }
     
-    
-    
-    
+   
+
+    func scrollToSection(section: Int) {
+            let indexPath = IndexPath(item: 0, section: section) // Scroll to first item in section
+            collectionView.scrollToItem(at: indexPath, at: .top, animated: true)
+        }
     
 
+    func scrollToSectionHeader(section: Int) {
+        guard let collectionView = self.collectionView else { return }
+
+        let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
+        let headerSize = layout?.headerReferenceSize.height ?? 0
+
+        let indexPath = IndexPath(item: 0, section: section)
+        if let attributes = collectionView.layoutAttributesForSupplementaryElement(
+            ofKind: UICollectionView.elementKindSectionHeader, at: indexPath) {
+            
+            let headerY = attributes.frame.origin.y - collectionView.contentInset.top
+            collectionView.setContentOffset(CGPoint(x: 0, y: headerY - headerSize), animated: true)
+        }
+    }
+
+    
+    
+    
+    
+    
+    
 }
+
+
+
