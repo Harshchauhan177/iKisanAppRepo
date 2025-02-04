@@ -25,8 +25,9 @@ class ImageViewCollectionViewCell: UICollectionViewCell {
    
     override func awakeFromNib() {
            super.awakeFromNib()
-           imageView.contentMode = .scaleAspectFill // Adjust to your preference
+           imageView.contentMode = .scaleAspectFill
            imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = 13
        }
     
     required init?(coder: NSCoder) {
@@ -37,7 +38,6 @@ class ImageViewCollectionViewCell: UICollectionViewCell {
     func updateCellUI () {
         self.layer.cornerRadius = 5
         
-       // self.backgroundColor = .systemBrown.withAlphaComponent(0.7)
-        //self.backgroundColor = .green.withAlphaComponent(0.4)
+       
     }
 }

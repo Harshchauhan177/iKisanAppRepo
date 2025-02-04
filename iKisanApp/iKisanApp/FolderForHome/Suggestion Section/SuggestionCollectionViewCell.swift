@@ -17,9 +17,10 @@ class SuggestionCollectionViewCell: UICollectionViewCell {
     @IBOutlet  var suggestionDescriptionLabel: UILabel!
     
     func updateSuggestionData(with indexPath: IndexPath){
-        suggestionImageView.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
-        suggestionNameLabel.text = EquipmentData.equipment[indexPath.row].name
-        suggestionDescriptionLabel.text = "Available in your area."//EquipmentData.equipment[indexPath.row].description
+        suggestionImageView.image = UIImage(named: EquipmentData.suggestionsEquipment[indexPath.row].equipmentImage)
+        suggestionNameLabel.text = EquipmentData.suggestionsEquipment[indexPath.row].name
+        suggestionDescriptionLabel.text = EquipmentData.suggestionsEquipment[indexPath.row].description
+       // "Available in your area."
     }
     
 }

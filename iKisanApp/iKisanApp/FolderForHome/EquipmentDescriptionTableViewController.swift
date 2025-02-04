@@ -108,7 +108,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
             layout.minimumLineSpacing = 20
             layout.scrollDirection = .horizontal
             layout.minimumInteritemSpacing = 0
-            layout.sectionInset = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
+            layout.sectionInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 16)
             collectionView.isPagingEnabled = true
         }
         updateEquipmentDescriptionData()
@@ -116,13 +116,13 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return ReviewData.reviews.count
+        return EquipmentData.reviews.count //ReviewData.reviews.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardCell", for: indexPath) as! ReviewCardCollectionViewCell
 
-        let review = ReviewData.reviews[indexPath.row]
+        let review = EquipmentData.reviews[indexPath.row] //ReviewData.reviews[indexPath.row]
             
             // Pass the review data to the update function in the cell
             cell.updateReviewCardData(reviewData: review)
@@ -143,9 +143,21 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     func updateEquipmentDescriptionData() {
         equipmentNameLabel.text = equipmentName
         discountedPriceHrLabel.text = discountedPriceHr
-        realPriceHrLabel.text = realPriceHr
+        let price = realPriceHr!
+        let attributes: [NSAttributedString.Key: Any] = [
+            .strikethroughStyle: NSUnderlineStyle.single.rawValue,
+            .strikethroughColor: UIColor.darkGray
+        ]
+        let attributedPrice = NSAttributedString(string: price, attributes: attributes)
+       
+        realPriceHrLabel.attributedText = attributedPrice
+        // realPriceHrLabel.text = realPriceHr
         discountedPriceAcLabel.text = discountedPriceAc
-        realPriceAcLabel.text = realPriceAc
+        
+        let attributedPriceAc = NSAttributedString(string: realPriceAc!, attributes: attributes)
+        
+        realPriceAcLabel.attributedText = attributedPriceAc
+       // realPriceAcLabel.text = realPriceAc
         coEquipDetailLabel.text = coEquipDetail
         locationLabel.text = location
         ratingLabel.text  = rating
@@ -205,9 +217,15 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     
     func navigateToCoEquipBooking() {
-        if let coEquipBookingVC = storyboard?.instantiateViewController(withIdentifier: "IndividualBookingViewController"){
-            navigationController?.pushViewController(coEquipBookingVC, animated: true)
-        }
+        
+        let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
+        let viewController = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as!
+        InfoTableViewController
+        //viewController.sectionNumber = sender.tag
+       navigationController?.pushViewController(viewController, animated: true)
+//        if let coEquipBookingVC = storyboard?.instantiateViewController(withIdentifier: "InfoTableViewController"){
+//            navigationController?.pushViewController(coEquipBookingVC, animated: true)
+//        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

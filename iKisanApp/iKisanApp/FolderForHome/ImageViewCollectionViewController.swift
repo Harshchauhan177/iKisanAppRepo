@@ -18,8 +18,9 @@ class ImageViewCollectionViewController: UICollectionViewController {
 
            if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
                    layout.scrollDirection = .horizontal
-                   layout.itemSize = CGSize(width: view.frame.width, height: view.frame.height)
-                   layout.minimumLineSpacing = 0 // Ensure no spacing between cells
+                   layout.itemSize = CGSize(width: view.frame.width - 8, height: view.frame.height)
+                   layout.minimumLineSpacing = 0
+               layout.sectionInset = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
                }
                
                collectionView.isPagingEnabled = true
