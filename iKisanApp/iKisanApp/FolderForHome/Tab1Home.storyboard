@@ -688,14 +688,14 @@
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="71"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" alignment="center" spacing="200" translatesAutoresizingMaskIntoConstraints="NO" id="iPb-SL-9bM">
+                                                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" alignment="center" spacing="190" translatesAutoresizingMaskIntoConstraints="NO" id="iPb-SL-9bM">
                                                     <rect key="frame" x="16" y="0.0" width="337" height="71"/>
                                                     <subviews>
-                                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="u5b-8g-3LQ">
-                                                            <rect key="frame" x="0.0" y="8.6666666666666643" width="68.666666666666671" height="54"/>
+                                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="u5b-8g-3LQ">
+                                                            <rect key="frame" x="0.0" y="9.3333333333333321" width="73.666666666666671" height="52.333333333333343"/>
                                                             <subviews>
                                                                 <stackView opaque="NO" contentMode="scaleToFill" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="zM9-aE-K24">
-                                                                    <rect key="frame" x="1.6666666666666643" y="0.0" width="65.333333333333343" height="22"/>
+                                                                    <rect key="frame" x="4" y="0.0" width="65.333333333333329" height="22"/>
                                                                     <subviews>
                                                                         <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="clock.arrow.trianglehead.counterclockwise.rotate.90" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="HKf-N5-IX6">
                                                                             <rect key="frame" x="-0.33333333333333393" y="0.66666666666666607" width="22.333333333333336" height="20.666666666666671"/>
@@ -706,15 +706,15 @@
                                                                             </constraints>
                                                                         </imageView>
                                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Time " textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DVa-j7-StD">
-                                                                            <rect key="frame" x="23.999999999999996" y="0.0" width="41.333333333333329" height="22"/>
+                                                                            <rect key="frame" x="24.000000000000004" y="0.0" width="41.333333333333343" height="22"/>
                                                                             <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
                                                                             <nil key="textColor"/>
                                                                             <nil key="highlightedColor"/>
                                                                         </label>
                                                                     </subviews>
                                                                 </stackView>
-                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Morning" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="utX-1A-JHi">
-                                                                    <rect key="frame" x="2.6666666666666714" y="32" width="63" height="22"/>
+                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Morning" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="utX-1A-JHi">
+                                                                    <rect key="frame" x="5.3333333333333286" y="32" width="63" height="20.333333333333329"/>
                                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                                     <nil key="textColor"/>
                                                                     <nil key="highlightedColor"/>
@@ -722,7 +722,7 @@
                                                             </subviews>
                                                         </stackView>
                                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="DFP-kd-tzb">
-                                                            <rect key="frame" x="268.66666666666669" y="18.333333333333332" width="68.333333333333314" height="34.333333333333343"/>
+                                                            <rect key="frame" x="263.66666666666669" y="18.333333333333332" width="73.333333333333314" height="34.333333333333343"/>
                                                             <state key="normal" title="Button"/>
                                                             <buttonConfiguration key="configuration" style="plain" image="chevron.up.chevron.down" catalog="system"/>
                                                         </button>
@@ -1271,6 +1271,7 @@
                                                     </subviews>
                                                 </stackView>
                                             </subviews>
+                                            <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                             <constraints>
                                                 <constraint firstAttribute="bottom" secondItem="gXv-Gn-NFA" secondAttribute="bottom" id="E4K-5Q-EOb"/>
                                                 <constraint firstItem="gXv-Gn-NFA" firstAttribute="leading" secondItem="luk-B2-JJA" secondAttribute="leading" constant="16" id="OjD-H8-5Ay"/>
@@ -1553,6 +1554,7 @@
                             <outlet property="delegate" destination="YNs-Ti-3ZG" id="Tqe-cQ-qWG"/>
                         </connections>
                     </tableView>
+                    <navigationItem key="navigationItem" largeTitleDisplayMode="never" id="ULp-zr-SKg"/>
                     <connections>
                         <outlet property="bigImageView" destination="RLS-jg-kPd" id="fvl-Db-WTe"/>
                         <outlet property="bigView" destination="gyq-Eq-pHI" id="3h8-Zw-ndn"/>
@@ -1582,7 +1584,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="TDX-po-vXc" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="8918.3206106870221" y="-213.38028169014086"/>
+            <point key="canvasLocation" x="9845.0381679389302" y="-213.38028169014086"/>
         </scene>
         <!--Image View Collection View Controller-->
         <scene sceneID="gQk-Mx-lPU">
@@ -1635,7 +1637,7 @@
                 </collectionViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="8OZ-Zj-yUS" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="9750.3816793893129" y="-342.25352112676057"/>
+            <point key="canvasLocation" x="10677.099236641221" y="-342.25352112676057"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="qJD-mw-OsX">
@@ -1695,10 +1697,10 @@
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemCyanColor">
-            <color red="0.1960784314" green="0.67843137249999996" blue="0.90196078430000004" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.19607843137254902" green="0.67843137254901964" blue="0.90196078431372551" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemOrangeColor">
-            <color red="1" green="0.58431372550000005" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.58431372549019611" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

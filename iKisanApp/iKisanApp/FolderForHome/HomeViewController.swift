@@ -7,11 +7,13 @@
 
 import UIKit
 
-class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UpcomingBookingsCollectionViewCellDelegate, ExploreMoreCollectionViewCellDelegate {
+class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UpcomingBookingsCollectionViewCellDelegate, ExploreMoreCollectionViewCellDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource, UISearchResultsUpdating {
    
-    
-   
-    
+    var searchBar: UISearchBar!
+    var tableView: UITableView!
+
+    let dataList =  Array(Set(EquipmentData.equipment.map { $0.name })) //(for distinct values) //EquipmentData.equipment.map { $0.name }
+    var filteredData: [String] = []
     
     var hasUpcomingBookings: Bool = false
     
@@ -21,17 +23,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     override func viewDidLoad() {
         super.viewDidLoad()
         
-       
-        
-        let searchController = UISearchController()
-        navigationItem.searchController = searchController
-
-        searchController.obscuresBackgroundDuringPresentation = false
-        
-        //searchController.
-        //searchController.searchResultsUpdater = self
-
-        navigationItem.hidesSearchBarWhenScrolling = false
+        setupSearchController()
+        setupTableView()
 
         
         // Registering Nibs for cells
@@ -60,6 +53,74 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         collectionView.delegate = self
     }
     
+    
+    //MARK: Search Bar Implementation
+    
+    func setupSearchController() {
+        let searchController = UISearchController(searchResultsController: nil)
+        navigationItem.searchController = searchController
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search Equipments"
+        navigationItem.hidesSearchBarWhenScrolling = false
+    }
+    
+    func setupTableView() {
+            tableView = UITableView(frame: view.bounds, style: .plain)
+            tableView.delegate = self
+            tableView.dataSource = self
+            tableView.isHidden = true
+            tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+            tableView.backgroundColor = .init(red: 0.6667, green: 0.6667, blue: 0.5882, alpha: 1.0)
+        
+            view.addSubview(tableView)
+        }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return filteredData.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        cell.textLabel?.text = filteredData[indexPath.row]
+        cell.backgroundColor = .init(red: 0.6667, green: 0.6667, blue: 0.5882, alpha: 1.0)
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    navigationItem.searchController?.searchBar.text = filteredData[indexPath.row]
+    tableView.isHidden = true
+    navigationItem.searchController?.searchBar.resignFirstResponder()
+    }
+    
+    //Search Bar Functions
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+            tableView.isHidden = true
+        } else {
+            tableView.isHidden = false
+            filteredData = dataList.filter { $0.lowercased().contains(searchText.lowercased()) }
+            tableView.reloadData()
+        }
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+    }
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let searchText = searchController.searchBar.text, !searchText.isEmpty else {
+                    tableView.isHidden = true
+                    return
+                }
+                
+                tableView.isHidden = false
+                filteredData = dataList.filter { $0.lowercased().contains(searchText.lowercased()) }
+                tableView.reloadData()
+            }
+    
+    //MARK: Collection View Implementation
     func numberOfSections(in collectionView: UICollectionView) -> Int {
        
         return 4
