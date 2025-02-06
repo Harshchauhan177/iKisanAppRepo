@@ -7,6 +7,42 @@
 
 import Foundation
 
+
+protocol IKisanDataControllerProtocol {
+    func getAllEquipment() -> [Equipment]
+    func getEquipment(byType type: String) -> [Equipment]
+    func getAllReviews() -> [ReviewData]
+    func addReview(_ review: ReviewData)
+    func getSuggestions() -> [Equipment]
+}
+
+//class IKisanDataController: IKisanDataControllerProtocol {
+//
+//    private var equipmentList: [Equipment] = EquipmentData.equipment
+//    private var reviewList: [ReviewData] = EquipmentData.reviews
+//    private var suggestionList: [Equipment] = EquipmentData.suggestionsEquipment
+//
+//    func getAllEquipment() -> [Equipment] {
+//        return equipmentList
+//    }
+//
+//    func getEquipment(byType type: String) -> [Equipment] {
+//        return equipmentList.filter { $0.type == type }
+//    }
+//
+//    func getAllReviews() -> [ReviewData] {
+//        return reviewList
+//    }
+//
+//    func addReview(_ review: ReviewData) {
+//        reviewList.append(review)
+//    }
+//
+//    func getSuggestions() -> [Equipment] {
+//        return suggestionList
+//    }
+//}
+
 class EquipmentData{
     static var equipment: [Equipment] = [
         Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Square Baler", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
