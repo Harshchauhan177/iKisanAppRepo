@@ -21,30 +21,43 @@ class DiscountsCollectionViewCell: UICollectionViewCell {
     
     
     
-    func updateDiscountsData(with indexPath: IndexPath) {
-        equipmentImage.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
-        equipmentNameLabel.text = EquipmentData.equipment[indexPath.row].name
-        discountedPrice.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
+//    func updateDiscountsData(with indexPath: IndexPath) {
+//        equipmentImage.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
+//        equipmentNameLabel.text = EquipmentData.equipment[indexPath.row].name
+//        discountedPrice.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
+//        
+//        rating.text = "⭐️\(EquipmentData.equipment[indexPath.row].rating)"
+//        
+//        let price = "\(EquipmentData.equipment[indexPath.row].realPricePerHour)"
+//        let attributes: [NSAttributedString.Key: Any] = [
+//            .strikethroughStyle: NSUnderlineStyle.single.rawValue,
+//            .strikethroughColor: UIColor.white
+//        ]
+//        let attributedPrice = NSAttributedString(string: price, attributes: attributes)
+//        //realPrice.text = "\(attributedPrice)"
+//        
+//        realPrice.attributedText = attributedPrice
+//        //"\(EquipmentData.equipment[indexPath.row].realPricePerHour)"
+//   
+//        //faderView.backgroundColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 0.3)
+//        
+//
+//    }
+    
+    func updateDiscountsData(with equipment: Equipment) {
+        equipmentImage.image = UIImage(named: equipment.equipmentImage)
+        equipmentNameLabel.text = equipment.name
+        discountedPrice.text = "₹\(equipment.pricePerHour)"
+        rating.text = "⭐️\(equipment.rating)"
         
-        rating.text = "⭐️\(EquipmentData.equipment[indexPath.row].rating)"
-        
-        let price = "\(EquipmentData.equipment[indexPath.row].realPricePerHour)"
+        let price = "\(equipment.realPricePerHour)"
         let attributes: [NSAttributedString.Key: Any] = [
             .strikethroughStyle: NSUnderlineStyle.single.rawValue,
             .strikethroughColor: UIColor.white
         ]
         let attributedPrice = NSAttributedString(string: price, attributes: attributes)
-        //realPrice.text = "\(attributedPrice)"
-        
         realPrice.attributedText = attributedPrice
-        //"\(EquipmentData.equipment[indexPath.row].realPricePerHour)"
-   
-        //faderView.backgroundColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 0.3)
-        
-
     }
-    
-    
     
     
 }

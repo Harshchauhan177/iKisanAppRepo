@@ -24,24 +24,40 @@ class ExploreMoreCollectionViewCell: UICollectionViewCell {
     @IBOutlet var providerNameLabel: UILabel!
     
     weak var delegate: ExploreMoreCollectionViewCellDelegate?
-    func updateExploreMoreData(with indexPath: IndexPath) {
+//    func updateExploreMoreData(with indexPath: IndexPath) {
+//        
+//        exploreEquipmentImageView.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
+//        equipmentNameLabel.text = EquipmentData.equipment[indexPath.row].name
+//        discountedPriceLabel.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
+//        
+//        let price = "\(EquipmentData.equipment[indexPath.row].realPricePerHour)"
+//        let attributes: [NSAttributedString.Key: Any] = [
+//            .strikethroughStyle: NSUnderlineStyle.single.rawValue,
+//            .strikethroughColor: UIColor.white
+//        ]
+//        let attributedPrice = NSAttributedString(string: price, attributes: attributes)
+//        realPriceLabel.attributedText = attributedPrice
+//        //realPriceLabel.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
+//        ratingLabel.text = "⭐️\(EquipmentData.equipment[indexPath.row].rating)"
+//        
+//
+//    }
+    
+    func updateExploreMoreData(with equipment: Equipment) {
+        exploreEquipmentImageView.image = UIImage(named: equipment.equipmentImage)
+        equipmentNameLabel.text = equipment.name
+        discountedPriceLabel.text = "₹\(equipment.pricePerHour)"
         
-        exploreEquipmentImageView.image = UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
-        equipmentNameLabel.text = EquipmentData.equipment[indexPath.row].name
-        discountedPriceLabel.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
-        
-        let price = "\(EquipmentData.equipment[indexPath.row].realPricePerHour)"
+        let price = "\(equipment.realPricePerHour)"
         let attributes: [NSAttributedString.Key: Any] = [
             .strikethroughStyle: NSUnderlineStyle.single.rawValue,
             .strikethroughColor: UIColor.white
         ]
         let attributedPrice = NSAttributedString(string: price, attributes: attributes)
         realPriceLabel.attributedText = attributedPrice
-        //realPriceLabel.text = "₹\(EquipmentData.equipment[indexPath.row].pricePerHour)"
-        ratingLabel.text = "⭐️\(EquipmentData.equipment[indexPath.row].rating)"
-        
-
+        ratingLabel.text = "⭐️\(equipment.rating)"
     }
+
    
     @IBAction func bookNowButtonTapped(_ sender: Any) {
         delegate?.didTapViewButton(on: self)

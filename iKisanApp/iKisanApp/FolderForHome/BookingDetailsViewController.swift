@@ -23,6 +23,8 @@ class BookingDetailsViewController: UIViewController {
     
     @IBOutlet var backgroundCollectionView: UIView!
     
+    var equipment: Equipment?
+    var booking: Booking?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,6 +33,31 @@ class BookingDetailsViewController: UIViewController {
         // Do any additional setup after loading the view.
     }
     
+    
+    private func updateUI() {
+        guard let equipment = equipment else { return }
+        
+        // Update equipment details
+        imageView.image = UIImage(named: equipment.equipmentImage)
+        equipmentNameLabel.text = equipment.name
+        priceLabel.text = "₹\(equipment.pricePerHour)/hr"
+        ratingLabel.text = "⭐️ \(equipment.rating)"
+        
+        // Update booking details if available
+        if let booking = booking {
+            //dateLabel.text = booking.formattedDate
+            
+            // Update status-specific UI
+            switch booking.status {
+            case .pending:
+                title = "Pending Booking"
+            case .confirmed:
+                title = "Confirmed Booking"
+            case .completed:
+                title = "Completed Booking"
+            }
+        }
+    }
 
     @IBAction func viewButtonTapped(_ sender: Any) {
     }

@@ -86,6 +86,32 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     @IBOutlet var mileageLabel: UILabel!
     
+    private var reviews: [ReviewData] = []
+    private var dataController: DataController?
+    
+    func configure(with equipment: Equipment) {
+        self.Equipment = equipment
+        self.equipmentName = equipment.name
+        self.discountedPriceHr = "₹ \(equipment.pricePerHour)/hr"
+        self.realPriceHr = "\(equipment.realPricePerHour)"
+        self.discountedPriceAc = "₹ \(equipment.pricePerAcre)/ac"
+        self.realPriceAc = "\(equipment.realPricePerAcre)"
+        self.coEquipDetail = "\(equipment.coEquipDetail) For CoEquip"
+        self.location = equipment.location
+        self.rating = "\(equipment.rating)"
+        self.bigImage = equipment.equipmentImage
+        self.smallImage1 = equipment.equipmentImage
+        self.smallImage2 = equipment.equipmentImage
+        self.smallImage3 = equipment.equipmentImage
+        self.more = "\(equipment.equipmentMoreImages.images.count)"
+        self.ratingOutOf5 = "\(equipment.rating)"
+        self.equipmentLocationDetailed = equipment.location
+        self.model = equipment.modelYear
+        self.capacity = equipment.capacity
+        self.mileage = equipment.mielage
+        self.moreImages = equipment.equipmentMoreImages.images
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -116,13 +142,13 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return EquipmentData.reviews.count //ReviewData.reviews.count
+        return reviews.count//EquipmentData.reviews.count 
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardCell", for: indexPath) as! ReviewCardCollectionViewCell
 
-        let review = EquipmentData.reviews[indexPath.row] //ReviewData.reviews[indexPath.row]
+        let review = reviews[indexPath.row] //ReviewData.reviews[indexPath.row]
             
             // Pass the review data to the update function in the cell
             cell.updateReviewCardData(reviewData: review)

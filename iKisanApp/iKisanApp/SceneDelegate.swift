@@ -12,13 +12,75 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
 
-    //var dataController: DataController = EquipmentData()
+    var dataController: DataController = IKisanDataController()
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        guard let _ = (scene as? UIWindowScene) else { return }
+        //guard let _ = (scene as? UIWindowScene) else { return }
+//        guard let windowScene = (scene as? UIWindowScene) else { return }
+//        
+//        let window = UIWindow(windowScene: windowScene)
+//                
+//                // Instantiate your initial ViewController
+//         //       let storyboard = UIStoryboard(name: "Main", bundle: nil)
+//        //let initialViewController = storyboard.instantiateViewController(identifier: "MainTabBarController") as! MainTabBarController
+//        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+//        if let initialViewController = storyboard.instantiateViewController(identifier: "MainTabBarController") as? MainTabBarController{
+//        print("Under tab bar controller")
+//            let navigationController = UINavigationController(rootViewController: initialViewController)
+//            print("Under navigation bar controller")
+//            if let homeVC = navigationController.viewControllers[0] as? HomeViewController{
+//                print("Under home view controller")
+//                homeVC.dataController = dataController
+//            }
+//        }
+//                
+//        // Create navigation controller with HomeViewController as root
+////        let navigationController = UINavigationController(rootViewController: initialViewController)
+////                
+////                // Inject the data controller
+////                initialViewController.dataController = dataController
+//                
+//               // window.rootViewController = navigationController
+//                self.window = window
+//                window.makeKeyAndVisible()
+    
+        
+        guard let windowScene = (scene as? UIWindowScene) else { return }
+            let window = UIWindow(windowScene: windowScene)
+
+            // Instantiate the storyboard and the MainTabBarController.
+            // Make sure the storyboard identifier "MainTabBarController" is set in Interface Builder.
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController else {
+                return
+            }
+
+            // Iterate through the tab bar controller’s view controllers
+            // to locate the HomeViewController.
+            if let viewControllers = tabBarController.viewControllers {
+                for viewController in viewControllers {
+                    // In many cases, your HomeViewController is embedded in a UINavigationController.
+                    if let navController = viewController as? UINavigationController,
+                       let homeVC = navController.viewControllers.first as? HomeViewController {
+                        // Inject the data controller into HomeViewController.
+                        homeVC.dataController = dataController
+                        break // Stop searching once it's found.
+                    }
+                    // If HomeViewController isn’t embedded, check directly.
+                    else if let homeVC = viewController as? HomeViewController {
+                        homeVC.dataController = dataController
+                        break
+                    }
+                }
+            }
+
+            // Set the tabBarController as the root view controller.
+            window.rootViewController = tabBarController
+            self.window = window
+            window.makeKeyAndVisible()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

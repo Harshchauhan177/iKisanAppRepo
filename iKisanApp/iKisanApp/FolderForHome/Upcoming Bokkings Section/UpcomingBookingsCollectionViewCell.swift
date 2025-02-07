@@ -33,29 +33,39 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
         // Initialization code
     }
     
-    func updateUpcomingBookingsData(with indexPath: IndexPath) {
-        imageView.image = UIImage(named: "4.jpeg")//UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
-        imageView.layer.cornerRadius = 7
-        equipmentNameLabel.text = "Rice Equipment"//EquipmentData.equipment[indexPath.row].name
-        bookingDateLabel.text = "Wed, 25 Dec Afternoon"
-        bookingStatusLabel.text = "Confirmed"
-        coEquipedOrNotLabel.text = ""
-        bookingStatusLabel.textColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
-        
-        
-
-    }
+//    func updateUpcomingBookingsData(with indexPath: IndexPath) {
+//        imageView.image = UIImage(named: "4.jpeg")//UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
+//        imageView.layer.cornerRadius = 7
+//        equipmentNameLabel.text = "Rice Equipment"//EquipmentData.equipment[indexPath.row].name
+//        bookingDateLabel.text = "Wed, 25 Dec Afternoon"
+//        bookingStatusLabel.text = "Confirmed"
+//        coEquipedOrNotLabel.text = ""
+//        bookingStatusLabel.textColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+//        
+//        
+//
+//    }
     
+    
+    func updateUpcomingBookingsData(with booking: Booking, equipment: Equipment) {
+        imageView.image = UIImage(named: equipment.equipmentImage)
+        imageView.layer.cornerRadius = 7
+        equipmentNameLabel.text = equipment.name
+        bookingDateLabel.text = "Wed, 25 Dec Afternoon"//booking.formattedDate
+        bookingStatusLabel.text = booking.status.rawValue
+        
+        // Set color based on booking status
+        bookingStatusLabel.textColor = booking.status == .confirmed ?
+            UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1) :
+            UIColor.systemGray
+        
+        coEquipedOrNotLabel.text = booking.bookingType == .coEquip ? "Co-Equipped" : ""
+        //hostedByLabel.text = "Time Slot: \(booking.timeSlot.rawValue)"
+    }
     
     @IBAction func viewButtonTapped(_ sender: Any) {
         delegate?.didTapViewButton(on: self)
         
-//        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-//        let viewController = storyboard.instantiateViewController(withIdentifier: " BookingDetailsViewController") as!
-//        BookingDetailsViewController
-//        //viewController.sectionNumber = sender.tag
-//       navigationController?.pushViewController(viewController, animated: true)
-   
     }
     
 }

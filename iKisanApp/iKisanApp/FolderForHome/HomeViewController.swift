@@ -9,6 +9,14 @@ import UIKit
 
 class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UpcomingBookingsCollectionViewCellDelegate, ExploreMoreCollectionViewCellDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource, UISearchResultsUpdating {
    
+    
+//    var dataController: DataController = IKisanDataController()
+    var dataController: DataController!
+    private var allEquipment: [Equipment] = []
+    private var suggestions: [Equipment] = []
+    private var reviews: [ReviewData] = []
+    private var upcomingBookings: [Booking] = []
+    
     var searchBar: UISearchBar!
     var tableView: UITableView!
 
@@ -22,10 +30,24 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     var selectedIndexPath: IndexPath?
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        collectionView.isHidden = false
         setupSearchController()
         setupTableView()
 
+        
+        //Data from Data Controller
+        guard let dataController = dataController else {
+            print("Error: DataController not initialized")
+            return
+        }
+        
+        allEquipment = dataController.getAllEquipment()
+        suggestions = dataController.getSuggestions()
+        reviews = dataController.getAllReviews()
+        
+        // Update hasUpcomingBookings based on actual bookings
+        hasUpcomingBookings = !upcomingBookings.isEmpty
+    
         
         // Registering Nibs for cells
         let discountsNib = UINib(nibName: "DiscountsCell", bundle: nil)
@@ -138,12 +160,12 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             return hasUpcomingBookings ? 3 : 0
             //return 3 // Example: Suggestion has 3 cards
         case 2:
-            return  EquipmentData.suggestionsEquipment.count// 4// Number of Explore More items
+            return suggestions.count//EquipmentData.suggestionsEquipment.count// 4// Number of Explore More items
             //return 4// Example: Explore More data count
             
             //for additional view
         case 3:
-            return 4
+            return allEquipment.count//4
         default:
             return 0
         }
@@ -154,27 +176,41 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 0:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DiscountsCell", for: indexPath) as! DiscountsCollectionViewCell
             cell.layer.cornerRadius = 10
-            cell.updateDiscountsData(with: indexPath)
+            let equipment = allEquipment[indexPath.row]
+            cell.updateDiscountsData(with: equipment)
             return cell
             
         case 1:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "UpcomingBookingsCollectionViewCell", for: indexPath) as! UpcomingBookingsCollectionViewCell
                     cell.layer.cornerRadius = 13
             cell.delegate = self
-                    cell.updateUpcomingBookingsData(with: indexPath)
+            
+            if indexPath.row < upcomingBookings.count {
+                let booking = upcomingBookings[indexPath.row]
+                if let equipment = allEquipment.first(where: { $0.equipmentID == booking.equipmentID }) {
+                    cell.updateUpcomingBookingsData(with: booking, equipment: equipment)
+                }
+            }
+                   // cell.updateUpcomingBookingsData(with: indexPath)
                     return cell
            
         case 2:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SuggestionCell", for: indexPath) as! SuggestionCollectionViewCell
             cell.layer.cornerRadius = 13
-            cell.updateSuggestionData(with: indexPath)
+            
+            let suggestion = suggestions[indexPath.row]
+            cell.updateSuggestionData(with: suggestion)
+           // cell.updateSuggestionData(with: indexPath)
             return cell
            
             
         case 3:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ExploreMoreCell", for: indexPath) as! ExploreMoreCollectionViewCell
             cell.layer.cornerRadius = 13
-            cell.updateExploreMoreData(with: indexPath)
+            
+            let equipment = allEquipment[indexPath.row]
+            cell.updateExploreMoreData(with: equipment)
+           // cell.updateExploreMoreData(with: indexPath)
             return cell
            
 
@@ -389,4 +425,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
     
+    
+    override func viewWillAppear(_ animated: Bool) {
+        collectionView.reloadData()
+    }
 }
