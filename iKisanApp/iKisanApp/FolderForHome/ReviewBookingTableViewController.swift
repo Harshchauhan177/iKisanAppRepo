@@ -13,6 +13,8 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
     var locationA: String?
     var pricePerHr: Double = 100
     
+    var equipment: Equipment?
+    
     @IBOutlet var locationLabel: UILabel!
     
     @IBOutlet var datePicker: UIDatePicker!
@@ -37,9 +39,14 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
 
     func updateData() {
         
-        locationLabel.text = locationA
+        //locationLabel.text = locationA
+        locationLabel.text = equipment?.location ?? locationA
         datePicker.date = Date()
-    } 
+        
+        if let equipment = equipment {
+            pricePerHr = equipment.pricePerHour
+        }
+    }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
             textField.resignFirstResponder()
@@ -76,6 +83,34 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
       
     
     @IBAction func proceedToPayButtonTapped(_ sender: Any) {
+        
+        //
+        guard let equipment = equipment,
+              let fieldAreaText = fieldAreaTextField.text,
+              let fieldArea = Double(fieldAreaText),
+              let timeSlot = timeSlotDisplayOutlet.text,
+              let timeSlotEnum = TimeSlot(rawValue: timeSlot) else {
+            // Show error alert
+            return
+        }
+        
+        // Create booking
+        let booking = Booking(
+            bookingID: UUID(),
+            userID: currentUser.shared.user?.userID ?? UUID(),
+            equipmentID: equipment.equipmentID,
+            bookingType: .onDemand,
+            bookingDate: datePicker.date,
+            fieldArea: fieldArea,
+            status: .pending,
+            timeSlot: timeSlotEnum
+        )
+        
+        // TODO: Save booking when implemented in DataController
+        
+        // Navigate to payment
+        performSegue(withIdentifier: "ShowPaymentSegue", sender: booking)
+        
     }
     
     

@@ -10,7 +10,9 @@ import UIKit
 class UpcomingBookingsListViewController: UIViewController, UICollectionViewDataSource,UpcomingBookingsListCellDelegate {
 
     private let reuseIdentifier = "BookListCell"
-
+    private var upcomingBookings: [Booking] = []
+    private var dataController: DataController?
+    private var allEquipment: [Equipment] = []
     
     @IBOutlet var collectionView: UICollectionView!
     
@@ -19,6 +21,14 @@ class UpcomingBookingsListViewController: UIViewController, UICollectionViewData
     override func viewDidLoad() {
         super.viewDidLoad()
 
+
+        if let windowScene = view.window?.windowScene,
+           let sceneDelegate = windowScene.delegate as? SceneDelegate {
+            self.dataController = sceneDelegate.dataController
+            // Load equipment data
+            allEquipment = dataController?.getAllEquipment() ?? []
+            // TODO: Load upcoming bookings when implemented in DataController
+        }
         collectionView.setCollectionViewLayout(genrateLayout(), animated: true)
         collectionView.dataSource = self
         // Do any additional setup after loading the view.
@@ -39,32 +49,50 @@ class UpcomingBookingsListViewController: UIViewController, UICollectionViewData
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10//upcomingBookings.count
+        upcomingBookings.count //return 10
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! UpcomingBookingsListCollectionViewCell
         
         //let country = countries[indexPath.item]
-        cell.equipmentNameLabel.text = "Equipment Name"
-        cell.updateCellData(with: indexPath)
+        let booking = upcomingBookings[indexPath.row]
+        if let equipment = allEquipment.first(where: { $0.equipmentID == booking.equipmentID }) {
+            cell.updateCellData(with: booking, equipment: equipment)
+        }
+//        cell.equipmentNameLabel.text = "Equipment Name"
+//        cell.updateCellData(with: indexPath)
         cell.delegate = self
         return cell
     }
     
     func didTapViewButton(on cell: UpcomingBookingsListCollectionViewCell) {
-        // Get the indexPath of the cell
-        if let indexPath = collectionView.indexPath(for: cell) {
-            print("View button tapped on cell at index: \(indexPath.row)")
-        }
+        
+        guard let indexPath = collectionView.indexPath(for: cell) else { return }
+        
+        let booking = upcomingBookings[indexPath.row]
+        guard let equipment = allEquipment.first(where: { $0.equipmentID == booking.equipmentID }) else { return }
+        
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
         if let viewController = storyboard.instantiateViewController(withIdentifier: "BookingDetailsViewController") as? BookingDetailsViewController {
-            //viewController.modalTransitionStyle = .crossDissolve
-            viewController.modalPresentationStyle = .fullScreen // Optional: Set presentation style
-            //present(viewController, animated: true, completion: nil)
+            viewController.modalPresentationStyle = .fullScreen
+            viewController.equipment = equipment
+            viewController.booking = booking
             navigationController?.pushViewController(viewController, animated: true)
         }
         
-    }
+//        // Get the indexPath of the cell
+//        if let indexPath = collectionView.indexPath(for: cell) {
+//            print("View button tapped on cell at index: \(indexPath.row)")
+//        }
+//        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+//        if let viewController = storyboard.instantiateViewController(withIdentifier: "BookingDetailsViewController") as? BookingDetailsViewController {
+//            //viewController.modalTransitionStyle = .crossDissolve
+//            viewController.modalPresentationStyle = .fullScreen // Optional: Set presentation style
+//            //present(viewController, animated: true, completion: nil)
+//            navigationController?.pushViewController(viewController, animated: true)
+//        }
+//        
+   }
     
 }

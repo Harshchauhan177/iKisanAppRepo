@@ -26,9 +26,19 @@ class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
     weak var delegate: UpcomingBookingsListCellDelegate?
     
     
-    func updateCellData(with indexPath:IndexPath) {
-        equipmentNameLabel.text = "Rice Equipment"
-        coEquippedStatusLabel.text = "Co-Equipped"
+//    func updateCellData(with indexPath:IndexPath) {
+//        equipmentNameLabel.text = "Rice Equipment"
+//        coEquippedStatusLabel.text = "Co-Equipped"
+//        imageView.layer.cornerRadius = 7
+//    }
+    
+    func updateCellData(with booking: Booking, equipment: Equipment) {
+        equipmentNameLabel.text = equipment.name
+      //  bookingDateLabel.text = booking.formattedDate
+        hostedByLabel.text = "Time Slot: \(booking.timeSlot.rawValue)"
+        coEquippedStatusLabel.text = booking.bookingType == .coEquip ? "Co-Equipped" : "Individual"
+        bokkingStatusLabel.text = booking.status.rawValue
+        imageView.image = UIImage(named: equipment.equipmentImage)
         imageView.layer.cornerRadius = 7
     }
     

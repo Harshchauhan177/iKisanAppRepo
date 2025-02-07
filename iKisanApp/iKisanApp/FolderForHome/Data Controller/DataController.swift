@@ -156,3 +156,11 @@ class IKisanDataController: DataController {
         }
     }
 }
+
+class currentUser {
+    static let shared = currentUser()
+    
+    private init() {}
+    
+    var user: User?
+}
