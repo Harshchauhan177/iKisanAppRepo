@@ -22,7 +22,7 @@ struct EquipmentsForCrops {
 //struct EquipmentAgri {
 //    var name: String
 //    var imageName: String
-//}
+//}                                                                                                                                                                      
 //struct CropCategory {
 //    var cropName: String
 //    var EquipmentsForCrops : String
