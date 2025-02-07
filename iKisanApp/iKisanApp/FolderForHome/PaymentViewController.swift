@@ -9,6 +9,8 @@ import UIKit
 
 class PaymentViewController: UIViewController {
 
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -46,7 +48,7 @@ class PaymentViewController: UIViewController {
                     let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
                     if let homeViewController = storyboard.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController {
                         homeViewController.hasUpcomingBookings = true
-                        
+                        //homeViewController.dataController = dataController
                         // Replace or push to the HomeViewController
                         navigationController.setViewControllers([homeViewController], animated: true)
                     }
