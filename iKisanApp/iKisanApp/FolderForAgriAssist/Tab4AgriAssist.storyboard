@@ -340,6 +340,7 @@
                     </view>
                     <navigationItem key="navigationItem" title="Cultivators" id="bba-PX-CjI"/>
                     <connections>
+                        <outlet property="EquipmentsTypeNavHeaderLabel" destination="bba-PX-CjI" id="8Ki-1Q-Vos"/>
                         <outlet property="SameTypeAllEquipmentsCollectionView" destination="lOV-hC-WWy" id="9wk-Nc-y2o"/>
                     </connections>
                 </viewController>

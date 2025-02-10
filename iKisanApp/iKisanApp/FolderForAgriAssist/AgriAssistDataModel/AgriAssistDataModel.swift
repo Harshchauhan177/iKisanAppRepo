@@ -18,21 +18,6 @@ struct EquipmentsForCrops {
     var Equipmentsimage:[String]
     var EquipmentsName:[String]
 }
-//// For page two of AgriAssist
-//struct EquipmentAgri {
-//    var name: String
-//    var imageName: String
-//}                                                                                                                                                                      
-//struct CropCategory {
-//    var cropName: String
-//    var EquipmentsForCrops : String
-//    var equipments: [EquipmentCategory]
-//}
-//struct EquipmentCategory {
-//    var title: String
-//    var equipmentList: [EquipmentAgri]
-//}
-
 
 // For page two of AgriAssist
 struct EquipmentAgri {
@@ -48,11 +33,6 @@ struct EquipmentCategory {
     var title: String
     var equipmentList: [EquipmentAgri]
 }
-
-
-
-
-
 
 
 // InfoAboutEquipment(fourthPage)DataModel

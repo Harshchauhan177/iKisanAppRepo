@@ -20,11 +20,12 @@ class EData {
                 EquipmentCategory(
                     title: "Cultivator",
                     equipmentList: [
-                        EquipmentAgri(name: "Spring Cultivator", imageName: "spring_cultivator"),
-                        EquipmentAgri(name: "Rigid Cultivator", imageName: "rigid_cultivator"),
-                        EquipmentAgri(name: "Rotary Cultivator", imageName: "rotary_cultivator"),
-                        EquipmentAgri(name: "Power Cultivator", imageName: "power_cultivator"),
-                        EquipmentAgri(name: "Mini Cultivator", imageName: "mini_cultivator")
+                        EquipmentAgri(name: "Spring ", imageName: "Image 1"),
+                        EquipmentAgri(name: "Rigid ", imageName: "Image 2"),
+                        EquipmentAgri(name: "Rotary", imageName: "Image 3"),
+                        EquipmentAgri(name: "Power ", imageName: "Image 4"),
+                        EquipmentAgri(name: "Mini", imageName: "Image 5"),
+                        EquipmentAgri(name: "Spring ", imageName: "Image 1")
                     ]
                 ),
                 EquipmentCategory(
@@ -382,14 +383,14 @@ class EData {
 
 
 // EquipmentsForCrops(Secondpage)  Data Set ye romove hoga jab uper wale data set me se 3D array ka data fatch hojaega
-var EqData = [
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 3","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"])
-]
+//var EqData = [
+//    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+//    EquipmentsForCrops(Equipmentsimage: ["Image","Image 3","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+//    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+//    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+//    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
+//    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"])
+//]
 
 
 
@@ -419,10 +420,10 @@ var crops: [AgriCrop] = [
 var Data = [
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle weel","cultivater","harrow","hhaarrooww","herahero"]),
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["1","2","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle3","cultivater","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["","cultivater","harrow","hhaarrooww","herahero"]),
     EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle4","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle5","cultivater","harrow","hhaarrooww","herahero"]),
-    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle6","cultivater","harrow","hhaarrooww","herahero"])
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle5","","harrow","hhaarrooww","herahero"]),
+    EquipmentsForCrops(Equipmentsimage: ["Image","Image 2","Image 3","Image 4","Image"],EquipmentsName: ["paddle6","cultivater","","hhaarrooww","herahero"])
     
 ]
 
