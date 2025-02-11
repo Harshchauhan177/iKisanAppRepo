@@ -13,42 +13,30 @@ class SameTypeAllEquipmentsViewController: UIViewController,UICollectionViewDele
     @IBOutlet weak var SameTypeAllEquipmentsCollectionView: UICollectionView!
     @IBOutlet weak var EquipmentsTypeNavHeaderLabel: UINavigationItem!
     
+    var selectedCategory: EquipmentCategory?
     
-   
     override func viewDidLoad() {
         super.viewDidLoad()
 
-//        EquipmentsTypeNavHeaderLabel.title = EData.EquipmentsForCropsData[myIndex].EquipmentsForCrops
+        // Set the navigation title
+        EquipmentsTypeNavHeaderLabel.title = selectedCategory?.title
     }
     
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        return Data.flatMap { $0.Equipmentsimage }.count
-        5
+        return selectedCategory?.equipmentList.count ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-//        let cell = SameTypeAllEquipmentsCollectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)as! SameTypeAllEquipmentsCollectionViewCell
-//        cell.SameTypeAllEquipmentsImage.image = UIImage(named: Data[EquipmentsForCrops.row].Equipmentsimage)
-//        cell.SameTypeAllEquipmentsNameLabel.text =
-//        return cell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? SameTypeAllEquipmentsCollectionViewCell,
+              let equipment = selectedCategory?.equipmentList[indexPath.item] else {
+            return UICollectionViewCell()
+        }
         
+        // Configure the cell with the equipment data
+        cell.SameTypeAllEquipmentsImage.image = UIImage(named: equipment.imageName)
+        cell.SameTypeAllEquipmentsNameLabel.text = equipment.name
         
-        
-        let flattenedData = Data.flatMap { $0.Equipmentsimage }
-                let imageName = flattenedData[indexPath.item]
-                
-                // Get the corresponding name from the EquipmentsName array
-                let name = Data.flatMap { $0.EquipmentsName }[indexPath.item]
-
-                // Dequeue the cell
-                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? SameTypeAllEquipmentsCollectionViewCell {
-                    // Set the image and name for the cell
-                    cell.SameTypeAllEquipmentsImage.image = UIImage(named: imageName)
-                    cell.SameTypeAllEquipmentsNameLabel.text = name
-                    return cell
-                }
-                
-                return UICollectionViewCell()
+        return cell
     }
 }

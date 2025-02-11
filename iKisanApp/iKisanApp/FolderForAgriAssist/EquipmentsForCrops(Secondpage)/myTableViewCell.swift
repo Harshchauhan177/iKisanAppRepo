@@ -12,7 +12,8 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
     
     @IBOutlet weak var myCollectionView: UICollectionView!
     @IBOutlet weak var EquipmentTypeLabel: UILabel!
-   
+    @IBOutlet weak var viewAllButton: UIButton!
+    
     var sectionIndex: Int = 0
     var equipmentCategory: EquipmentCategory? {
         didSet {
@@ -22,6 +23,9 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
             }
         }
     }
+    
+    var onViewAllTapped: ((EquipmentCategory) -> Void)?
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         myCollectionView.delegate = self
@@ -76,5 +80,11 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
 
         
     }
-
+    
+    @IBAction func viewAllButtonTapped(_ sender: UIButton) {
+        if let category = equipmentCategory {
+            onViewAllTapped?(category)
+        }
+    }
+    
 }
