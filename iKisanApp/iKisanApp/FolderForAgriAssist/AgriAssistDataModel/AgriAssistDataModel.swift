@@ -19,11 +19,25 @@ struct EquipmentsForCrops {
     var EquipmentsName:[String]
 }
 
+//// For page two of AgriAssist
+//struct EquipmentAgri {
+//    var name: String
+//    var imageName: String
+//}
+
 // For page two of AgriAssist
 struct EquipmentAgri {
-    var name: String
-    var imageName: String
+    var equipmentType: String
+    var equipmentName: String
+    var equipmentImage: String
+    var equipmentLikedBy: String
+    var equipmentPurpose: String
+    var equipmentBestFor: String
+    var equipmentAverageCost: String
+    var equipmentNeeds: String
 }
+
+
 struct CropCategory {
     var cropName: String
     var EquipmentsForCrops : String

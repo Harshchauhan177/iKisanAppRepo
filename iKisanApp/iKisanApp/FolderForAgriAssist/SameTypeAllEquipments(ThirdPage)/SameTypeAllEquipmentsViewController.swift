@@ -34,8 +34,8 @@ class SameTypeAllEquipmentsViewController: UIViewController,UICollectionViewDele
         }
         
         // Configure the cell with the equipment data
-        cell.SameTypeAllEquipmentsImage.image = UIImage(named: equipment.imageName)
-        cell.SameTypeAllEquipmentsNameLabel.text = equipment.name
+        cell.SameTypeAllEquipmentsImage.image = UIImage(named: equipment.equipmentImage)
+        cell.SameTypeAllEquipmentsNameLabel.text = equipment.equipmentName
         
         return cell
     }

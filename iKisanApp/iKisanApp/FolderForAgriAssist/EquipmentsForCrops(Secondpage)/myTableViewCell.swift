@@ -58,8 +58,8 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
         
 
         if let equipment = equipmentCategory?.equipmentList[indexPath.row] {
-            cell.myEquipmentImage.image = UIImage(named: equipment.imageName)
-            cell.myEquipmentsName.text = equipment.name
+            cell.myEquipmentImage.image = UIImage(named: equipment.equipmentImage)
+            cell.myEquipmentsName.text = equipment.equipmentName
             
             cell.myEquipmentImage.layer.cornerRadius = cell.myEquipmentImage.frame.size.width / 2
             cell.myEquipmentImage.layer.masksToBounds = true
