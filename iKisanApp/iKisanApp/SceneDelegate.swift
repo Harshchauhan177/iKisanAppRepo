@@ -51,6 +51,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
             let window = UIWindow(windowScene: windowScene)
 
+        //for changing colour of navigation BackButtons
+        let appearance = UINavigationBar.appearance()
+              appearance.tintColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+        
             // Instantiate the storyboard and the MainTabBarController.
             // Make sure the storyboard identifier "MainTabBarController" is set in Interface Builder.
             let storyboard = UIStoryboard(name: "Main", bundle: nil)

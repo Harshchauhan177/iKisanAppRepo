@@ -13,7 +13,13 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
     var locationA: String?
     var pricePerHr: Double = 100
     
-    var equipment: Equipment?
+    var equipment: Equipment? {
+        didSet {
+            if isViewLoaded {
+                updateData()
+            }
+        }
+    }
     
     @IBOutlet var locationLabel: UILabel!
     
@@ -27,7 +33,23 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
     @IBOutlet var priceLabel: UILabel!
     override func viewDidLoad() {
         super.viewDidLoad()
-      
+        
+        if let equipment = equipment {
+           
+        } else {
+            // Show alert and pop back
+            DispatchQueue.main.async {
+                let alert = UIAlertController(
+                    title: "Error",
+                    message: "No equipment selected. Please select equipment first.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                    self?.navigationController?.popViewController(animated: true)
+                })
+                self.present(alert, animated: true)
+            }
+        }
         
         fieldAreaTextField.delegate = self
         
@@ -38,14 +60,13 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
     }
 
     func updateData() {
-        
-        //locationLabel.text = locationA
-        locationLabel.text = equipment?.location ?? locationA
-        datePicker.date = Date()
-        
-        if let equipment = equipment {
-            pricePerHr = equipment.pricePerHour
+        guard let equipment = equipment else {
+            return
         }
+        
+        locationLabel.text = equipment.location
+        datePicker.date = Date()
+        pricePerHr = equipment.pricePerHour
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -78,24 +99,49 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
         
     }
 
-         
-            
-      
     
     @IBAction func proceedToPayButtonTapped(_ sender: Any) {
         
-        //
-        guard let equipment = equipment,
-              let fieldAreaText = fieldAreaTextField.text,
-              let fieldArea = Double(fieldAreaText),
-              let timeSlot = timeSlotDisplayOutlet.text,
+        // Verify equipment
+        guard let equipment = self.equipment else {
+            return
+        }
+        
+        // Verify field area
+        guard let fieldAreaText = fieldAreaTextField.text,
+              !fieldAreaText.isEmpty,
+              let fieldArea = Double(fieldAreaText) else {
+            let alert = UIAlertController(
+                title: "Error",
+                message: "Please enter a valid field area",
+                preferredStyle: .alert
+            )
+//            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            let okAction = UIAlertAction(title: "OK", style: .default)
+
+            okAction.setValue(UIColor.init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
+            alert.addAction(okAction)
+
+            present(alert, animated: true)
+            return
+        }
+        
+        // Verify time slot
+        guard let timeSlot = timeSlotDisplayOutlet.text,
+              !timeSlot.isEmpty,
               let timeSlotEnum = TimeSlot(rawValue: timeSlot) else {
-            // Show error alert
+            let alert = UIAlertController(
+                title: "Error",
+                message: "Please select a time slot",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
             return
         }
         
         // Create booking
-        let booking = Booking(
+        let newBooking = Booking(
             bookingID: UUID(),
             userID: currentUser.shared.user?.userID ?? UUID(),
             equipmentID: equipment.equipmentID,
@@ -106,12 +152,23 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
             timeSlot: timeSlotEnum
         )
         
-        // TODO: Save booking when implemented in DataController
-        
-        // Navigate to payment
-        performSegue(withIdentifier: "ShowPaymentSegue", sender: booking)
-        
+        // For Presenting PaymentViewController
+        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
+            paymentVC.booking = newBooking
+            paymentVC.modalPresentationStyle = .automatic
+            
+            // Embed in a Navigation Controller
+            let navController = UINavigationController(rootViewController: paymentVC)
+            present(navController, animated: true, completion: nil)
+        }
     }
     
-    
+//        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+//        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
+//            paymentVC.booking = newBooking
+//            paymentVC.modalPresentationStyle = .fullScreen
+//            navigationController?.pushViewController(paymentVC, animated: true)
+//        }
+//    }
 }

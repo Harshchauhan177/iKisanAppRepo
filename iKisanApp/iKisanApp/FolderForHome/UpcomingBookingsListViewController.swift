@@ -7,12 +7,13 @@
 
 import UIKit
 
-class UpcomingBookingsListViewController: UIViewController, UICollectionViewDataSource,UpcomingBookingsListCellDelegate {
+class UpcomingBookingsListViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UpcomingBookingsListCellDelegate {
 
     private let reuseIdentifier = "BookListCell"
-    private var upcomingBookings: [Booking] = []
-    private var dataController: DataController?
-    private var allEquipment: [Equipment] = []
+    
+    var dataController: DataController?
+    var upcomingBookings: [Booking] = []
+    var allEquipment: [Equipment] = []
     
     @IBOutlet var collectionView: UICollectionView!
     
@@ -20,54 +21,87 @@ class UpcomingBookingsListViewController: UIViewController, UICollectionViewData
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-
-        if let windowScene = view.window?.windowScene,
-           let sceneDelegate = windowScene.delegate as? SceneDelegate {
-            self.dataController = sceneDelegate.dataController
-            // Load equipment data
-            allEquipment = dataController?.getAllEquipment() ?? []
-            // TODO: Load upcoming bookings when implemented in DataController
+       
+        // Only fetch from dataController if data wasn't passed
+        if upcomingBookings.isEmpty || allEquipment.isEmpty {
+            if let dataController = dataController {
+                allEquipment = dataController.getAllEquipment()
+                upcomingBookings = dataController.getUpcomingBookings()
+            } else {
+                print("UpcomingBookingsListViewController - Warning: No dataController available")
+            }
         }
-        collectionView.setCollectionViewLayout(genrateLayout(), animated: true)
+        
+        setupUI()
+        setupCollectionView()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Refresh data when view appears
+        if let dataController = dataController {
+            upcomingBookings = dataController.getUpcomingBookings()
+            collectionView.reloadData()
+        }
+    }
+    
+    private func setupUI() {
+        title = "Upcoming Bookings"
+        navigationItem.largeTitleDisplayMode = .never
+        
+        // Add a message for no bookings
+        if upcomingBookings.isEmpty {
+            let messageLabel = UILabel()
+            messageLabel.text = "No upcoming bookings"
+            messageLabel.textAlignment = .center
+            messageLabel.textColor = .gray
+            messageLabel.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 40)
+            messageLabel.center = view.center
+            view.addSubview(messageLabel)
+        }
+    }
+    
+    private func setupCollectionView() {
+       
+        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.minimumLineSpacing = 8
+            layout.minimumInteritemSpacing = 8
+            
+            // Calculate cell size
+            let width = collectionView.bounds.width - 16
+            layout.itemSize = CGSize(width: width, height: 180)
+            layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
+        }
+        
+        collectionView.delegate = self
         collectionView.dataSource = self
-        // Do any additional setup after loading the view.
     }
     
+    // MARK: - UICollectionViewDataSource
     
-    
-    private func genrateLayout() -> UICollectionViewLayout {
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(115))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
-        let section = NSCollectionLayoutSection(group: group)
-        //section.orthogonalScrollingBehavior = .groupPagingCentered
-        let layout = UICollectionViewCompositionalLayout(section: section)
-        return layout
-    }
-
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        upcomingBookings.count //return 10
+        return upcomingBookings.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! UpcomingBookingsListCollectionViewCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier,
+                                                    for: indexPath) as! UpcomingBookingsListCollectionViewCell
         
-        //let country = countries[indexPath.item]
         let booking = upcomingBookings[indexPath.row]
+        
         if let equipment = allEquipment.first(where: { $0.equipmentID == booking.equipmentID }) {
+            cell.delegate = self
             cell.updateCellData(with: booking, equipment: equipment)
+           
         }
-//        cell.equipmentNameLabel.text = "Equipment Name"
-//        cell.updateCellData(with: indexPath)
-        cell.delegate = self
+        
         return cell
     }
     
+    // MARK: - UpcomingBookingsListCellDelegate
+    
     func didTapViewButton(on cell: UpcomingBookingsListCollectionViewCell) {
-        
         guard let indexPath = collectionView.indexPath(for: cell) else { return }
         
         let booking = upcomingBookings[indexPath.row]
@@ -80,19 +114,5 @@ class UpcomingBookingsListViewController: UIViewController, UICollectionViewData
             viewController.booking = booking
             navigationController?.pushViewController(viewController, animated: true)
         }
-        
-//        // Get the indexPath of the cell
-//        if let indexPath = collectionView.indexPath(for: cell) {
-//            print("View button tapped on cell at index: \(indexPath.row)")
-//        }
-//        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-//        if let viewController = storyboard.instantiateViewController(withIdentifier: "BookingDetailsViewController") as? BookingDetailsViewController {
-//            //viewController.modalTransitionStyle = .crossDissolve
-//            viewController.modalPresentationStyle = .fullScreen // Optional: Set presentation style
-//            //present(viewController, animated: true, completion: nil)
-//            navigationController?.pushViewController(viewController, animated: true)
-//        }
-//        
-   }
-    
+    }
 }

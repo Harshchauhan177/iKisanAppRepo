@@ -13,33 +13,26 @@ protocol UpcomingBookingsListCellDelegate: AnyObject {
 
 class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
     
-    @IBOutlet var imageView: UIImageView!
     
+    @IBOutlet weak var equipmentImageView: UIImageView!
+    @IBOutlet weak var dateLabel: UILabel!
+    @IBOutlet weak var timeSlotLabel: UILabel!
+    @IBOutlet weak var statusLabel: UILabel!
     @IBOutlet var equipmentNameLabel: UILabel!
-    @IBOutlet var bookingDateLabel: UILabel!
-    @IBOutlet var hostedByLabel: UILabel!
-    @IBOutlet var coEquippedStatusLabel: UILabel!
-    @IBOutlet var bokkingStatusLabel: UILabel!
-    
-    
-    //
+
     weak var delegate: UpcomingBookingsListCellDelegate?
     
-    
-//    func updateCellData(with indexPath:IndexPath) {
-//        equipmentNameLabel.text = "Rice Equipment"
-//        coEquippedStatusLabel.text = "Co-Equipped"
-//        imageView.layer.cornerRadius = 7
-//    }
-    
     func updateCellData(with booking: Booking, equipment: Equipment) {
+        equipmentImageView.image = UIImage(named: equipment.equipmentImage)
         equipmentNameLabel.text = equipment.name
-      //  bookingDateLabel.text = booking.formattedDate
-        hostedByLabel.text = "Time Slot: \(booking.timeSlot.rawValue)"
-        coEquippedStatusLabel.text = booking.bookingType == .coEquip ? "Co-Equipped" : "Individual"
-        bokkingStatusLabel.text = booking.status.rawValue
-        imageView.image = UIImage(named: equipment.equipmentImage)
-        imageView.layer.cornerRadius = 7
+        equipmentImageView.layer.cornerRadius = 7
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "EEE, dd MMM"
+        let dateString = dateFormatter.string(from: booking.bookingDate)
+        dateLabel.text = "\(dateString) \(booking.timeSlot.rawValue)"
+        
+        timeSlotLabel.text = booking.timeSlot.rawValue
+        statusLabel.text = booking.status.rawValue
     }
     
     override init(frame : CGRect){
@@ -51,6 +44,7 @@ class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         updateCellUI()
+        
     }
     
     func updateCellUI () {

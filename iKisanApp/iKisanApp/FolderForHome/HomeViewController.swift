@@ -15,7 +15,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     private var allEquipment: [Equipment] = []
     private var suggestions: [Equipment] = []
     private var reviews: [ReviewData] = []
-    private var upcomingBookings: [Booking] = []
+    var upcomingBookings: [Booking] = []
     
     var searchBar: UISearchBar!
     var tableView: UITableView!
@@ -34,7 +34,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         setupSearchController()
         setupTableView()
 
-        
         //Data from Data Controller
         guard let dataController = dataController else {
             print("Error: DataController not initialized")
@@ -44,6 +43,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         allEquipment = dataController.getAllEquipment()
         suggestions = dataController.getSuggestions()
         reviews = dataController.getAllReviews()
+        upcomingBookings = dataController.getUpcomingBookings()
         
         // Update hasUpcomingBookings based on actual bookings
         hasUpcomingBookings = !upcomingBookings.isEmpty
@@ -144,28 +144,20 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     //MARK: Collection View Implementation
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-       
-        return 4
-        //hasUpcomingBookings ? 4 : 3
-        //return 3 // Discounts, Suggestion, Explore More
+        return 4 // Always return 4 sections
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         switch section {
         case 0:
-            //return 3
-            return 6
-            // Example: Discounts data count
+            return 6 // Discounts
         case 1:
-            return hasUpcomingBookings ? 3 : 0
-            //return 3 // Example: Suggestion has 3 cards
+            let count = hasUpcomingBookings ? min(upcomingBookings.count, 3) : 0
+            return count
         case 2:
-            return suggestions.count//EquipmentData.suggestionsEquipment.count// 4// Number of Explore More items
-            //return 4// Example: Explore More data count
-            
-            //for additional view
+            return suggestions.count
         case 3:
-            return allEquipment.count//4
+            return allEquipment.count
         default:
             return 0
         }
@@ -182,17 +174,15 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             
         case 1:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "UpcomingBookingsCollectionViewCell", for: indexPath) as! UpcomingBookingsCollectionViewCell
-                    cell.layer.cornerRadius = 13
+            cell.layer.cornerRadius = 13
             cell.delegate = self
             
-            if indexPath.row < upcomingBookings.count {
-                let booking = upcomingBookings[indexPath.row]
-                if let equipment = allEquipment.first(where: { $0.equipmentID == booking.equipmentID }) {
-                    cell.updateUpcomingBookingsData(with: booking, equipment: equipment)
-                }
+            // Get the booking and corresponding equipment
+            let booking = upcomingBookings[indexPath.row]
+            if let equipment = allEquipment.first(where: { $0.equipmentID == booking.equipmentID }) {
+                cell.updateUpcomingBookingsData(with: booking, equipment: equipment)
             }
-                   // cell.updateUpcomingBookingsData(with: indexPath)
-                    return cell
+            return cell
            
         case 2:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SuggestionCell", for: indexPath) as! SuggestionCollectionViewCell
@@ -316,28 +306,40 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         if kind == UICollectionView.elementKindSectionHeader {
             let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as! SectionHeaderCollectionReusableView
+            
             switch indexPath.section {
             case 0:
                 header.headerLabel.text = "Discounts"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-            case 1:
-                header.headerLabel.text =  hasUpcomingBookings ? "Upcoming Bookings" : ""
-                header.button.setTitle(hasUpcomingBookings ? "View All" : "", for: .normal)
-                header.button.addTarget(self, action: #selector(sectionButtonTapped(_:)), for: .touchUpInside)
-                //"Upcoming Bookings"
+                header.button.isHidden = true  // Hide button for Discounts section
                 
-//                header.headerLabel.text = "Suggestion"
+            case 1:
+                // Show section and button only if there are upcoming bookings
+                if hasUpcomingBookings {
+                    header.headerLabel.text = "Upcoming Bookings"
+                    header.button.setTitle("View All", for: .normal)
+                    header.button.isHidden = false
+                    header.button.addTarget(self, action: #selector(sectionButtonTapped(_:)), for: .touchUpInside)
+                } else {
+                    header.headerLabel.text = ""
+                    header.button.isHidden = true
+                }
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
                 
             case 2:
                 header.headerLabel.text = "Suggestion"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+                header.button.isHidden = true  // Hide button for Suggestion section
+                
             case 3:
                 header.headerLabel.text = "Explore More"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+                header.button.isHidden = true  // Hide button for Explore More section
+                
             default:
-                break
+                header.button.isHidden = true
             }
+            
             return header
         }
         return UICollectionReusableView()
@@ -349,72 +351,50 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         selectedIndexPath = indexPath
         
         let selectedEquipment = EquipmentData.equipment[indexPath.row]
-//        let controller = EquipmentDescriptionTableViewController.instantiate()
-        print("inside didselect")
+        print("HomeViewController - Selected equipment: \(selectedEquipment.name)")
         
-       
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-      if let controller = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
-          print("EquipmentDescriptionTableViewController")
-         
-          controller.equipmentName = selectedEquipment.name
-        
-          controller.discountedPriceHr = "₹ \(selectedEquipment.pricePerHour)/hr"
-          controller.realPriceHr = "\(selectedEquipment.realPricePerHour)"
-          controller.discountedPriceAc = "₹ \(selectedEquipment.pricePerAcre)/ac"
-          controller.realPriceAc = "\(selectedEquipment.realPricePerAcre)"
-          controller.coEquipDetail = "\(selectedEquipment.coEquipDetail) For CoEquip"
-          controller.location = "\(selectedEquipment.location)"
-          controller.rating = "\(selectedEquipment.rating)"
-          controller.bigImage = "\(selectedEquipment.equipmentImage)"//equipmentMoreImages.images[0])"
-          controller.smallImage1 = "\(selectedEquipment.equipmentImage)"//.equipmentMoreImages.images[1])"
-          controller.smallImage2 = "\(selectedEquipment.equipmentImage)"//.equipmentMoreImages.images[2])"
-          controller.smallImage3 = "\(selectedEquipment.equipmentImage)"//.equipmentMoreImages.images[3])"
-          controller.more = "\(selectedEquipment.equipmentMoreImages.images.count)"
-          controller.ratingOutOf5 = "\(selectedEquipment.rating)"
-          controller.equipmentLocationDetailed = "\(selectedEquipment.location)"
-          controller.model = "\(selectedEquipment.modelYear)"
-          controller.capacity = "\(selectedEquipment.capacity)"
-          controller.mileage = "\(selectedEquipment.mielage)"
-          controller.moreImages = selectedEquipment.equipmentMoreImages.images
-
-          navigationController?.pushViewController(controller, animated: true)
+        if let controller = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
+            controller.equipment = selectedEquipment
+            navigationController?.pushViewController(controller, animated: true)
         }
-       
     }
     func userDidMakeBooking() {
         hasUpcomingBookings = true
         collectionView.reloadData()
     }
     
-    @objc func sectionButtonTapped( _ sender: UIButton){
+    @objc func sectionButtonTapped(_ sender: UIButton) {
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        let viewController = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingsListViewController") as!
-        UpcomingBookingsListViewController
-        //viewController.sectionNumber = sender.tag
-       navigationController?.pushViewController(viewController, animated: true)
+        if let viewController = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingsListViewController") as? UpcomingBookingsListViewController {
+            // Pass the data controller and data
+            viewController.dataController = self.dataController
+            viewController.upcomingBookings = self.upcomingBookings
+            viewController.allEquipment = self.allEquipment
+            
+            navigationController?.pushViewController(viewController, animated: true)
+        }
     }
     override func unwind(for unwindSegue: UIStoryboardSegue, towards subsequentVC: UIViewController) {
         
     }
     
     func didTapViewButton(on cell: UpcomingBookingsCollectionViewCell) {
-        // Get the indexPath of the cell
         if let indexPath = collectionView.indexPath(for: cell) {
-            print("View button tapped on cell at index: \(indexPath.row)")
+            let booking = upcomingBookings[indexPath.row]
+            if let equipment = allEquipment.first(where: { $0.equipmentID == booking.equipmentID }) {
+                let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+                if let viewController = storyboard.instantiateViewController(withIdentifier: "BookingDetailsViewController") as? BookingDetailsViewController {
+                    viewController.modalPresentationStyle = .fullScreen
+                    viewController.equipment = equipment
+                    viewController.booking = booking
+                    navigationController?.pushViewController(viewController, animated: true)
+                }
+            }
         }
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        if let viewController = storyboard.instantiateViewController(withIdentifier: "BookingDetailsViewController") as? BookingDetailsViewController {
-            //viewController.modalTransitionStyle = .crossDissolve
-            viewController.modalPresentationStyle = .fullScreen // Optional: Set presentation style
-            //present(viewController, animated: true, completion: nil)
-            navigationController?.pushViewController(viewController, animated: true)
-        }
-        
     }
     func didTapViewButton(on cell: ExploreMoreCollectionViewCell) {
         if let indexPath = collectionView.indexPath(for: cell) {
-            print("View button tapped on cell at index: \(indexPath.row)")
         }
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
         if let viewController = storyboard.instantiateViewController(withIdentifier: "ReviewBookingTableViewController") as? ReviewBookingTableViewController {
@@ -427,6 +407,13 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     
     override func viewWillAppear(_ animated: Bool) {
-        collectionView.reloadData()
+        super.viewWillAppear(animated)
+        
+        // Refresh the bookings data when the view appears
+        if let dataController = dataController {
+            upcomingBookings = dataController.getUpcomingBookings()
+            hasUpcomingBookings = !upcomingBookings.isEmpty
+            collectionView.reloadData()
+        }
     }
 }

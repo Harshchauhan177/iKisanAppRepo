@@ -11,7 +11,13 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     //MARK: Section1 Equipment Deatils
     
-    var Equipment : Equipment?
+    var equipment: Equipment? {
+        didSet {
+            if isViewLoaded, let equipment = equipment {
+                configure(with: equipment)
+            }
+        }
+    }
     var equipmentName : String? = nil
     var discountedPriceHr : String?
     var realPriceHr: String?
@@ -31,6 +37,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     var capacity: String?
     var mileage: String?
     var moreImages: [String] = []
+    
     
     //Outlet for View(for Radius )
     
@@ -89,13 +96,44 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     private var reviews: [ReviewData] = []
     private var dataController: DataController?
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        if let equipment = equipment {
+            configure(with: equipment)
+        }
+    }
+    
+    private func setupUI() {
+        bigView.layer.cornerRadius = 10
+        ratingView.layer.cornerRadius = 17
+        bigImageView.layer.cornerRadius = 10
+        smallImageView1.layer.cornerRadius = 7
+        smallImageView2.layer.cornerRadius = 7
+        smallImageView3.layer.cornerRadius = 7
+        moreView.layer.cornerRadius = 7
+        
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        
+        //  collection view layout
+        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.minimumLineSpacing = 20
+            layout.scrollDirection = .horizontal
+            layout.minimumInteritemSpacing = 0
+            layout.sectionInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 16)
+            collectionView.isPagingEnabled = true
+        }
+    }
+    
     func configure(with equipment: Equipment) {
-        self.Equipment = equipment
+        
+        // Set all the properties
         self.equipmentName = equipment.name
         self.discountedPriceHr = "₹ \(equipment.pricePerHour)/hr"
-        self.realPriceHr = "\(equipment.realPricePerHour)"
+        self.realPriceHr = "₹ \(equipment.realPricePerHour)/hr"  // Added ₹ and /hr
         self.discountedPriceAc = "₹ \(equipment.pricePerAcre)/ac"
-        self.realPriceAc = "\(equipment.realPricePerAcre)"
+        self.realPriceAc = "₹ \(equipment.realPricePerAcre)/ac"  // Added ₹ and /ac
         self.coEquipDetail = "\(equipment.coEquipDetail) For CoEquip"
         self.location = equipment.location
         self.rating = "\(equipment.rating)"
@@ -110,39 +148,15 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         self.capacity = equipment.capacity
         self.mileage = equipment.mielage
         self.moreImages = equipment.equipmentMoreImages.images
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
         
-        bigView.layer.cornerRadius = 10
-        ratingView.layer.cornerRadius = 17
-        bigImageView.layer.cornerRadius = 10
-        smallImageView1.layer.cornerRadius = 7
-        smallImageView2.layer.cornerRadius = 7
-        smallImageView3.layer.cornerRadius = 7
-        moreView.layer.cornerRadius = 7
-        
-       
-        equipmentNameLabel.text = equipmentName
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        
-        // Configure collection view layout
-        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
-            
-            layout.minimumLineSpacing = 20
-            layout.scrollDirection = .horizontal
-            layout.minimumInteritemSpacing = 0
-            layout.sectionInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 16)
-            collectionView.isPagingEnabled = true
+        // Update the UI
+        if isViewLoaded {
+            updateEquipmentDescriptionData()
         }
-        updateEquipmentDescriptionData()
     }
-    
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return reviews.count//EquipmentData.reviews.count 
+        return reviews.count//EquipmentData.reviews.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -169,39 +183,54 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     func updateEquipmentDescriptionData() {
         equipmentNameLabel.text = equipmentName
         discountedPriceHrLabel.text = discountedPriceHr
-        let price = realPriceHr!
-        let attributes: [NSAttributedString.Key: Any] = [
-            .strikethroughStyle: NSUnderlineStyle.single.rawValue,
-            .strikethroughColor: UIColor.darkGray
-        ]
-        let attributedPrice = NSAttributedString(string: price, attributes: attributes)
-       
-        realPriceHrLabel.attributedText = attributedPrice
-        // realPriceHrLabel.text = realPriceHr
+        
+        // Safely handle realPriceHr
+        if let price = realPriceHr {
+            let attributes: [NSAttributedString.Key: Any] = [
+                .strikethroughStyle: NSUnderlineStyle.single.rawValue,
+                .strikethroughColor: UIColor.darkGray
+            ]
+            let attributedPrice = NSAttributedString(string: price, attributes: attributes)
+            realPriceHrLabel.attributedText = attributedPrice
+        } else {
+            realPriceHrLabel.text = ""  // Set empty string or default value if nil
+        }
+        
         discountedPriceAcLabel.text = discountedPriceAc
         
-        let attributedPriceAc = NSAttributedString(string: realPriceAc!, attributes: attributes)
+        // Safely handle realPriceAc
+        if let priceAc = realPriceAc {
+            let attributes: [NSAttributedString.Key: Any] = [
+                .strikethroughStyle: NSUnderlineStyle.single.rawValue,
+                .strikethroughColor: UIColor.darkGray
+            ]
+            let attributedPriceAc = NSAttributedString(string: priceAc, attributes: attributes)
+            realPriceAcLabel.attributedText = attributedPriceAc
+        } else {
+            realPriceAcLabel.text = ""  // Set empty string or default value if nil
+        }
         
-        realPriceAcLabel.attributedText = attributedPriceAc
-       // realPriceAcLabel.text = realPriceAc
         coEquipDetailLabel.text = coEquipDetail
         locationLabel.text = location
-        ratingLabel.text  = rating
+        ratingLabel.text = rating
         
-        // Data for Photos Section
-        bigImageView.image = UIImage(named: bigImage!)
-        smallImageView1.image = UIImage(named: smallImage1!)
-        smallImageView2.image = UIImage(named: smallImage2!)
-        smallImageView3.image = UIImage(named: smallImage3!)
-        moreLabel.text = "+ \(String(describing: more))" //"\(Equipment.equipmentMoreImages!.count)"
+        // Safely handle image names
+        if let bigImageName = bigImage {
+            bigImageView.image = UIImage(named: bigImageName)
+        }
+        if let smallImage1Name = smallImage1 {
+            smallImageView1.image = UIImage(named: smallImage1Name)
+        }
+        if let smallImage2Name = smallImage2 {
+            smallImageView2.image = UIImage(named: smallImage2Name)
+        }
+        if let smallImage3Name = smallImage3 {
+            smallImageView3.image = UIImage(named: smallImage3Name)
+        }
         
-        //Rating
+        moreLabel.text = "+ \(more)"
         ratingOutOf5Label.text = ratingOutOf5
-        
-        //Equipments Location Section
-        //
         equipmentLocationDetailedLabel.text = location
-        
         modelLabel.text = model
         capacityLabel.text = capacity
         mileageLabel.text = mileage
@@ -228,6 +257,9 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
         
+        individualAction.setValue(UIColor.init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
+        coEquipAction.setValue(UIColor.init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
+        cancelAction.setValue(UIColor.init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
         alertController.addAction(individualAction)
         alertController.addAction(coEquipAction)
         alertController.addAction(cancelAction)
@@ -238,7 +270,17 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
 
     
     func navigateToReviewBooking() {
-        performSegue(withIdentifier: "ReviewBookingSegue", sender: self)
+        if let equipment = self.equipment {
+            performSegue(withIdentifier: "ReviewBookingSegue", sender: self)
+        } else {
+            let alert = UIAlertController(
+                title: "Error",
+                message: "No equipment selected. Please select equipment first.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        }
     }
     
     
@@ -255,29 +297,21 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-      
         if segue.identifier == "ReviewBookingSegue" {
-         
             if let destinationVC = segue.destination as? ReviewBookingTableViewController {
-           
                 
-                destinationVC.locationA = location
-                
-                
-                if let discountedPrice = discountedPriceAc, let price = Double(discountedPrice) {
-                    destinationVC.pricePerHr = price
-                    
+                guard let equipment = self.equipment else {
+                    return
                 }
-                    
-                        
+                
+                destinationVC.equipment = equipment
+                destinationVC.locationA = equipment.location
+                destinationVC.pricePerHr = equipment.pricePerHour
             }
-                    
-    }else if segue.identifier == "MoreImageView" {
-        if let destinationVC = segue.destination as? ImageViewCollectionViewController {
-            // Pass moreImages data to ImageViewCollectionViewController
-            destinationVC.imageNames = moreImages
-        }
-           
+        } else if segue.identifier == "MoreImageView" {
+            if let destinationVC = segue.destination as? ImageViewCollectionViewController {
+                destinationVC.imageNames = moreImages
+            }
         }
     }
 

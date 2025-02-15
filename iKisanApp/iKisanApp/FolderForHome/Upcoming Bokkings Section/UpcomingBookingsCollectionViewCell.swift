@@ -15,8 +15,7 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
 
     
     @IBOutlet var equipmentNameLabel: UILabel!
-    
-    
+   
     @IBOutlet var bookingDateLabel: UILabel!
     
     @IBOutlet var hostedByLabel: UILabel!
@@ -33,25 +32,18 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
         // Initialization code
     }
     
-//    func updateUpcomingBookingsData(with indexPath: IndexPath) {
-//        imageView.image = UIImage(named: "4.jpeg")//UIImage(named: EquipmentData.equipment[indexPath.row].equipmentImage)
-//        imageView.layer.cornerRadius = 7
-//        equipmentNameLabel.text = "Rice Equipment"//EquipmentData.equipment[indexPath.row].name
-//        bookingDateLabel.text = "Wed, 25 Dec Afternoon"
-//        bookingStatusLabel.text = "Confirmed"
-//        coEquipedOrNotLabel.text = ""
-//        bookingStatusLabel.textColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
-//        
-//        
-//
-//    }
-    
     
     func updateUpcomingBookingsData(with booking: Booking, equipment: Equipment) {
         imageView.image = UIImage(named: equipment.equipmentImage)
         imageView.layer.cornerRadius = 7
         equipmentNameLabel.text = equipment.name
-        bookingDateLabel.text = "Wed, 25 Dec Afternoon"//booking.formattedDate
+        
+        // Format the date
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "EEE, dd MMM"
+        let dateString = dateFormatter.string(from: booking.bookingDate)
+        bookingDateLabel.text = "\(dateString) \(booking.timeSlot.rawValue)"
+        
         bookingStatusLabel.text = booking.status.rawValue
         
         // Set color based on booking status
@@ -59,8 +51,8 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
             UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1) :
             UIColor.systemGray
         
-        coEquipedOrNotLabel.text = booking.bookingType == .coEquip ? "Co-Equipped" : ""
-        //hostedByLabel.text = "Time Slot: \(booking.timeSlot.rawValue)"
+        coEquipedOrNotLabel.text = booking.bookingType == .coEquip ? "Co-Equipped" : "Individual"
+        hostedByLabel.text = "Time Slot: \(booking.timeSlot.rawValue)"
     }
     
     @IBAction func viewButtonTapped(_ sender: Any) {
