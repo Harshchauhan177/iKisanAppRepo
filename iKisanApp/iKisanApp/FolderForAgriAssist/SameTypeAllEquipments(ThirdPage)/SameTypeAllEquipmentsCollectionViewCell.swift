@@ -14,7 +14,7 @@ class SameTypeAllEquipmentsCollectionViewCell: UICollectionViewCell {
     
     override func awakeFromNib() {
             super.awakeFromNib()
-        
+            
             // Make the image view square
             // Since the image has a width of 990px and height of 90px,
             // we'll set the height of the image view to 90px (same as the image height),
@@ -38,4 +38,14 @@ class SameTypeAllEquipmentsCollectionViewCell: UICollectionViewCell {
             SameTypeAllEquipmentsImage.layer.cornerRadius = SameTypeAllEquipmentsImage.frame.size.width / 2
         }
     
+    func configure(with equipment: EquipmentAgri) {
+        SameTypeAllEquipmentsImage.image = UIImage(named: equipment.imageName)
+        SameTypeAllEquipmentsNameLabel.text = equipment.name
+        
+        // Apply existing styling
+        SameTypeAllEquipmentsImage.layer.cornerRadius = SameTypeAllEquipmentsImage.frame.size.width / 2
+        SameTypeAllEquipmentsImage.clipsToBounds = true
+        SameTypeAllEquipmentsImage.layer.borderWidth = 3
+        SameTypeAllEquipmentsImage.layer.borderColor = UIColor.gray.cgColor
+    }
 }

@@ -14,7 +14,32 @@ class CropTableViewCell: UITableViewCell {
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
+        setupUI()
     }
+    
+    private func setupUI() {
+        // Add any custom UI setup here
+        cropImageView.contentMode = .scaleAspectFit
+        cropImageView.clipsToBounds = true
+        
+        // Optional: Add corner radius to image
+        cropImageView.layer.cornerRadius = 8
+        cropImageView.layer.masksToBounds = true
+    }
+    
+    func configure(with crop: AgriCrop) {
+        cropNameLabel.text = crop.name
+        cropImageView.image = UIImage(named: crop.imageName)
+    }
+
+    
+    
+    
+    
+//    override func setSelected(_ selected: Bool, animated: Bool) {
+//        super.setSelected(selected, animated: animated)
+//
+//        // Configure the view for the selected state
+//    }
 
 }

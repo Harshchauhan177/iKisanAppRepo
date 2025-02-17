@@ -11,54 +11,182 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
     
     @IBOutlet weak var collectionView: UICollectionView!
 
+    var dataController: DataController!
+    var selectedEquipmentId: UUID!
+    private var sectionHeaders: [String] = []
+    private var equipmentTypeDetails: [EquipmentAgri] = []
+    private var relatedEquipment: [EquipmentAgri] = []
+
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        let firstNib = UINib(nibName: "InfoAboutEquipmentSection1CollectionViewCell", bundle: nil)
-        let secondNib = UINib(nibName: "InfoAboutEquipmentSection2CollectionViewCell", bundle: nil)
-        collectionView.register(firstNib, forCellWithReuseIdentifier: "First")
-        collectionView.register(secondNib, forCellWithReuseIdentifier: "Second")
         
-        collectionView.register(AgriSectionHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "SectionHeader")
+        print("InfoAboutEquipments - viewDidLoad")
+        print("DataController: \(dataController != nil ? "exists" : "nil")")
+        print("SelectedEquipmentId: \(selectedEquipmentId?.uuidString ?? "nil")")
         
-        collectionView.setCollectionViewLayout(generateLayout(), animated: true)
-        collectionView.dataSource = self
-        collectionView.delegate = self
+        setupCollectionView()
+        setupNavigationBar()
     }
     
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        ScreenData.sectionHeaderNames.count
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadData()
     }
     
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        switch section {
-        case 0:
-            ScreenData.section1Data.count
-        case 1:
-            ScreenData.section2Data.count
-        default:
-            0
+    private func setupNavigationBar() {
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            title: "Back",
+            style: .plain,
+            target: self,
+            action: #selector(dismissVC)
+        )
+    }
+    
+    @objc private func dismissVC() {
+        if let navigationController = navigationController {
+            navigationController.popViewController(animated: true)
+        } else {
+            dismiss(animated: true)
         }
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        switch indexPath.section{
+    private func setupCollectionView() {
+        // Register cell nibs
+        let firstNib = UINib(nibName: "InfoAboutEquipmentSection1CollectionViewCell", bundle: nil)
+        let secondNib = UINib(nibName: "InfoAboutEquipmentSection2CollectionViewCell", bundle: nil)
+        
+        collectionView.register(firstNib, forCellWithReuseIdentifier: "First")
+        collectionView.register(secondNib, forCellWithReuseIdentifier: "Second")
+        
+        // Register header
+        collectionView.register(
+            AgriSectionHeaderCollectionReusableView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: "SectionHeader"
+        )
+        
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.collectionViewLayout = generateLayout()
+    }
+    
+    private func loadData() {
+        guard let equipmentId = selectedEquipmentId else {
+            print("Error: selectedEquipmentId is nil")
+            return
+        }
+        
+        guard let dataController = dataController else {
+            print("Error: dataController is nil")
+            return
+        }
+        
+        print("Loading info for equipment ID: \(equipmentId)")
+        
+        // Load section headers
+        sectionHeaders = dataController.getEquipmentSectionHeaders()
+        print("Loaded section headers: \(sectionHeaders)")
+        
+        // Load equipment details
+        if let equipment = dataController.getEquipmentAgriDetails(id: equipmentId) {
+            print("Found equipment: \(equipment.name)")
+            equipmentTypeDetails = [equipment]
+            
+            // Load related equipment
+            relatedEquipment = dataController.getRelatedEquipment()
+                .filter { $0.id != equipmentId }
+            print("Found \(relatedEquipment.count) related equipment items")
+            
+            DispatchQueue.main.async {
+                self.collectionView.reloadData()
+            }
+        } else {
+            print("Warning: Could not find equipment with ID: \(equipmentId)")
+        }
+    }
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        print("Number of sections: \(sectionHeaders.count)")
+        return sectionHeaders.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        let count = switch section {
         case 0:
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "First", for: indexPath) as! InfoAboutEquipmentSection1CollectionViewCell
-            cell.updateSection1Data(with: indexPath)
-            cell.layer.cornerRadius = 7
-            return cell
+            equipmentTypeDetails.count
         case 1:
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Second", for: indexPath) as! InfoAboutEquipmentSection2CollectionViewCell
-            cell.updateSection2Data(with: indexPath)
-            cell.layer.cornerRadius = 7
-            return cell
+            relatedEquipment.count
         default:
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "First", for: indexPath) as! InfoAboutEquipmentSection1CollectionViewCell
-            cell.updateSection1Data(with: indexPath)
+            0
+        }
+        print("Number of items in section \(section): \(count)")
+        return count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        switch indexPath.section {
+        case 0:
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "First", for: indexPath) as? InfoAboutEquipmentSection1CollectionViewCell,
+                  let equipment = equipmentTypeDetails[safe: indexPath.item] else {
+                return UICollectionViewCell()
+            }
+            cell.configure(with: equipment)
             cell.layer.cornerRadius = 7
             return cell
             
+        case 1:
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Second", for: indexPath) as? InfoAboutEquipmentSection2CollectionViewCell,
+                  let equipment = relatedEquipment[safe: indexPath.item] else {
+                return UICollectionViewCell()
+            }
+            cell.configure(with: equipment)
+            cell.layer.cornerRadius = 7
+            return cell
+            
+        default:
+            return UICollectionViewCell()
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        if kind == UICollectionView.elementKindSectionHeader {
+            let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
+                                                                       withReuseIdentifier: "SectionHeader",
+                                                                       for: indexPath) as! AgriSectionHeaderCollectionReusableView
+            header.headerLabel.text = sectionHeaders[indexPath.section]
+            header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+            
+            header.button.tag = indexPath.section
+            header.button.setTitle("See All", for: .normal)
+            header.button.addTarget(self, action: #selector(seeAllButtonTapped(_:)), for: .touchUpInside)
+            return header
+        }
+        return UICollectionReusableView()
+    }
+    
+    @objc private func seeAllButtonTapped(_ sender: UIButton) {
+        let section = sender.tag
+        var equipmentToShow: [EquipmentAgri] = []
+        
+        switch section {
+        case 0:
+            // For the first section, show all equipment of the same type
+            if let currentEquipment = equipmentTypeDetails.first {
+                equipmentToShow = dataController.getEquipmentsByCategory(categoryId: currentEquipment.categoryId)
+            }
+        case 1:
+            // For the second section, show all related equipment
+            equipmentToShow = dataController.getRelatedEquipment()
+        default:
+            return
+        }
+        
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let sameTypeVC = storyboard.instantiateViewController(withIdentifier: "SameTypeAllEquipmentsViewController") as? SameTypeAllEquipmentsViewController {
+            sameTypeVC.dataController = self.dataController
+            sameTypeVC.equipments = equipmentToShow
+            sameTypeVC.title = sectionHeaders[section]
+            navigationController?.pushViewController(sameTypeVC, animated: true)
         }
     }
     
@@ -82,31 +210,6 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
             }
         return layout
     }
-    
-    
-    
-    
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        if kind == UICollectionView.elementKindSectionHeader {
-            let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as! AgriSectionHeaderCollectionReusableView
-            header.headerLabel.text = ScreenData.sectionHeaderNames[indexPath.section]
-            header.headerLabel.font = UIFont.systemFont(ofSize: 18,weight: .bold)
-            
-            header.button.tag = indexPath.section
-//            header.button.addTarget(self, action: #selector(SectionButtonTapped(_:)), for: .touchUpInside)
-            header.button.setTitle("See All", for: .normal)
-            return header
-        }
-        print("Supplementry item not header")
-        return UICollectionReusableView()
-    }
-    
-    
-    
-    
-    
-    
-    
     
     func generateSection1Layout() -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
@@ -139,4 +242,10 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
                 return section
     }
   
+}
+
+extension Collection {
+    subscript(safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
 }

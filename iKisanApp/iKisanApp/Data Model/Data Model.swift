@@ -120,3 +120,37 @@ enum BookingStatus: String {
     case completed = "Completed"
 }
 
+
+
+//MARK: Model for AgriAssist
+
+struct AgriCrop {
+    let id: UUID
+    let name: String
+    let imageName: String
+}
+
+struct CropCategory {
+    var id: UUID
+    var cropName: String
+    var equipmentsForCrops: String
+    var equipments: [EquipmentCategory]
+}
+
+struct EquipmentCategory {
+    let id: UUID
+    var title: String
+    var equipmentList: [EquipmentAgri]
+}
+
+struct EquipmentAgri {
+    let id: UUID
+    let categoryId: UUID
+    var name: String
+    var imageName: String
+    var purpose: String?
+    var bestFor: String?
+    var averageCost: String?
+    var needs: String?
+    var likedBy: Int
+}

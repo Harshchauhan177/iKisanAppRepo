@@ -14,21 +14,25 @@ class InfoAboutEquipmentSection2CollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var equipmentLikedByLabel: UILabel!
     
     
-    func updateSection2Data(with indexPath :IndexPath){
-        equipmentNameLabel.text = ScreenData.section2Data[indexPath.row].equipmentName
-        
-        equipmentImageView.image = UIImage(named: ScreenData.section2Data[indexPath.row].equipmentImage)
-        
-        equipmentLikedByLabel.text = ScreenData.section2Data[indexPath.row].equipmentLikedBy
-        
-    }
-    
-    
-    
-    
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
     }
 
+    func configure(with equipment: EquipmentAgri) {
+        print("Configuring section 2 cell with equipment: \(equipment.name)")
+        
+        equipmentNameLabel?.text = equipment.name
+        
+        if let image = UIImage(named: equipment.imageName) {
+            equipmentImageView?.image = image
+        } else {
+            print("Warning: Image not found for \(equipment.imageName)")
+            equipmentImageView?.image = UIImage(named: "placeholder_image")
+        }
+        
+        // Configure other labels as needed
+      //  equipmentPurposeLabel?.text = equipment.purpose ?? "N/A"
+        equipmentLikedByLabel?.text = "\(equipment.likedBy)"
+    }
 }

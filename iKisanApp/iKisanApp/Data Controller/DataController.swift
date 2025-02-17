@@ -19,7 +19,26 @@ protocol DataController {
     func searchEquipment(query: String) -> [Equipment]
     func getUpcomingBookings() -> [Booking]
     func addBooking(_ booking: Booking)
+    
+    // AgriAssist Related Functions
+    func getAllCrops() -> [AgriCrop]
+    func getCropCategory(forCrop cropId: UUID) -> CropCategory?
+    func getEquipmentCategories(forCrop cropId: UUID) -> [EquipmentCategory]
+    func getEquipmentAgri(forCategory categoryId: UUID) -> [EquipmentAgri]
+    func getEquipmentAgriDetails(id: UUID) -> EquipmentAgri?
+    
+    // Add these new functions for InfoAboutEquipments
+    func getEquipmentSectionHeaders() -> [String]
+    func getEquipmentTypeDetails() -> [EquipmentAgri]
+    func getRelatedEquipment() -> [EquipmentAgri]
+    
+    // Add this new function for SameTypeAllEquipments
+    func getEquipmentsByCategory(categoryId: UUID) -> [EquipmentAgri]
+    
+    
+    
 }
+
 
 enum SortOption {
     case priceHighToLow
@@ -56,15 +75,526 @@ enum EquipmentData {
 }
 
 class IKisanDataController: DataController {
+    
+    // Static IDs for all entities
+    // Crop IDs
+    private static let riceId = UUID(uuidString: "F621E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let wheatId = UUID(uuidString: "F622E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let oatsId = UUID(uuidString: "F623E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let cottonId = UUID(uuidString: "F624E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let teaId = UUID(uuidString: "F625E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let maizeId = UUID(uuidString: "F626E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let tobaccoId = UUID(uuidString: "F627E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let sugarcaneId = UUID(uuidString: "F628E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+
+    // Category IDs
+    private static let cultivatorsCategoryId = UUID(uuidString: "A621E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let harvestersCategoryId = UUID(uuidString: "A622E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let seedersCategoryId = UUID(uuidString: "A623E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let harrowCategoryId = UUID(uuidString: "A624E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let thresherCategoryId = UUID(uuidString: "A625E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let planterCategoryId = UUID(uuidString: "A626E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let ploughCategoryId = UUID(uuidString: "A627E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+
+    // Equipment IDs (Grouped by Crop)
+    private static let paddleWheelCultivatorId = UUID(uuidString: "D621E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let powerTillerId = UUID(uuidString: "D622E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let riceHarvesterId = UUID(uuidString: "D623E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let riceTransplanterId = UUID(uuidString: "D624E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let laserLandLevelerId = UUID(uuidString: "D625E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+
+    private static let wheatSeederId = UUID(uuidString: "D626E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let wheatHarvesterId = UUID(uuidString: "D627E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let strawReaperId = UUID(uuidString: "D628E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let moldboardPloughId = UUID(uuidString: "D629E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let rotavatorId = UUID(uuidString: "D630E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+
+    private static let airSeederId = UUID(uuidString: "D631E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let combineHarvesterId = UUID(uuidString: "D632E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let discHarrowId = UUID(uuidString: "D633E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let rollerCrimperId = UUID(uuidString: "D634E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+
+    private static let cottonSeederId = UUID(uuidString: "D635E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let cottonPickerId = UUID(uuidString: "D636E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let defoliatorMachineId = UUID(uuidString: "D637E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let sprayerMachineId = UUID(uuidString: "D638E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+
+    private static let teaPluckerId = UUID(uuidString: "D639E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let teaPruningMachineId = UUID(uuidString: "D640E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let teaDryerId = UUID(uuidString: "D641E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+
+    private static let maizeSeederId = UUID(uuidString: "D642E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let maizeHarvesterId = UUID(uuidString: "D643E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let cornPlanterId = UUID(uuidString: "D644E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let grainDryerId = UUID(uuidString: "D645E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+
+    private static let tobaccoSeederId = UUID(uuidString: "D646E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let tobaccoCurerId = UUID(uuidString: "D647E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let tobaccoHarvesterId = UUID(uuidString: "D648E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+
+    private static let sugarcanePlanterId = UUID(uuidString: "D649E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let sugarcaneHarvesterId = UUID(uuidString: "D650E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let sugarcaneCrusherId = UUID(uuidString: "D651E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+    private static let chopperHarvesterId = UUID(uuidString: "D652E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+
+    
+    
+    
     private var equipmentList: [Equipment]
     private var reviewList: [ReviewData]
     private var suggestionList: [Equipment]
     private var bookingsList: [Booking] = []
+    // agri Assist
+    private let crops: [AgriCrop]
+    private var cropCategories: [CropCategory]
+    private let sectionHeaders = ["Equipment Type Details", "Related Equipment"]
+    
     
     init() {
         self.equipmentList = EquipmentData.equipment
         self.reviewList = EquipmentData.reviews
         self.suggestionList = EquipmentData.suggestionsEquipment
+        
+        
+        // Initialize crops
+        self.crops = [
+            AgriCrop(id: Self.riceId, name: "Rice", imageName: "Rice"),
+            AgriCrop(id: Self.wheatId, name: "Wheat", imageName: "Wheat"),
+            AgriCrop(id: Self.oatsId, name: "Oats", imageName: "Oats"),
+            AgriCrop(id: Self.cottonId, name: "Cotton", imageName: "Cotton"),
+            AgriCrop(id: Self.teaId, name: "Tea", imageName: "Tea"),
+            AgriCrop(id: Self.maizeId, name: "Maize", imageName: "Maize"),
+            AgriCrop(id: Self.tobaccoId, name: "Tobacco", imageName: "Tobacco"),
+            AgriCrop(id: Self.sugarcaneId, name: "Sugarcane", imageName: "Sugarcane")
+        ]
+        
+        // Initialize crop categories with updated EquipmentAgri instances
+        self.cropCategories = [
+            CropCategory(
+                id: Self.riceId,
+                cropName: "Rice",equipmentsForCrops: "Equipments For Rice",
+                equipments: [
+                    EquipmentCategory(
+                        id: Self.cultivatorsCategoryId,
+                        title: "Cultivators",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.paddleWheelCultivatorId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Spring",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.powerTillerId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Rigid",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.powerTillerId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Rotary",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.powerTillerId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Power",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.powerTillerId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Mini",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.harvestersCategoryId,
+                        title: "Harrow",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.riceHarvesterId,
+                                categoryId: Self.harvestersCategoryId,  // Add categoryId
+                                name: "Disc",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.powerTillerId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Spike",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.powerTillerId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Chain",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.powerTillerId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Tine",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.harvestersCategoryId,
+                        title: "Seeder",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.riceHarvesterId,
+                                categoryId: Self.harvestersCategoryId,  // Add categoryId
+                                name: "Paddy",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.powerTillerId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Direct",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.powerTillerId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Drum",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.powerTillerId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Automatic",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    )
+                ]
+            ),
+            CropCategory(
+                id: Self.wheatId,
+                cropName: "Wheat",
+                equipmentsForCrops: "Equipments For Wheat",
+                equipments: [
+                    EquipmentCategory(
+                        id: Self.seedersCategoryId,
+                        title: "Plough",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.wheatSeederId,
+                                categoryId: Self.seedersCategoryId,
+                                name: "Mouldboard",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: UUID(),
+                                categoryId: Self.seedersCategoryId,
+                                name: "Reversible",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: UUID(),
+                                categoryId: Self.seedersCategoryId,
+                                name: "Chisel",imageName: "Image 6",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: UUID(),
+                                categoryId: Self.seedersCategoryId,
+                                name: "Disc",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.harvestersCategoryId,
+                        title: "Seeder",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.wheatHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Broadcast",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.wheatHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Air",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.wheatHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Seed",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.wheatHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Precision",imageName: "Image 6",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    )
+                ]
+            ),
+            
+            CropCategory(
+                id: Self.oatsId,
+                cropName: "Oats",
+                equipmentsForCrops: "Equipments For Oats",
+                equipments: [
+                    EquipmentCategory(
+                        id: Self.planterCategoryId,
+                        title: "Planter",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Sugarcane",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Row Sugarcane",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Automatic",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Manual",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    ),EquipmentCategory(
+                        id: Self.planterCategoryId,
+                        title: "Planter",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Sugarcane",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Row Sugarcane",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Automatic",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Manual",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.planterCategoryId,
+                        title: "Planter",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Sugarcane",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Row Sugarcane",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Automatic",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Manual",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.planterCategoryId,
+                        title: "Planter",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Sugarcane",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Row Sugarcane",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Automatic",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cottonSeederId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Manual",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    )
+                ]
+            ),
+            CropCategory(
+                id: Self.cottonId,
+                cropName: "Cotton",
+                equipmentsForCrops: "Equipments For Cotton",
+                equipments: [
+                    EquipmentCategory(
+                        id: Self.cultivatorsCategoryId,
+                        title: "Cultivator",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.sugarcanePlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Shovel",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
+                            EquipmentAgri(
+                                id: Self.sugarcanePlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Tine",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.sugarcanePlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Rotary",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.sugarcanePlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Mini",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.planterCategoryId,
+                        title: "Planter",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.sugarcanePlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Cotton",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
+                            EquipmentAgri(
+                                id: Self.sugarcanePlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Air Seed",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.sugarcanePlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Drill",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
+                            EquipmentAgri(
+                                id: Self.sugarcanePlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Precision",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.harvestersCategoryId,
+                        title: "Harvesters",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.sugarcaneHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Cotton",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
+                            EquipmentAgri(
+                                id: Self.chopperHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Stripper",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
+                            EquipmentAgri(
+                                id: Self.chopperHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Combine",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.chopperHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Self-Propelled",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 )
+                        ]
+                    )
+                ]
+            ),
+            CropCategory(
+                id: Self.teaId,
+                cropName: "Tea",
+                equipmentsForCrops: "Equipments For Tea",
+                equipments: [
+                    EquipmentCategory(
+                        id: Self.planterCategoryId,
+                        title: "Pruner",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.cornPlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Tea",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cornPlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Handheld",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cornPlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Hydraulic",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.cornPlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Battery Operated",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.harvestersCategoryId,
+                        title: "Harvesters",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.maizeHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Tea Plucking",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.maizeHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Shear",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                        ]
+                    )
+                ]
+            ),
+            CropCategory(
+                id: Self.maizeId,
+                cropName: "Maize",
+                equipmentsForCrops: "Maize Equipment",
+                equipments: [
+                    EquipmentCategory(
+                        id: Self.planterCategoryId,
+                        title: "Planters",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.cornPlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                            )
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.harvestersCategoryId,
+                        title: "Harvesters",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.maizeHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                            )
+                        ]
+                    )
+                ]
+            ),CropCategory(
+                id: Self.tobaccoId,
+                cropName: "Maize",
+                equipmentsForCrops: "Maize Equipment",
+                equipments: [
+                    EquipmentCategory(
+                        id: Self.planterCategoryId,
+                        title: "Planters",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.cornPlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                            )
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.harvestersCategoryId,
+                        title: "Harvesters",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.maizeHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                            )
+                        ]
+                    )
+                ]
+            ),CropCategory(
+                id: Self.sugarcaneId,
+                cropName: "Maize",
+                equipmentsForCrops: "Maize Equipment",
+                equipments: [
+                    EquipmentCategory(
+                        id: Self.planterCategoryId,
+                        title: "Planters",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.cornPlanterId,
+                                categoryId: Self.planterCategoryId,
+                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                            )
+                        ]
+                    ),
+                    EquipmentCategory(
+                        id: Self.harvestersCategoryId,
+                        title: "Harvesters",
+                        equipmentList: [
+                            EquipmentAgri(
+                                id: Self.maizeHarvesterId,
+                                categoryId: Self.harvestersCategoryId,
+                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                            )
+                        ]
+                    )
+                ]
+            )
+        ]
+
     }
     
     func getAllEquipment() -> [Equipment] {
@@ -100,8 +630,7 @@ class IKisanDataController: DataController {
         }
     }
     
-    
-    
+
     func searchEquipment(query: String) -> [Equipment] {
         let lowercasedQuery = query.lowercased()
         return equipmentList.filter {
@@ -110,6 +639,61 @@ class IKisanDataController: DataController {
             $0.location.lowercased().contains(lowercasedQuery)
         }
     }
+    
+    // AgriAssist implementations
+    func getAllCrops() -> [AgriCrop] {
+        return crops
+    }
+    
+    func getCropCategory(forCrop cropId: UUID) -> CropCategory? {
+        print("Looking for crop category with ID: \(cropId)")
+        let category = cropCategories.first { $0.id == cropId }
+        print("Found category: \(category?.cropName ?? "nil")")
+        return category
+    }
+    
+    func getEquipmentCategories(forCrop cropId: UUID) -> [EquipmentCategory] {
+        print("Looking for equipment categories for crop ID: \(cropId)")
+        let categories = cropCategories.first { $0.id == cropId }?.equipments ?? []
+        print("Found \(categories.count) equipment categories")
+        return categories
+    }
+    
+    func getEquipmentAgri(forCategory categoryId: UUID) -> [EquipmentAgri] {
+        return cropCategories.flatMap { $0.equipments }
+            .first { $0.id == categoryId }?.equipmentList ?? []
+    }
+    
+    func getEquipmentAgriDetails(id: UUID) -> EquipmentAgri? {
+        return cropCategories.flatMap { $0.equipments }
+            .flatMap { $0.equipmentList }
+            .first { $0.id == id }
+    }
+    
+    // Static section headers
+    func getEquipmentSectionHeaders() -> [String] {
+        return sectionHeaders
+    }
+    
+    func getEquipmentTypeDetails() -> [EquipmentAgri] {
+        // Return equipment details from first section
+        return cropCategories.flatMap { $0.equipments }
+            .flatMap { $0.equipmentList }
+    }
+    
+    func getRelatedEquipment() -> [EquipmentAgri] {
+        // Return related equipment from second section
+        return cropCategories.flatMap { $0.equipments }
+            .flatMap { $0.equipmentList }
+            .filter { $0.purpose != nil } // Or any other filtering logic
+    }
+    
+    func getEquipmentsByCategory(categoryId: UUID) -> [EquipmentAgri] {
+        return cropCategories.flatMap { $0.equipments }
+            .first { $0.id == categoryId }?.equipmentList ?? []
+    }
+    
+    // home -------
     
     func getUpcomingBookings() -> [Booking] {
         let upcoming = bookingsList.filter { $0.status != .completed }
@@ -134,3 +718,6 @@ class currentUser {
     
     var user: User?
 }
+
+
+
