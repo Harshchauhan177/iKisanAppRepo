@@ -7,7 +7,7 @@
 
 import UIKit
 import WebKit //
-class InfoAboutEquipmentSection1CollectionViewCell: UICollectionViewCell {
+class InfoAboutEquipmentDetailsCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var equipmentTypeNameLabel: UILabel!
     @IBOutlet weak var equipmentTypeImageView: UIImageView!
     @IBOutlet weak var equipmentTypeLikedByLabel: UILabel!
@@ -56,7 +56,7 @@ class InfoAboutEquipmentSection1CollectionViewCell: UICollectionViewCell {
 //    }
 //}
 
-extension InfoAboutEquipmentSection1CollectionViewCell {
+extension InfoAboutEquipmentDetailsCollectionViewCell {
     func configure(with equipment: EquipmentAgri) {
         print("Configuring section 1 cell with equipment: \(equipment.name)")
         

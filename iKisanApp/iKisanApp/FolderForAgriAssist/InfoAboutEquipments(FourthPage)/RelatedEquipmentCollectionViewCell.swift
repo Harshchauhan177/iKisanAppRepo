@@ -7,7 +7,7 @@
 
 import UIKit
 
-class InfoAboutEquipmentSection2CollectionViewCell: UICollectionViewCell {
+class RelatedEquipmentCollectionViewCell: UICollectionViewCell {
 
     @IBOutlet weak var equipmentNameLabel: UILabel!
     @IBOutlet weak var equipmentImageView: UIImageView!

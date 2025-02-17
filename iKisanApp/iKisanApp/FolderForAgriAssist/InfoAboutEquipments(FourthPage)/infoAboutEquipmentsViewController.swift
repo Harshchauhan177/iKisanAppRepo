@@ -52,8 +52,8 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
     
     private func setupCollectionView() {
         // Register cell nibs
-        let firstNib = UINib(nibName: "InfoAboutEquipmentSection1CollectionViewCell", bundle: nil)
-        let secondNib = UINib(nibName: "InfoAboutEquipmentSection2CollectionViewCell", bundle: nil)
+        let firstNib = UINib(nibName: "InfoAboutEquipmentDetailsCollectionViewCell", bundle: nil)
+        let secondNib = UINib(nibName: "RelatedEquipmentCollectionViewCell", bundle: nil)
         
         collectionView.register(firstNib, forCellWithReuseIdentifier: "First")
         collectionView.register(secondNib, forCellWithReuseIdentifier: "Second")
@@ -126,7 +126,7 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         switch indexPath.section {
         case 0:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "First", for: indexPath) as? InfoAboutEquipmentSection1CollectionViewCell,
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "First", for: indexPath) as? InfoAboutEquipmentDetailsCollectionViewCell,
                   let equipment = equipmentTypeDetails[safe: indexPath.item] else {
                 return UICollectionViewCell()
             }
@@ -135,7 +135,7 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
             return cell
             
         case 1:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Second", for: indexPath) as? InfoAboutEquipmentSection2CollectionViewCell,
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Second", for: indexPath) as? RelatedEquipmentCollectionViewCell,
                   let equipment = relatedEquipment[safe: indexPath.item] else {
                 return UICollectionViewCell()
             }

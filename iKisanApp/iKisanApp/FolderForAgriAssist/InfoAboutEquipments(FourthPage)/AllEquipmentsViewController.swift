@@ -27,7 +27,7 @@ class AllEquipmentsViewController: UIViewController, UICollectionViewDataSource,
         collectionView.dataSource = self
         
         // Register the same cell as used in the second section
-        let cellNib = UINib(nibName: "InfoAboutEquipmentSection2CollectionViewCell", bundle: nil)
+        let cellNib = UINib(nibName: "RelatedEquipmentCollectionViewCell", bundle: nil)
         collectionView.register(cellNib, forCellWithReuseIdentifier: "Second")
         
         view.addSubview(collectionView)
@@ -40,7 +40,7 @@ class AllEquipmentsViewController: UIViewController, UICollectionViewDataSource,
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Second", for: indexPath) as? InfoAboutEquipmentSection2CollectionViewCell,
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Second", for: indexPath) as? RelatedEquipmentCollectionViewCell,
               let equipment = equipmentList[safe: indexPath.item] else {
             return UICollectionViewCell()
         }
