@@ -16,7 +16,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <searchBar contentMode="redraw" placeholder="Select Crop" translatesAutoresizingMaskIntoConstraints="NO" id="EWY-Ca-xz7">
+                            <searchBar contentMode="redraw" searchBarStyle="minimal" placeholder="Select Crop" translatesAutoresizingMaskIntoConstraints="NO" id="EWY-Ca-xz7">
                                 <rect key="frame" x="0.0" y="175" width="393" height="56"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <color key="tintColor" red="0.63529413940000001" green="0.63137257099999999" blue="0.58823531870000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
@@ -161,7 +161,7 @@
                                                             <state key="normal" title="Button"/>
                                                             <buttonConfiguration key="configuration" style="plain" image="chevron.right" catalog="system"/>
                                                             <connections>
-                                                                <segue destination="H1N-g0-Ghg" kind="show" id="bNm-NO-itY"/>
+                                                                <action selector="viewAllButtonTapped:" destination="GWh-ke-N9Q" eventType="touchUpInside" id="ZbD-Q6-EIm"/>
                                                             </connections>
                                                         </button>
                                                     </subviews>
@@ -235,6 +235,7 @@
                                         <connections>
                                             <outlet property="EquipmentTypeLabel" destination="9U1-1e-GcA" id="sX1-k3-4wx"/>
                                             <outlet property="myCollectionView" destination="sC2-oA-sSd" id="8dj-UF-0Un"/>
+                                            <outlet property="viewAllButton" destination="pHD-Hk-OOy" id="w0g-pC-Q0J"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
@@ -257,6 +258,7 @@
                     <connections>
                         <outlet property="EquipmentsForCropsLabel" destination="KOj-xd-ssj" id="0Pc-a1-ETt"/>
                         <outlet property="myTable" destination="AbA-SX-kvE" id="Nt4-SM-dI9"/>
+                        <segue destination="H1N-g0-Ghg" kind="show" identifier="ShowAllEquipments" id="3RC-H1-nW7"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iw1-d5-1gm" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -340,6 +342,7 @@
                     </view>
                     <navigationItem key="navigationItem" title="Cultivators" id="bba-PX-CjI"/>
                     <connections>
+                        <outlet property="EquipmentsTypeNavHeaderLabel" destination="bba-PX-CjI" id="8Ki-1Q-Vos"/>
                         <outlet property="SameTypeAllEquipmentsCollectionView" destination="lOV-hC-WWy" id="9wk-Nc-y2o"/>
                     </connections>
                 </viewController>

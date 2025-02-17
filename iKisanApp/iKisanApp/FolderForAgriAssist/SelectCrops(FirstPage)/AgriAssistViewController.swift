@@ -11,7 +11,6 @@ var myIndex = 0
 
 class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableViewDelegate,UISearchBarDelegate{
     
-    
     @IBOutlet weak var cropSearchBar: UISearchBar!
     @IBOutlet weak var tableView: UITableView!
 
@@ -42,10 +41,6 @@ class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableV
         searchBar.resignFirstResponder()
     }
     
-    
-    
-    
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
             return filteredCrops.count
         }
@@ -55,14 +50,7 @@ class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableV
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "CropCell", for: indexPath) as? CropTableViewCell else {
                 return UITableViewCell()
             }
-            
-            // Configure the cell
-//            let crop = crops[indexPath.row]
-//            cell.cropNameLabel.text = crop.name
-//            cell.cropImageView.image = crop.imageName
-//            
-//            return cell
-            
+           
             let crop = filteredCrops[indexPath.row]
                     cell.cropNameLabel.text = crop.name
                     cell.cropImageView.image = crop.imageName

@@ -12,46 +12,42 @@ class EquipmentsForCropsViewController: UIViewController,UITableViewDelegate,UIT
     @IBOutlet weak var myTable: UITableView!
     @IBOutlet weak var EquipmentsForCropsLabel: UINavigationItem!
     
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         EquipmentsForCropsLabel.title = EData.EquipmentsForCropsData[myIndex].EquipmentsForCrops
-        //        EquipmentsForCropsLabel.text = eData.EquipmentsForCropsData[myIndex].EquipmentsForCrops
-        
-        // Do any additional setup after loading the view.
     }
     
-
     func numberOfSections(in tableView: UITableView) -> Int {
-//        return eData.EquipmentsForCropsData.count
-        5
+        return EData.EquipmentsForCropsData[myIndex].equipments.count
     }
-    
-//    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-//        return eData[section].sectionType
-//    }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        1
+        return 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = myTable.dequeueReusableCell(withIdentifier: "cell", for: indexPath)as! myTableViewCell
-        cell.myCollectionView.tag = indexPath.section
+        
+        // Pass the section index and equipment category
+        cell.sectionIndex = indexPath.section
+        cell.equipmentCategory = EData.EquipmentsForCropsData[myIndex].equipments[indexPath.section]
+        
+        // Add the callback for view all button
+        cell.onViewAllTapped = { [weak self] category in
+            self?.performSegue(withIdentifier: "ShowAllEquipments", sender: category)
+        }
+          
         cell.contentView.layer.cornerRadius = 15 // Set corner radius
         cell.contentView.layer.masksToBounds = true
-//        cell.contentView.layer.borderWidth = 5
-        
+    
         return cell
     }
-    
-//    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
-//        view.tintColor = .orange
-//
-//    }
-    
-    
-
-
+    // Add prepare for segue
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "ShowAllEquipments",
+           let category = sender as? EquipmentCategory,
+           let destinationVC = segue.destination as? SameTypeAllEquipmentsViewController {
+            destinationVC.selectedCategory = category
+        }
+    }
 }

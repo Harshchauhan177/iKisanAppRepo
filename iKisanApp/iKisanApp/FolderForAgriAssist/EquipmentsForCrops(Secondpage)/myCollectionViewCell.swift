@@ -9,11 +9,7 @@ import UIKit
 
 class myCollectionViewCell: UICollectionViewCell {
     
-    
     @IBOutlet weak var myEquipmentImage: UIImageView!
     @IBOutlet weak var myEquipmentsName: UILabel!
-    
-    
-    
     
 }

@@ -12,7 +12,19 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
     
     @IBOutlet weak var myCollectionView: UICollectionView!
     @IBOutlet weak var EquipmentTypeLabel: UILabel!
-   
+    @IBOutlet weak var viewAllButton: UIButton!
+    
+    var sectionIndex: Int = 0
+    var equipmentCategory: EquipmentCategory? {
+        didSet {
+            // Update the label when equipmentCategory is set
+            if let category = equipmentCategory {
+                EquipmentTypeLabel.text = category.title
+            }
+        }
+    }
+    
+    var onViewAllTapped: ((EquipmentCategory) -> Void)?
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -31,29 +43,12 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
         self.layer.shadowOpacity = 0.4
         self.layer.shadowRadius = 4
         self.layer.masksToBounds = false
-        
-        EquipmentTypeLabel.text = EData.EquipmentsForCropsData[myIndex].equipments[0].title
-
-//        EquipmentTypeLabel.text = "harsh 1"
-        
     }
-
-    
-    
-    
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        return eData[myCollectionView.tag].eData.EquipmentsForCropsData[myIndex].equipments[0].equipmentList[0].imageName.count
-//        return eData[myCollectionView.tag].EquipmentsForCropsData[myIndex].equipments[0].equipmentList[0].imageName.count
-//        return eData.EquipmentsForCropsData[myIndex].equipments[0].equipmentList[0].imageName.count
-        
-//        return eData.EquipmentsForCropsData[myIndex].equipments[1].equipmentList[0].imageName.count
-
-        // Function to count the number of equipment items with valid image names for "Rice"
-        4
-        
-        
+        return equipmentCategory?.equipmentList.count ?? 0
     }
+    
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         1
     }
@@ -61,17 +56,19 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = myCollectionView.dequeueReusableCell(withReuseIdentifier: "collectionCell", for: indexPath) as! myCollectionViewCell
         
-        cell.myEquipmentImage.image = UIImage(named: EqData[myCollectionView.tag].Equipmentsimage[indexPath.row])  //
-        cell.myEquipmentsName.text = EqData[myCollectionView.tag].EquipmentsName[indexPath.row]                    //
-        
-        cell.myEquipmentImage.layer.cornerRadius = cell.myEquipmentImage.frame.size.width / 2
-        cell.myEquipmentImage.layer.masksToBounds = true
-                // Round corners for contentView
-                contentView.layer.cornerRadius = 19
-                contentView.layer.masksToBounds = true
-        cell.myEquipmentImage.layer.borderWidth = 2.0
-        cell.myEquipmentImage.layer.borderColor = UIColor.gray.cgColor
 
+        if let equipment = equipmentCategory?.equipmentList[indexPath.row] {
+            cell.myEquipmentImage.image = UIImage(named: equipment.equipmentImage)
+            cell.myEquipmentsName.text = equipment.equipmentName
+            
+            cell.myEquipmentImage.layer.cornerRadius = cell.myEquipmentImage.frame.size.width / 2
+            cell.myEquipmentImage.layer.masksToBounds = true
+            // Round corners for contentView
+            contentView.layer.cornerRadius = 19
+            contentView.layer.masksToBounds = true
+            cell.myEquipmentImage.layer.borderWidth = 2.0
+            cell.myEquipmentImage.layer.borderColor = UIColor.gray.cgColor
+        }
 
         
         return cell
@@ -83,5 +80,11 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
 
         
     }
-
+    
+    @IBAction func viewAllButtonTapped(_ sender: UIButton) {
+        if let category = equipmentCategory {
+            onViewAllTapped?(category)
+        }
+    }
+    
 }
