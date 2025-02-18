@@ -52,7 +52,7 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
             UIColor.systemGray
         
         coEquipedOrNotLabel.text = booking.bookingType == .coEquip ? "Co-Equipped" : "Individual"
-        hostedByLabel.text = "Time Slot: \(booking.timeSlot.rawValue)"
+        hostedByLabel.text = "Veer Pal" //"Time Slot: \(booking.timeSlot.rawValue)"
     }
     
     @IBAction func viewButtonTapped(_ sender: Any) {
