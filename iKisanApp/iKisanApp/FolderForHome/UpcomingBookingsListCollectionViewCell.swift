@@ -31,7 +31,7 @@ class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
         let dateString = dateFormatter.string(from: booking.bookingDate)
         dateLabel.text = "\(dateString) \(booking.timeSlot.rawValue)"
         
-        timeSlotLabel.text = booking.timeSlot.rawValue
+        timeSlotLabel.text = "Veer Pal"//booking.timeSlot.rawValue
         statusLabel.text = booking.status.rawValue
     }
     
