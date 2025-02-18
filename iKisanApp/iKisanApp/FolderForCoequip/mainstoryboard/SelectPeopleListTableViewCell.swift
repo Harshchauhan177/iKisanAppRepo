@@ -23,7 +23,7 @@ class SelectPeopleListTableViewCell: UITableViewCell {
     }
 
 
-    func UpdateCellData(with people: PersonList){
+    func UpdateCellData(with people: User){
         nameLabel.text = people.name
         
     }

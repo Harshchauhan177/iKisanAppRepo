@@ -35,6 +35,23 @@ protocol DataController {
     // Add this new function for SameTypeAllEquipments
     func getEquipmentsByCategory(categoryId: UUID) -> [EquipmentAgri]
     
+    //coequip Related functions
+    func getAllCoEquipRequests() -> [Request]
+    func getAcceptedRequests() -> [Request]
+    func addNewCoEquipRequest(_ request: Request)
+    func updateRequest(_ request: Request)
+    func deleteRequest(with id: UUID)
+    func getEquipmentById(_ id: UUID) -> Equipment?
+    func getCoEquipUsers() -> [User]
+    func getEquipmentSuggestions() -> [String]
+    func filterEquipment(by query: String) -> [Equipment]
+    func getCategories() -> [String]
+    func getEquipmentList() -> [Equipment]
+    func filterEquipment(byCategory category: String?) -> [Equipment]
+    func filterEquipment(bySearchText searchText: String) -> [Equipment]
+    func isEquipmentAvailable(on date: Date, for equipment: Equipment) -> Bool
+    func createRequest(_ request: Request)
+    func getTimeSlots(for area: Double) -> [TimeSlot]
     
     
 }
@@ -148,8 +165,20 @@ class IKisanDataController: DataController {
     private let crops: [AgriCrop]
     private var cropCategories: [CropCategory]
     private let sectionHeaders = ["Equipment Type Details", "Related Equipment"]
-    
-    
+    private var coEquipRequests: [Request] = []
+    private var acceptedRequests: [Request] = []
+    private var pendingRequests: [Request] = []
+    private let sampleUsers: [User] = [
+        User(userID: UUID(), name: "Rahul Kumar", phone: "9876543210", 
+             location: Location(latitude: 28.4744, longitude: 77.5040, address: "Greater Noida"), 
+             selectedCrops: [], fieldArea: 5.0),
+        User(userID: UUID(), name: "Amit Singh", phone: "8765432109", 
+             location: Location(latitude: 28.4745, longitude: 77.5041, address: "Noida"), 
+             selectedCrops: [], fieldArea: 3.5),
+        User(userID: UUID(), name: "Priya Sharma", phone: "7654321098", 
+             location: Location(latitude: 28.4746, longitude: 77.5042, address: "Delhi"), 
+             selectedCrops: [], fieldArea: 4.0)
+    ]
     init() {
         self.equipmentList = EquipmentData.equipment
         self.reviewList = EquipmentData.reviews
@@ -595,6 +624,15 @@ class IKisanDataController: DataController {
             )
         ]
 
+        setupInitialRequests()
+    }
+    
+    private func setupInitialRequests() {
+        // Create some accepted requests using the existing equipment data
+        acceptedRequests = [] // Remove dummy data, start with empty array
+        
+        // Add these requests to coEquipRequests as well
+        coEquipRequests.append(contentsOf: acceptedRequests)
     }
     
     func getAllEquipment() -> [Equipment] {
@@ -709,6 +747,133 @@ class IKisanDataController: DataController {
             print("DataController - Booking with ID \(booking.bookingID) already exists")
         }
     }
+    func isEquipmentAvailable(on date: Date, for equipmentName: String) -> Bool {
+        if let equipment = equipmentList.first(where: { $0.name == equipmentName }) {
+            return equipment.isAvailable(on: date)
+        }
+        return false
+    }
+    // MARK: - CoEquip Methods
+    
+    func getAllCoEquipRequests() -> [Request] {
+        print("📋 Getting all co-equip requests: \(coEquipRequests.count)")
+        return coEquipRequests
+    }
+    
+    func getAcceptedRequests() -> [Request] {
+        print("📋 Getting accepted requests: \(acceptedRequests.count)")
+        return acceptedRequests
+    }
+    
+    func addNewCoEquipRequest(_ request: Request) {
+        // Check if request already exists
+        if !coEquipRequests.contains(where: { $0.id == request.id }) {
+            coEquipRequests.append(request)
+            print("✅ Added new co-equip request: \(request.id)")
+            print("Total requests: \(coEquipRequests.count)")
+        }
+    }
+    
+    func updateRequest(_ request: Request) {
+        if let index = coEquipRequests.firstIndex(where: { $0.id == request.id }) {
+            coEquipRequests[index] = request
+        }
+    }
+    func deleteRequest(with id: UUID) {
+        print("🗑️ Attempting to delete request with ID: \(id)")
+        
+        // Remove from coEquip requests
+        if let index = coEquipRequests.firstIndex(where: { $0.id == id }) {
+            coEquipRequests.remove(at: index)
+            print("✅ Removed from coEquipRequests")
+        }
+        
+        // Remove from pending requests
+        if let index = pendingRequests.firstIndex(where: { $0.id == id }) {
+            pendingRequests.remove(at: index)
+            print("✅ Removed from pendingRequests")
+        }
+        
+        // Remove from accepted requests
+        if let index = acceptedRequests.firstIndex(where: { $0.id == id }) {
+            acceptedRequests.remove(at: index)
+            print("✅ Removed from acceptedRequests")
+        }
+        
+        // Notify observers
+        NotificationCenter.default.post(
+            name: .requestDeleted,
+            object: nil,
+            userInfo: ["requestId": id]
+        )
+        print("📢 Posted notification for request deletion")
+    }
+    
+    func getEquipmentById(_ id: UUID) -> Equipment? {
+        return equipmentList.first { $0.equipmentID == id }
+    }
+    
+    func getCoEquipUsers() -> [User] {
+        // Return list of users who can participate in co-equip
+        return []
+    }
+    func getEquipmentSuggestions() -> [String] {
+        return [
+            "Harvester", "Rice Harvester", "Wheat Harvester",
+            "Sugarcane Harvester", "Tractor", "Mini Tractor",
+            "Farm Tractor", "Plough", "Rotavator", "Cultivator",
+            "Sprayer", "Seeder", "Thresher", "Potato Harvester",
+            "Cotton Picker"
+        ]
+    }
+    
+    func filterEquipment(by query: String) -> [Equipment] {
+        _ = query.lowercased()
+        return [] // Placeholder implementation
+    }
+    
+    func getCategories() -> [String] {
+        return ["Combine", "Rice", "Wheat", "Soyabean", "Irrigation", "Other"]
+    }
+    
+    func getEquipmentList() -> [Equipment] {
+        return equipmentList
+    }
+    func filterEquipment(byCategory category: String?) -> [Equipment] {
+        guard let category = category else { return equipmentList }
+        return equipmentList.filter { $0.type.contains(category) }
+    }
+    
+    func filterEquipment(bySearchText searchText: String) -> [Equipment] {
+        let lowercasedQuery = searchText.lowercased()
+        return equipmentList.filter { equipment in
+            equipment.name.lowercased().contains(lowercasedQuery) ||
+            equipment.type.lowercased().contains(lowercasedQuery)
+        }
+    }
+    
+    func isEquipmentAvailable(on date: Date, for equipment: Equipment) -> Bool {
+        return equipment.isAvailable(on: date)
+    }
+    
+    func createRequest(_ request: Request) {
+        coEquipRequests.append(request)
+    }
+    func getTimeSlots(for area: Double) -> [TimeSlot] {
+        let duration = Int(area * 30) // 30 minutes per acre
+        if duration <= 240 { // 4 hours
+            return [.morning]
+        } else if duration <= 480 { // 8 hours
+            return [.morning, .afternoon]
+        } else {
+            return [.morning, .afternoon, .evening]
+        }
+    }
+    
+    // Method to get sample users
+    func getSampleUsers() -> [User] {
+        return sampleUsers
+    }
 }
 
 class currentUser {
@@ -717,6 +882,24 @@ class currentUser {
     private init() {}
     
     var user: User?
+}
+class RequestManager {
+    static let shared = RequestManager()
+    
+    var equipmentItems: [Equipment] = [] // Assuming Equipment is a model you have defined
+    var requests: [Request] = [] // Add this line to hold requests
+
+    private init() {
+        // Initialize with some sample equipment data
+        equipmentItems = [
+            Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
+            // Add more sample equipment as needed
+        ]
+    }
+}
+
+extension Notification.Name {
+    static let requestDeleted = Notification.Name("requestDeleted")
 }
 
 

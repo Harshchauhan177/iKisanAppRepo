@@ -33,7 +33,46 @@ struct Equipment {
     }
     //Review to add
 }
-
+struct Request {
+    let id: UUID
+    let userId: UUID
+    let equipmentId: UUID
+    let requestedDate: Date
+    var status: BookingStatus
+    let type: BookingType
+    let area: Double
+    let timeSlot: TimeSlot
+    let timePeriod: String?
+    let location: String
+    let selectedUsers: [User]
+    let joinedFarmers: [UUID]
+    
+    init(id: UUID = UUID(), // Default to new UUID if not provided
+         userId: UUID,
+         equipmentId: UUID,
+         requestedDate: Date,
+         status: BookingStatus,
+         type: BookingType,
+         area: Double,
+         timeSlot: TimeSlot,
+         timePeriod: String?,
+         location: String,
+         selectedUsers: [User],
+         joinedFarmers: [UUID]) {
+        self.id = id
+        self.userId = userId
+        self.equipmentId = equipmentId
+        self.requestedDate = requestedDate
+        self.status = status
+        self.type = type
+        self.area = area
+        self.timeSlot = timeSlot
+        self.timePeriod = timePeriod
+        self.location = location
+        self.selectedUsers = selectedUsers
+        self.joinedFarmers = joinedFarmers
+    }
+}
 struct Availability {
     var startDate: Date
     var endDate: Date
@@ -70,7 +109,9 @@ struct User {
 }
 
 struct Location {
-    
+    var latitude: Double
+    var longitude: Double
+    var address: String?
     
 }
 
@@ -154,3 +195,8 @@ struct EquipmentAgri {
     var needs: String?
     var likedBy: Int
 }
+let sampleUsers: [User] = [
+    User(userID: UUID(), name: "John Doe", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+    User(userID: UUID(), name: "Jane Smith", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+    // Add more sample users as needed
+]

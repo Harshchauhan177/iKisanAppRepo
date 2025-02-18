@@ -74,38 +74,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     homeVC.dataController = dataController
                 } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
                     agriAssistVC.dataController = dataController
+                } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
+                    coequipVC.dataController = dataController
                 }
             } else if let homeVC = viewController as? HomeViewController {
                 homeVC.dataController = dataController
             } else if let agriAssistVC = viewController as? AgriAssistViewController {
                 agriAssistVC.dataController = dataController
+            } else if let coequipVC = viewController as? CoequipViewController {
+                coequipVC.dataController = dataController
             }
         }
-//            guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController else {
-//                return
-//            }
-//
-//        // Initialize dataController
-////        let dataController: DataController = IKisanDataController()
-//        
-//            // Iterate through the tab bar controller’s view controllers
-//            // to locate the HomeViewController.
-//            if let viewControllers = tabBarController.viewControllers {
-//                for viewController in viewControllers {
-//                    // In many cases, your HomeViewController is embedded in a UINavigationController.
-//                    if let navController = viewController as? UINavigationController,
-//                       let homeVC = navController.viewControllers.first as? HomeViewController {
-//                        // Inject the data controller into HomeViewController.
-//                        homeVC.dataController = dataController
-//                        break // Stop searching once it's found.
-//                    }
-//                    // If HomeViewController isn’t embedded, check directly.
-//                    else if let homeVC = viewController as? HomeViewController {
-//                        homeVC.dataController = dataController
-//                        break
-//                    }
-//                }
-//            }
+
+
 
             // Set the tabBarController as the root view controller.
             window.rootViewController = tabBarController

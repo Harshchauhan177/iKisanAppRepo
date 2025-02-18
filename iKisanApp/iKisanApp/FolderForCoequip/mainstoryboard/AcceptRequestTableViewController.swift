@@ -1,14 +1,11 @@
-
-
 import UIKit
 
 class AcceptRequestTableViewController: UITableViewController {
     var request: Request?
+    var dataController: DataController?
     
     @IBOutlet weak var imageLabel: UIImageView!
-    
     @IBOutlet weak var titleLabel: UILabel!
-    
     @IBOutlet weak var viewLabel: UIButton!
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var hostLabel: UILabel!
@@ -78,10 +75,73 @@ class AcceptRequestTableViewController: UITableViewController {
     
     @IBAction func viewButtonTapped(_ sender: Any) {
     }
+    
+    @IBAction func modifyButtonTapped(_ sender: Any) {
+        if let request = request,
+           let infoVC = storyboard?.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
+            
+            // Pass the existing request data to InfoTableViewController
+            infoVC.isModifying = true
+            infoVC.existingRequest = request
+            infoVC.TitleLabel.text = titleLabel.text
+            infoVC.hostName.text = hostLabel.text
+            infoVC.ImageLabel.image = imageLabel.image
+            infoVC.InputAreaLabel.text = intputArea.text
+            infoVC.TimeSlotLabel.text = timeSlotLabel.text
+            infoVC.location = LocationLabel.text ?? ""
+            infoVC.timeSlot = timeSlotLabel.text ?? ""
+            
+            // Get selected users from the request
+            let selectedUsers = request.joinedFarmers.compactMap { farmerId in
+                return sampleUsers.first(where: { $0.userID == farmerId })
+            }
+            infoVC.selectedUsers = selectedUsers
+            
+            navigationController?.pushViewController(infoVC, animated: true)
+        }
+    }
+    
+    @IBAction func deleteButtonTapped(_ sender: Any) {
+        let alertController = UIAlertController(title: "Delete Request", 
+                                              message: "Are you sure you want to delete this request?", 
+                                              preferredStyle: .alert)
+        
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        alertController.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            guard let self = self,
+                  let requestToDelete = self.request else { return }
+            
+            // Remove request from RequestManager
+            let requestManager = RequestManager.shared
+            if let index = requestManager.requests.firstIndex(where: { $0.id == requestToDelete.id }) {
+                requestManager.requests.remove(at: index)
+                
+                // Show success alert
+                let successAlert = UIAlertController(title: "Success", 
+                                                   message: "Request deleted successfully", 
+                                                   preferredStyle: .alert)
+                successAlert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                    // Navigate back to CoequipViewController
+                    self?.navigationController?.popViewController(animated: true)
+                })
+                self.present(successAlert, animated: true)
+            }
+        })
+        
+        present(alertController, animated: true)
+    }
+    
     func showAlert(title: String, message: String) {
             let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
             let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
             alertController.addAction(okAction)
             present(alertController, animated: true, completion: nil)
         }
+
+    // Add a method to configure the view with the request
+    func configure(with request: Request) {
+        self.request = request
+        // Update UI elements based on the request
+    }
 }

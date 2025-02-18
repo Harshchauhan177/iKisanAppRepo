@@ -64,7 +64,7 @@
                     <navigationItem key="navigationItem" title="Co-Equip" id="iCZ-2Z-oRM">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="ACV-dd-0lO">
                             <connections>
-                                <segue destination="JuJ-YM-Vr7" kind="show" id="0LJ-lq-1Zt"/>
+                                <segue destination="JuJ-YM-Vr7" kind="show" identifier="goToSearchViewController" id="0LJ-lq-1Zt"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
@@ -72,7 +72,7 @@
                         <outlet property="CoequipSegmentedControl" destination="7mE-Ty-olc" id="cFT-Uo-uPJ"/>
                         <outlet property="CoequipTableView" destination="Oew-7U-Mi3" id="6f8-HK-6xi"/>
                         <segue destination="T1p-f7-KBv" kind="show" identifier="goToAcceptRequest" id="j95-Z4-Isi"/>
-                        <segue destination="Sv1-Az-SJb" kind="show" identifier="goToMyRequest" id="chm-Ou-QFy"/>
+                        <segue destination="Sv1-Az-SJb" kind="show" identifier="goToMyRequest1" id="chm-Ou-QFy"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -601,6 +601,7 @@
                         <outlet property="ListTableView" destination="NHV-eP-iSP" id="4gH-yl-qKo"/>
                         <outlet property="MinimumAreaLabel" destination="fAA-Wi-Mm9" id="gBd-UD-3lx"/>
                         <outlet property="currentAreaLabel" destination="gOR-m9-QLi" id="MNF-0P-aK0"/>
+                        <outlet property="dateLabel" destination="Y43-XQ-cti" id="gEF-rR-0Dz"/>
                         <outlet property="deleteRequestLabel" destination="vJm-Eb-Egc" id="ZwA-s8-tOs"/>
                         <outlet property="equipmentImageLabel" destination="mGe-bW-9vz" id="xPy-Zb-dl1"/>
                         <outlet property="equipmentTitleLabel" destination="fBp-vQ-xGp" id="IYY-Yf-GAY"/>
@@ -948,7 +949,7 @@
         <!--Create Request-->
         <scene sceneID="Wbr-TI-hnU">
             <objects>
-                <viewController id="wNL-bN-u1b" customClass="CreateRequestViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="CreateRequestViewController" id="wNL-bN-u1b" customClass="CreateRequestViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Zi2-vm-S5Y">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -991,7 +992,7 @@
                                 <rect key="frame" x="16" y="227" width="170.66666666666666" height="50"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2zd-lx-Qdv">
-                                        <rect key="frame" x="0.0" y="0.0" width="50.666666666666664" height="50"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="129.33333333333334" height="50"/>
                                         <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="plain" image="calendar" catalog="system"/>
@@ -999,9 +1000,12 @@
                                             <action selector="calendarbuttonTapped:" destination="wNL-bN-u1b" eventType="touchUpInside" id="LWb-c0-d1L"/>
                                         </connections>
                                     </button>
-                                    <datePicker contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="gam-LJ-3mS">
-                                        <rect key="frame" x="50.666666666666671" y="0.0" width="120.00000000000001" height="50"/>
-                                    </datePicker>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Rqz-Ui-vad">
+                                        <rect key="frame" x="129.33333333333334" y="0.0" width="41.333333333333343" height="50"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
                                 </subviews>
                             </stackView>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="4C5-kQ-99D">
@@ -1052,6 +1056,7 @@
                         <outlet property="calendarLabel" destination="2zd-lx-Qdv" id="WRG-Co-lqk"/>
                         <outlet property="cardCollectionView" destination="4C5-kQ-99D" id="5Xp-ho-jOl"/>
                         <outlet property="categoryCollectionView" destination="klG-aB-4dZ" id="Exg-Nd-btK"/>
+                        <outlet property="dateLabel" destination="Rqz-Ui-vad" id="03y-HO-HBw"/>
                         <outlet property="searchBar" destination="HGn-vv-pin" id="QwS-fK-IF8"/>
                         <segue destination="VgL-uy-WHV" kind="show" identifier="showInfoDetails" id="rIW-Tw-plP"/>
                     </connections>
@@ -1203,10 +1208,13 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="epb-vn-kbu">
-                                                    <rect key="frame" x="-1" y="41" width="145" height="34.333333333333258"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hoB-ug-Soc">
+                                                    <rect key="frame" x="22" y="44" width="86" height="25"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                </datePicker>
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -1258,7 +1266,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="8 Am - 10 Am" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RFx-Mq-7Fz">
-                                                    <rect key="frame" x="22" y="38.666666666666657" width="82.666666666666671" height="38.333333333333343"/>
+                                                    <rect key="frame" x="22" y="39" width="311" height="38"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
                                                     <nil key="textColor"/>
@@ -1347,6 +1355,7 @@
                         <outlet property="InputAreaLabel" destination="7dJ-mf-9D1" id="qDx-P6-EP6"/>
                         <outlet property="TimeSlotLabel" destination="RFx-Mq-7Fz" id="7G5-YD-q3Q"/>
                         <outlet property="TitleLabel" destination="jmM-VF-ZPU" id="Y1G-gK-Jtw"/>
+                        <outlet property="dateLabel" destination="hoB-ug-Soc" id="GAd-Uo-dBV"/>
                         <outlet property="hostName" destination="o4j-M3-oL3" id="Kh3-9I-vBY"/>
                         <outlet property="priceLabel" destination="Uxh-Uu-KS6" id="Pe2-Zp-jxH"/>
                         <segue destination="dgn-2B-T6F" kind="presentation" identifier="goToList" id="byu-O8-30E"/>
@@ -1355,12 +1364,12 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2SE-S5-s1e" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <exit id="ayx-Hn-TVQ" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
-            <point key="canvasLocation" x="8955" y="-856"/>
+            <point key="canvasLocation" x="8954.961832061068" y="-856.33802816901414"/>
         </scene>
         <!--Select People-->
         <scene sceneID="we3-5u-Vjj">
             <objects>
-                <viewController id="eKY-ja-h1T" customClass="SelectPeopleViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="SelectPeopleViewController" id="eKY-ja-h1T" customClass="SelectPeopleViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="fIs-sD-eoQ">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
