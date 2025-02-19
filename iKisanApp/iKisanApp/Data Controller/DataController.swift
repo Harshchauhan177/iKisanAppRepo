@@ -27,12 +27,12 @@ protocol DataController {
     func getEquipmentAgri(forCategory categoryId: UUID) -> [EquipmentAgri]
     func getEquipmentAgriDetails(id: UUID) -> EquipmentAgri?
     
-    // Add these new functions for InfoAboutEquipments
+    // Add  new functions for InfoAboutEquipments
     func getEquipmentSectionHeaders() -> [String]
     func getEquipmentTypeDetails() -> [EquipmentAgri]
     func getRelatedEquipment() -> [EquipmentAgri]
     
-    // Add this new function for SameTypeAllEquipments
+    // Add  new function for SameTypeAllEquipments
     func getEquipmentsByCategory(categoryId: UUID) -> [EquipmentAgri]
     
     //coequip Related functions
@@ -756,12 +756,10 @@ class IKisanDataController: DataController {
     // MARK: - CoEquip Methods
     
     func getAllCoEquipRequests() -> [Request] {
-        print("📋 Getting all co-equip requests: \(coEquipRequests.count)")
         return coEquipRequests
     }
     
     func getAcceptedRequests() -> [Request] {
-        print("📋 Getting accepted requests: \(acceptedRequests.count)")
         return acceptedRequests
     }
     
@@ -769,8 +767,6 @@ class IKisanDataController: DataController {
         // Check if request already exists
         if !coEquipRequests.contains(where: { $0.id == request.id }) {
             coEquipRequests.append(request)
-            print("✅ Added new co-equip request: \(request.id)")
-            print("Total requests: \(coEquipRequests.count)")
         }
     }
     
@@ -780,24 +776,20 @@ class IKisanDataController: DataController {
         }
     }
     func deleteRequest(with id: UUID) {
-        print("🗑️ Attempting to delete request with ID: \(id)")
         
         // Remove from coEquip requests
         if let index = coEquipRequests.firstIndex(where: { $0.id == id }) {
             coEquipRequests.remove(at: index)
-            print("✅ Removed from coEquipRequests")
         }
         
         // Remove from pending requests
         if let index = pendingRequests.firstIndex(where: { $0.id == id }) {
             pendingRequests.remove(at: index)
-            print("✅ Removed from pendingRequests")
         }
         
         // Remove from accepted requests
         if let index = acceptedRequests.firstIndex(where: { $0.id == id }) {
             acceptedRequests.remove(at: index)
-            print("✅ Removed from acceptedRequests")
         }
         
         // Notify observers
@@ -806,7 +798,6 @@ class IKisanDataController: DataController {
             object: nil,
             userInfo: ["requestId": id]
         )
-        print("📢 Posted notification for request deletion")
     }
     
     func getEquipmentById(_ id: UUID) -> Equipment? {
@@ -886,14 +877,12 @@ class currentUser {
 class RequestManager {
     static let shared = RequestManager()
     
-    var equipmentItems: [Equipment] = [] // Assuming Equipment is a model you have defined
-    var requests: [Request] = [] // Add this line to hold requests
+    var equipmentItems: [Equipment] = []
+    var requests: [Request] = []
 
     private init() {
-        // Initialize with some sample equipment data
         equipmentItems = [
             Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
-            // Add more sample equipment as needed
         ]
     }
 }

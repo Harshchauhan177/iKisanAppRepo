@@ -18,34 +18,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        //guard let _ = (scene as? UIWindowScene) else { return }
-//        guard let windowScene = (scene as? UIWindowScene) else { return }
-//        
-//        let window = UIWindow(windowScene: windowScene)
-//                
-//                // Instantiate your initial ViewController
-//         //       let storyboard = UIStoryboard(name: "Main", bundle: nil)
-//        //let initialViewController = storyboard.instantiateViewController(identifier: "MainTabBarController") as! MainTabBarController
-//        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-//        if let initialViewController = storyboard.instantiateViewController(identifier: "MainTabBarController") as? MainTabBarController{
-//        print("Under tab bar controller")
-//            let navigationController = UINavigationController(rootViewController: initialViewController)
-//            print("Under navigation bar controller")
-//            if let homeVC = navigationController.viewControllers[0] as? HomeViewController{
-//                print("Under home view controller")
-//                homeVC.dataController = dataController
-//            }
-//        }
-//                
-//        // Create navigation controller with HomeViewController as root
-////        let navigationController = UINavigationController(rootViewController: initialViewController)
-////                
-////                // Inject the data controller
-////                initialViewController.dataController = dataController
-//                
-//               // window.rootViewController = navigationController
-//                self.window = window
-//                window.makeKeyAndVisible()
+      
     
         
         guard let windowScene = (scene as? UIWindowScene) else { return }
