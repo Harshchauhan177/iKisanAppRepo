@@ -92,7 +92,8 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Select Crop" id="3FN-yw-Y2R">
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="IHW-6R-wsu">
+                        <barButtonItem key="rightBarButtonItem" image="person.crop.circle" catalog="system" id="IHW-6R-wsu">
+                            <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                             <connections>
                                 <segue destination="cxN-dy-tva" kind="show" id="zd4-da-ph7"/>
                             </connections>
@@ -1769,6 +1770,7 @@
         <image name="pencil" catalog="system" width="128" height="113"/>
         <image name="person.2.fill" catalog="system" width="128" height="86"/>
         <image name="person.badge.key.fill" catalog="system" width="128" height="125"/>
+        <image name="person.crop.circle" catalog="system" width="128" height="123"/>
         <image name="person.crop.circle.fill.badge.plus" catalog="system" width="128" height="114"/>
         <image name="questionmark.circle.fill" catalog="system" width="128" height="123"/>
         <image name="trash.fill" catalog="system" width="117" height="128"/>
