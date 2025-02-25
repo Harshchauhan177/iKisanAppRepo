@@ -75,17 +75,20 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         }
     }
     private func setupInitialState() {
-        // Set initial category to Combine
-        selectedCategory = "Combine"
+        // Set default category to Combine if not already set
+        if selectedCategory == nil {
+            selectedCategory = "Combine"
+        }
         setupCollectionViewLayouts()
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "E, d MMM"
         dateLabel.text = dateFormatter.string(from: Date())
 
-        // Only select first category cell if we don't have a search suggestion
-        if selectedSuggestion == nil {
-            categoryCollectionView.selectItem(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .left)
+        // Select the appropriate category cell
+        if let category = selectedCategory,
+           let index = categories.firstIndex(of: category) {
+            categoryCollectionView.selectItem(at: IndexPath(row: index, section: 0), animated: false, scrollPosition: .left)
             filterCardsByCategory()
         }
         
@@ -146,32 +149,42 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         let calendarVC = UIViewController()
         calendarVC.view.backgroundColor = .white
         
+        // Setup calendar view
         let calendar = UICalendarView()
         calendar.calendar = .current
         calendar.locale = .current
         calendar.fontDesign = .rounded
         calendar.delegate = self
+        calendar.backgroundColor = .white
+        
+       
         calendarView = calendar
         
+        // Setup selection behavior
         let selection = UICalendarSelectionSingleDate(delegate: self)
         calendar.selectionBehavior = selection
         
+        // Add calendar to view
         calendar.translatesAutoresizingMaskIntoConstraints = false
         calendarVC.view.addSubview(calendar)
         
+        // Setup done button
         let doneButton = UIButton(type: .system)
         doneButton.setTitle("Done", for: .normal)
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
+        doneButton.backgroundColor = .white
         calendarVC.view.addSubview(doneButton)
         
         NSLayoutConstraint.activate([
+            // Calendar constraints
             calendar.leadingAnchor.constraint(equalTo: calendarVC.view.leadingAnchor, constant: 10),
             calendar.trailingAnchor.constraint(equalTo: calendarVC.view.trailingAnchor, constant: -10),
             calendar.topAnchor.constraint(equalTo: calendarVC.view.topAnchor, constant: 20),
-            calendar.heightAnchor.constraint(equalToConstant: 300),
+            calendar.heightAnchor.constraint(equalToConstant: 420),
             
-            doneButton.topAnchor.constraint(equalTo: calendar.bottomAnchor, constant: 20),
+            // Done button constraints
+            doneButton.topAnchor.constraint(equalTo: calendar.bottomAnchor, constant: 10),
             doneButton.centerXAnchor.constraint(equalTo: calendarVC.view.centerXAnchor),
             doneButton.heightAnchor.constraint(equalToConstant: 44),
             doneButton.widthAnchor.constraint(equalToConstant: 100)
@@ -179,8 +192,13 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         
         calendarVC.modalPresentationStyle = .pageSheet
         if let sheet = calendarVC.sheetPresentationController {
-            sheet.detents = [.medium()]
+            sheet.detents = [.custom { context in
+                return 500
+            }]
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 20
         }
+        
         present(calendarVC, animated: true)
     }
     
@@ -274,16 +292,28 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             return filteredCard.count
         }
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView == categoryCollectionView {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCell", for: indexPath) as! CategoryCell
+            let category = categories[indexPath.row]
             cell.titleLabel.text = categories[indexPath.row]
             cell.titleLabel.textAlignment = .center
             cell.layer.cornerRadius = 17
             cell.layer.borderWidth = 1
             cell.backgroundColor = .white
             cell.layer.borderColor = UIColor.lightGray.cgColor
+            
+            if category == selectedCategory {
+                cell.backgroundColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+                cell.titleLabel.textColor = .white
+            } else {
+                cell.backgroundColor = .white
+                cell.titleLabel.textColor = .black
+                cell.layer.borderWidth = 1
+                cell.layer.borderColor = UIColor.lightGray.cgColor
+            }
+            
             return cell
         } else {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardCell", for: indexPath) as! CardCell
@@ -301,7 +331,11 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if collectionView == cardCollectionView {
+        if collectionView == categoryCollectionView {
+            selectedCategory = categories[indexPath.row]
+            categoryCollectionView.reloadData() // Reload to update all cell colors
+            filterCardsByCategory()
+        } else if collectionView == cardCollectionView {
             let selectedCard = filteredCard[indexPath.row]
             
             // Verify dataController exists
@@ -322,10 +356,6 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
                 // Push the view controller
                 navigationController?.pushViewController(infoTableVC, animated: true)
             }
-        } else if collectionView == categoryCollectionView {
-            selectedCategory = categories[indexPath.row]
-            updateCategorySelection()
-            filterCardsByCategory()
         }
     }
     
@@ -420,4 +450,3 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         present(alert, animated: true)
     }
 }
-
