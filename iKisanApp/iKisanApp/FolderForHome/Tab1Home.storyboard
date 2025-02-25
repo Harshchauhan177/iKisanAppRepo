@@ -906,6 +906,17 @@
                                                         <action selector="proceedToPayButtonTapped:" destination="Xli-Pt-0rb" eventType="touchUpInside" id="Qg6-Ki-S69"/>
                                                     </connections>
                                                 </button>
+                                                <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7gV-3s-2TR">
+                                                    <rect key="frame" x="36" y="101" width="281" height="61"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <state key="normal" title="Button"/>
+                                                    <buttonConfiguration key="configuration" style="filled" title="Modify">
+                                                        <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                                    </buttonConfiguration>
+                                                    <connections>
+                                                        <action selector="modifyButtonTapped:" destination="Xli-Pt-0rb" eventType="touchUpInside" id="4S6-e5-jsE"/>
+                                                    </connections>
+                                                </button>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstAttribute="trailingMargin" secondItem="DXt-z4-WcE" secondAttribute="trailing" constant="16" id="LAR-KG-f2M"/>
@@ -929,7 +940,9 @@
                         <outlet property="datePicker" destination="jVC-bQ-iL5" id="Bd1-PR-b0D"/>
                         <outlet property="fieldAreaTextField" destination="0Ok-xP-shz" id="gYL-FC-Xys"/>
                         <outlet property="locationLabel" destination="eKP-DV-6n3" id="0gX-U6-20y"/>
+                        <outlet property="modifyButton" destination="7gV-3s-2TR" id="TRj-Fr-GRe"/>
                         <outlet property="priceLabel" destination="nrm-I9-K8U" id="XiP-CI-vfD"/>
+                        <outlet property="proceedToPay" destination="DXt-z4-WcE" id="kd7-5G-wNg"/>
                         <outlet property="timeButtonOutlet" destination="DFP-kd-tzb" id="IB4-va-P80"/>
                         <outlet property="timeSlotDisplayOutlet" destination="utX-1A-JHi" id="mMG-GI-jof"/>
                     </connections>

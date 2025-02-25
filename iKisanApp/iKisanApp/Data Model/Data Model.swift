@@ -28,6 +28,10 @@ struct Equipment {
     var modelYear: String
     var mielage: String
     var description: String?
+    var isRecommended: Bool = false//
+    var providerName: String?//
+    var preBookingStatus: BookingStatus?//
+    
     func isAvailable(on date: Date) -> Bool {
         return date >= availability.startDate && date <= availability.endDate
     }
@@ -132,16 +136,22 @@ enum Season: String {
 
 
 //MARK: Model for Booking
-
+//
+enum BookingSource {
+    case home
+    case prebooking
+}
+//
 struct Booking {
     let bookingID: UUID
-    var userID: UUID
-    var equipmentID: UUID
-    var bookingType: BookingType
+    let userID: UUID//
+    let equipmentID: UUID//
+    let bookingType: BookingType//
     var bookingDate: Date
     var fieldArea: Double
     var status: BookingStatus
     var timeSlot: TimeSlot
+    let source: BookingSource//
 }
 
 enum TimeSlot: String {
@@ -195,8 +205,15 @@ struct EquipmentAgri {
     var needs: String?
     var likedBy: Int
 }
+//
+struct FAQ {
+    let id: UUID
+    let question: String
+    let answer: String
+}
+
 let sampleUsers: [User] = [
-    User(userID: UUID(), name: "Raj Pal", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
-    User(userID: UUID(), name: "Narendra", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
-    // Add more sample users as needed
+    User(userID: UUID(), name: "John Doe", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+    User(userID: UUID(), name: "Jane Smith", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
 ]
+//

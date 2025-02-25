@@ -7,8 +7,13 @@
 
 import UIKit
 
-class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegate {
+protocol ReviewBookingDelegate: AnyObject {
+    func didModifyBooking(_ booking: Booking)
+}
+
+class ReviewBookingTableViewController: UITableViewController, UITextFieldDelegate {
     
+    var selectedDate: Date?
     var timeSlot = ["Morning","Afternoon","Evening"]
     var locationA: String?
     var pricePerHr: Double = 100
@@ -21,6 +26,12 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
         }
     }
     
+    var bookingSource: BookingSource = .home // Default to home
+    
+    weak var delegate: ReviewBookingDelegate?
+    var isModifying: Bool = false
+    var booking: Booking?
+    
     @IBOutlet var locationLabel: UILabel!
     
     @IBOutlet var datePicker: UIDatePicker!
@@ -31,11 +42,19 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
     
     @IBOutlet var timeSlotDisplayOutlet: UILabel!
     @IBOutlet var priceLabel: UILabel!
+   
+    @IBOutlet weak var proceedToPay: UIButton?
+    
+    @IBOutlet weak var modifyButton: UIButton?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Configure UI based on modification mode
+        configureUIForModification()
+        
         if let equipment = equipment {
-           
+            updateData()
         } else {
             // Show alert and pop back
             DispatchQueue.main.async {
@@ -52,21 +71,41 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
         }
         
         fieldAreaTextField.delegate = self
-        
-        updateData()
-        
         setUpMenus()
-
     }
-
-    func updateData() {
-        guard let equipment = equipment else {
+    
+    private func configureUIForModification() {
+        // Force unwrap protection for outlets
+        guard let modifyButton = modifyButton,
+              let proceedToPay = proceedToPay else {
+            print("Error: Buttons not connected in storyboard")
             return
         }
         
+        // Set visibility based on mode
+        modifyButton.isHidden = !isModifying
+        proceedToPay.isHidden = isModifying
+        
+        // Pre-fill form if modifying
+        if isModifying, let booking = booking {
+            // Set the date picker's date from the booking
+            datePicker.date = booking.bookingDate
+            fieldAreaTextField.text = String(booking.fieldArea)
+            timeSlotDisplayOutlet.text = booking.timeSlot.rawValue
+        } else if let selectedDate = selectedDate {
+            // If not modifying but we have a selected date, use that
+            datePicker.date = selectedDate
+        }
+    }
+
+    func updateData() {
+        guard let equipment = equipment else { return }
+        
         locationLabel.text = equipment.location
-        datePicker.date = Date()
+        datePicker.date = selectedDate ?? Date()
         pricePerHr = equipment.pricePerHour
+        
+        // Update any other UI elements with equipment data
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -99,8 +138,34 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
         
     }
 
+    @IBAction func modifyButtonTapped(_ sender: Any) {
+        guard let equipment = equipment,
+              let fieldAreaText = fieldAreaTextField.text,
+              let fieldArea = Double(fieldAreaText),
+              let timeSlot = timeSlotDisplayOutlet.text,
+              let timeSlotEnum = TimeSlot(rawValue: timeSlot),
+              var modifiedBooking = booking else {
+            // Show error alert
+            return
+        }
+        
+        // Update booking with modified values
+        modifiedBooking.bookingDate = datePicker.date
+        modifiedBooking.fieldArea = fieldArea
+        modifiedBooking.timeSlot = timeSlotEnum
+        
+        // Notify delegate of modification
+        delegate?.didModifyBooking(modifiedBooking)
+        
+        // Pop back to previous screen
+        navigationController?.popViewController(animated: true)
+        
+        
+    }
     
     @IBAction func proceedToPayButtonTapped(_ sender: Any) {
+        // Only proceed if not in modification mode
+        guard !isModifying else { return }
         
         // Verify equipment
         guard let equipment = self.equipment else {
@@ -145,23 +210,25 @@ class ReviewBookingTableViewController: UITableViewController,UITextFieldDelegat
             bookingID: UUID(),
             userID: currentUser.shared.user?.userID ?? UUID(),
             equipmentID: equipment.equipmentID,
-            bookingType: .onDemand,
+            bookingType: .prebooking,
             bookingDate: datePicker.date,
             fieldArea: fieldArea,
             status: .pending,
-            timeSlot: timeSlotEnum
+            timeSlot: timeSlotEnum,
+            source: bookingSource
         )
         
-        // For Presenting PaymentViewController
+        // Present PaymentViewController
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
         if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
             paymentVC.booking = newBooking
             paymentVC.modalPresentationStyle = .automatic
             
-            // Embed in a Navigation Controller
             let navController = UINavigationController(rootViewController: paymentVC)
             present(navController, animated: true, completion: nil)
         }
+        
+        
     }
     
 //        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)

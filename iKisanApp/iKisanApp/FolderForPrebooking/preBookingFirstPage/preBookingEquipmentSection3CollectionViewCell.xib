@@ -10,7 +10,7 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
-        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Third" id="gTV-IL-0wX" customClass="preBookingEquipmentSection3CollectionViewCell" customModule="iKisanApp" customModuleProvider="target">
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Third" id="gTV-IL-0wX" customClass="yourPrebookingsSection" customModule="iKisanApp" customModuleProvider="target">
             <rect key="frame" x="0.0" y="0.0" width="373" height="105"/>
             <autoresizingMask key="autoresizingMask"/>
             <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
@@ -51,6 +51,9 @@
                         <buttonConfiguration key="configuration" style="filled" title="Modify" cornerStyle="capsule">
                             <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         </buttonConfiguration>
+                        <connections>
+                            <action selector="modifyButtonTapped:" destination="gTV-IL-0wX" eventType="touchUpInside" id="lSL-Nz-mxg"/>
+                        </connections>
                     </button>
                     <button opaque="NO" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JEh-hH-pcF">
                         <rect key="frame" x="264" y="55" width="93" height="36"/>
@@ -63,6 +66,9 @@
                         <buttonConfiguration key="configuration" style="filled" title="Cancel" cornerStyle="capsule">
                             <color key="baseBackgroundColor" systemColor="systemRedColor"/>
                         </buttonConfiguration>
+                        <connections>
+                            <action selector="cancelButtonTapped:" destination="gTV-IL-0wX" eventType="touchUpInside" id="O5s-11-hSU"/>
+                        </connections>
                     </button>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Pending" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4QQ-fQ-h9h">
                         <rect key="frame" x="107.99999999999999" y="64.333333333333329" width="49.333333333333329" height="14.333333333333329"/>
@@ -100,10 +106,10 @@
     <resources>
         <image name="Image 6" width="600" height="300"/>
         <systemColor name="linkColor">
-            <color red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemRedColor">
-            <color red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
