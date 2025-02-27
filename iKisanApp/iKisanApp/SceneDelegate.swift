@@ -10,37 +10,57 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-
-
+    // Your shared DataController instance.
     var dataController: DataController = IKisanDataController()
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-        // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-        // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-      
-    
-        
         guard let windowScene = (scene as? UIWindowScene) else { return }
-            let window = UIWindow(windowScene: windowScene)
-
-        //for changing colour of navigation BackButtons
-        let appearance = UINavigationBar.appearance()
-              appearance.tintColor = .init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+        let window = UIWindow(windowScene: windowScene)
         
-            // Instantiate the storyboard and the MainTabBarController.
-            // Make sure the storyboard identifier "MainTabBarController" is set in Interface Builder.
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        UINavigationBar.appearance().tintColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
         
-        guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController,
-              let viewControllers = tabBarController.viewControllers else {
-            return
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        
+        if !hasCompletedOnboarding {
+            // Load onboarding if not complete.
+            guard let onboardingVC = storyboard.instantiateViewController(withIdentifier: "OnboardingViewController") as? OnboardingViewController else { return }
+            window.rootViewController = onboardingVC
+        } else {
+            // Load the main interface with DataController injection.
+            guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController,
+                  let viewControllers = tabBarController.viewControllers else { return }
+            
+            for viewController in viewControllers {
+                if let navController = viewController as? UINavigationController {
+                    if let homeVC = navController.viewControllers.first as? HomeViewController {
+                        homeVC.dataController = dataController
+                    } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
+                        agriAssistVC.dataController = dataController
+                    } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
+                        coequipVC.dataController = dataController
+                    }
+                } else if let homeVC = viewController as? HomeViewController {
+                    homeVC.dataController = dataController
+                } else if let agriAssistVC = viewController as? AgriAssistViewController {
+                    agriAssistVC.dataController = dataController
+                } else if let coequipVC = viewController as? CoequipViewController {
+                    coequipVC.dataController = dataController
+                }
+            }
+            window.rootViewController = tabBarController
         }
-
-        // Initialize dataController
-       // let dataController: DataController = IKisanDataController()
         
-        // Inject dataController into view controllers
+        self.window = window
+        window.makeKeyAndVisible()
+    }
+    
+    // Helper method to transition to the main interface after onboarding.
+    func switchToMainInterface() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController,
+              let viewControllers = tabBarController.viewControllers else { return }
+        
         for viewController in viewControllers {
             if let navController = viewController as? UINavigationController {
                 if let homeVC = navController.viewControllers.first as? HomeViewController {
@@ -58,13 +78,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 coequipVC.dataController = dataController
             }
         }
-
-
-
-            // Set the tabBarController as the root view controller.
-            window.rootViewController = tabBarController
-            self.window = window
-            window.makeKeyAndVisible()
+        
+        guard let window = self.window else { return }
+        window.rootViewController = tabBarController
+        
+        // Optional animated transition.
+       // UIView.transition(with: window, duration: 0.5, options: [.transitionFlipFromRight], animations: nil)
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

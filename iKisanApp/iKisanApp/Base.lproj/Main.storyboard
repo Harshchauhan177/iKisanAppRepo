@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="HK6-N3-77P">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Ljp-Xl-lFP">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -68,5 +70,107 @@
             </objects>
             <point key="canvasLocation" x="753" y="144"/>
         </scene>
+        <!--Onboarding View Controller-->
+        <scene sceneID="BoV-ML-eCk">
+            <objects>
+                <viewController storyboardIdentifier="OnboardingViewController" id="Ljp-Xl-lFP" customClass="OnboardingViewController" customModule="iKisanApp" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="kDe-Ol-jUE">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XfQ-wC-IGu">
+                                <rect key="frame" x="24" y="728" width="345" height="50"/>
+                                <color key="backgroundColor" red="0.15686274510000001" green="0.3921568627" blue="0.73333333329999995" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="FtY-8x-H6F"/>
+                                    <constraint firstAttribute="width" constant="345" id="wgd-ha-YCC"/>
+                                </constraints>
+                                <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Next"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="cornarRadius">
+                                        <real key="value" value="10"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                                <connections>
+                                    <action selector="nextBtnClicked:" destination="Ljp-Xl-lFP" eventType="touchUpInside" id="JEa-bc-KYH"/>
+                                </connections>
+                            </button>
+                            <pageControl opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" numberOfPages="3" translatesAutoresizingMaskIntoConstraints="NO" id="3AX-cC-AhZ">
+                                <rect key="frame" x="160" y="690.33333333333337" width="73" height="25.666666666666629"/>
+                                <color key="pageIndicatorTintColor" systemColor="systemGray3Color"/>
+                                <color key="currentPageIndicatorTintColor" red="0.15686274510000001" green="0.3921568627" blue="0.73333333329999995" alpha="1" colorSpace="calibratedRGB"/>
+                            </pageControl>
+                            <collectionView multipleTouchEnabled="YES" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="ImO-SX-kKd">
+                                <rect key="frame" x="21.666666666666657" y="109" width="350" height="567"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="567" id="FUW-nB-CD2"/>
+                                    <constraint firstAttribute="width" constant="350" id="Wqi-Bu-dAC"/>
+                                </constraints>
+                                <collectionViewFlowLayout key="collectionViewLayout" scrollDirection="horizontal" minimumLineSpacing="0.0" minimumInteritemSpacing="0.0" id="g0T-R4-E8C">
+                                    <size key="itemSize" width="350" height="567"/>
+                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                </collectionViewFlowLayout>
+                                <cells/>
+                            </collectionView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vgc-oX-jhd" customClass="ButtonStyle" customModule="LearnSathi" customModuleProvider="target">
+                                <rect key="frame" x="303" y="69" width="75" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="AOa-fb-zJ6"/>
+                                    <constraint firstAttribute="width" constant="75" id="b3D-jp-dZs"/>
+                                </constraints>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain">
+                                    <attributedString key="attributedTitle">
+                                        <fragment content="Skip">
+                                            <attributes>
+                                                <font key="NSFont" size="12" name="Helvetica"/>
+                                                <font key="NSOriginalFont" size="12" name="Helvetica"/>
+                                                <paragraphStyle key="NSParagraphStyle" alignment="natural" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                            </attributes>
+                                        </fragment>
+                                    </attributedString>
+                                </buttonConfiguration>
+                                <connections>
+                                    <action selector="skipBtnClicked:" destination="Ljp-Xl-lFP" eventType="touchUpInside" id="Ons-4i-Tmx"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="UYa-Qp-W7n"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="ImO-SX-kKd" firstAttribute="centerX" secondItem="UYa-Qp-W7n" secondAttribute="centerX" id="0OK-ix-Jcg"/>
+                            <constraint firstItem="ImO-SX-kKd" firstAttribute="top" secondItem="UYa-Qp-W7n" secondAttribute="top" constant="50" id="DF3-nM-Fqh"/>
+                            <constraint firstItem="ImO-SX-kKd" firstAttribute="top" secondItem="vgc-oX-jhd" secondAttribute="bottom" constant="10" id="LdT-oW-Bpu"/>
+                            <constraint firstItem="XfQ-wC-IGu" firstAttribute="top" secondItem="3AX-cC-AhZ" secondAttribute="bottom" constant="12" id="VWW-rC-PHp"/>
+                            <constraint firstItem="XfQ-wC-IGu" firstAttribute="centerX" secondItem="UYa-Qp-W7n" secondAttribute="centerX" id="ZKT-zu-Yoc"/>
+                            <constraint firstItem="UYa-Qp-W7n" firstAttribute="bottom" secondItem="XfQ-wC-IGu" secondAttribute="bottom" constant="40" id="grf-6Z-azb"/>
+                            <constraint firstItem="UYa-Qp-W7n" firstAttribute="trailing" secondItem="vgc-oX-jhd" secondAttribute="trailing" constant="15" id="jmb-Qj-ovk"/>
+                            <constraint firstItem="3AX-cC-AhZ" firstAttribute="centerX" secondItem="kDe-Ol-jUE" secondAttribute="centerX" id="t3q-2j-Yc9"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="se3-5M-U1N"/>
+                    <connections>
+                        <outlet property="collectionView" destination="ImO-SX-kKd" id="ZR3-cR-faw"/>
+                        <outlet property="nextBtn" destination="XfQ-wC-IGu" id="ywq-64-Z1u"/>
+                        <outlet property="pageControl" destination="3AX-cC-AhZ" id="hgm-c4-Kmu"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="CUU-YF-5hX" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-847" y="4"/>
+        </scene>
     </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemGray3Color">
+            <color red="0.78039215689999997" green="0.78039215689999997" blue="0.80000000000000004" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
 </document>
