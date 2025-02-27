@@ -196,7 +196,12 @@ struct EquipmentAgri {
     var likedBy: Int
 }
 let sampleUsers: [User] = [
+
     User(userID: UUID(), name: "Raj Pal", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
     User(userID: UUID(), name: "Narendra", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+
+    User(userID: UUID(), name: "Ramesh Singh", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+    User(userID: UUID(), name: "Harsh Kumar", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+
     // Add more sample users as needed
 ]
