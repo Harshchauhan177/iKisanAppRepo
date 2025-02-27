@@ -34,6 +34,18 @@ class preBookingEquipmentSectionAddPreBookCollectionViewCell: UICollectionViewCe
          
     }
     
+    func configure(with equipment: Equipment) {
+        equipmentImageView.image = UIImage(named: equipment.equipmentImage)
+        equipmentNameLabel.text = equipment.name
+        equipmentPriceLabel.text = "₹\(equipment.pricePerHour)/hr"
+        equipmentStatusLabel.text = "Available"
+        equipmentOwnerNameLabel.text = "Hosted By \(equipment.providerName ?? "Unknown")"
+        
+        // Add any additional UI configuration
+        equipmentImageView.layer.cornerRadius = 8
+        equipmentImageView.clipsToBounds = true
+    }
+    
     
     
     

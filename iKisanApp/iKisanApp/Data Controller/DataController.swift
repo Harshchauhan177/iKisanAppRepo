@@ -1,10 +1,3 @@
-//
-//  DataController.swift
-//  iKisanApp
-//
-//  Created by Batch - 2 on 30/01/25.
-//
-
 import Foundation
 
 
@@ -27,12 +20,12 @@ protocol DataController {
     func getEquipmentAgri(forCategory categoryId: UUID) -> [EquipmentAgri]
     func getEquipmentAgriDetails(id: UUID) -> EquipmentAgri?
     
-    // Add  new functions for InfoAboutEquipments
+    // Add these new functions for InfoAboutEquipments
     func getEquipmentSectionHeaders() -> [String]
     func getEquipmentTypeDetails() -> [EquipmentAgri]
     func getRelatedEquipment() -> [EquipmentAgri]
     
-    // Add  new function for SameTypeAllEquipments
+    // Add this new function for SameTypeAllEquipments
     func getEquipmentsByCategory(categoryId: UUID) -> [EquipmentAgri]
     
     //coequip Related functions
@@ -53,7 +46,17 @@ protocol DataController {
     func createRequest(_ request: Request)
     func getTimeSlots(for area: Double) -> [TimeSlot]
     
-    
+    //For Prebooking
+    // Add these new methods to the existing protocol
+    func getRecommendedEquipments() -> [Equipment]
+    func getAvailableEquipments() -> [Equipment]
+    func getPreBookingCalendarEvents() -> [Booking]
+    func getPreBookingFAQs() -> [FAQ]
+    func createPreBooking(equipment: Equipment, date: Date) -> Bool
+    func getEquipmentsByBookingStatus(status: BookingStatus) -> [Equipment]
+    func updateBooking(_ booking: Booking)
+    func getPreBookings() -> [Booking]
+    func getEquipment(byId: UUID) -> Equipment?
 }
 
 
@@ -66,9 +69,59 @@ enum SortOption {
 
 enum EquipmentData {
     static let equipment: [Equipment] = [
-        Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Square Baler", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
-        Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
-        Equipment(equipmentID: UUID(), equipmentImage: "2.jpeg", name: "Trailed Sprayers", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1200,realPricePerHour: 1500 , pricePerAcre: 2300, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Dankaur, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["2.jpeg","2.jpeg","2.jpeg","2.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
+        //
+        Equipment(
+            equipmentID: UUID(),
+            equipmentImage: "1.jpeg",
+            name: "Square Baler",
+            type: "Agricultural",
+            capacity: "1000",
+            availability: Availability(
+                startDate: Calendar.current.date(byAdding: .day, value: 2, to: Date())!,
+                endDate: Calendar.current.date(byAdding: .day, value: 15, to: Date())!
+            ),
+            pricePerHour: 1000,
+            realPricePerHour: 1500,
+            pricePerAcre: 2100,
+            realPricePerAcre: 2500,
+            providerID: UUID(),
+            rating: 4.5,
+            location: "Murshadpur, Greater Noida",
+            coEquipDetail: .Available,
+            equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg"]),
+            modelYear: "2009",
+            mielage: "15L/ac",
+            description: "Best for baling hay and straw",
+            isRecommended: true,
+            providerName: "John Doe"
+        ),
+        Equipment(
+            equipmentID: UUID(),
+            equipmentImage: "4.jpeg",
+            name: "Rice Harvester",
+            type: "Agricultural",
+            capacity: "1000",
+            availability: Availability(
+                startDate: Calendar.current.date(byAdding: .day, value: 5, to: Date())!,
+                endDate: Calendar.current.date(byAdding: .day, value: 25, to: Date())!
+            ),
+            pricePerHour: 1100,
+            realPricePerHour: 1500,
+            pricePerAcre: 2200,
+            realPricePerAcre: 2500,
+            providerID: UUID(),
+            rating: 4.5,
+            location: "Dankaur, Greater Noida",
+            coEquipDetail: .Available,
+            equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg"]),
+            modelYear: "2009",
+            mielage: "15L/ac",
+            description: "Efficient rice harvesting solution",
+            isRecommended: true,
+            providerName: "Mike Johnson"
+        ),
+        Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Efficient rice harvesting solution", isRecommended: true, providerName: "Jane Smith"),
+        //
         Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac"),
         Equipment(equipmentID: UUID(), equipmentImage: "6.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1400,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Alpha2, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
         Equipment(equipmentID: UUID(), equipmentImage: "7.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
@@ -86,7 +139,8 @@ enum EquipmentData {
     static let suggestionsEquipment: [Equipment] = [
         Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Square Baler", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
         Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
-        Equipment(equipmentID: UUID(), equipmentImage: "2.jpeg", name: "Trailed Sprayers", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1200,realPricePerHour: 1500 , pricePerAcre: 2300, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Dankaur, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["2.jpeg","2.jpeg","2.jpeg","2.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
+        //
+        Equipment(equipmentID: UUID(), equipmentImage: "2.jpeg", name: "Trailed Sprayers", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1200,realPricePerHour: 1500 , pricePerAcre: 2300, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Dankaur, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["2.jpeg","2.jpeg","2.jpeg","2.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Perfect for crop spraying", isRecommended: true, providerName: "Mike Johnson"),//
         Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
     ]
 }
@@ -169,16 +223,29 @@ class IKisanDataController: DataController {
     private var acceptedRequests: [Request] = []
     private var pendingRequests: [Request] = []
     private let sampleUsers: [User] = [
-        User(userID: UUID(), name: "Rahul Kumar", phone: "9876543210", 
-             location: Location(latitude: 28.4744, longitude: 77.5040, address: "Greater Noida"), 
+        //
+        User(userID: UUID(), name: "Rahul Kumar", phone: "9876543210",
+             location: Location(latitude: 28.4744, longitude: 77.5040, address: "Greater Noida"),
              selectedCrops: [], fieldArea: 5.0),
-        User(userID: UUID(), name: "Amit Singh", phone: "8765432109", 
-             location: Location(latitude: 28.4745, longitude: 77.5041, address: "Noida"), 
+        User(userID: UUID(), name: "Amit Singh", phone: "8765432109",
+             location: Location(latitude: 28.4745, longitude: 77.5041, address: "Noida"),
              selectedCrops: [], fieldArea: 3.5),
-        User(userID: UUID(), name: "Priya Sharma", phone: "7654321098", 
-             location: Location(latitude: 28.4746, longitude: 77.5042, address: "Delhi"), 
+        User(userID: UUID(), name: "Priya Sharma", phone: "7654321098",
+             location: Location(latitude: 28.4746, longitude: 77.5042, address: "Delhi"),
              selectedCrops: [], fieldArea: 4.0)
     ]
+    private var faqs: [FAQ] = [
+        FAQ(id: UUID(),
+            question: "How does prebooking work?",
+            answer: "Select equipment, choose dates, and confirm booking."),
+        FAQ(id: UUID(),
+            question: "What if equipment is unavailable?",
+            answer: "You'll be notified and can choose alternate dates."),
+        FAQ(id: UUID(),
+            question: "Can I cancel or modify a booking?",
+            answer: "Yes, you can modify or cancel up to 24 hours before the booking.")
+    ]
+    //
     init() {
         self.equipmentList = EquipmentData.equipment
         self.reviewList = EquipmentData.reviews
@@ -756,10 +823,12 @@ class IKisanDataController: DataController {
     // MARK: - CoEquip Methods
     
     func getAllCoEquipRequests() -> [Request] {
+        print("📋 Getting all co-equip requests: \(coEquipRequests.count)")
         return coEquipRequests
     }
     
     func getAcceptedRequests() -> [Request] {
+        print("📋 Getting accepted requests: \(acceptedRequests.count)")
         return acceptedRequests
     }
     
@@ -767,6 +836,8 @@ class IKisanDataController: DataController {
         // Check if request already exists
         if !coEquipRequests.contains(where: { $0.id == request.id }) {
             coEquipRequests.append(request)
+            print("✅ Added new co-equip request: \(request.id)")
+            print("Total requests: \(coEquipRequests.count)")
         }
     }
     
@@ -776,20 +847,24 @@ class IKisanDataController: DataController {
         }
     }
     func deleteRequest(with id: UUID) {
+        print("🗑️ Attempting to delete request with ID: \(id)")
         
         // Remove from coEquip requests
         if let index = coEquipRequests.firstIndex(where: { $0.id == id }) {
             coEquipRequests.remove(at: index)
+            print("✅ Removed from coEquipRequests")
         }
         
         // Remove from pending requests
         if let index = pendingRequests.firstIndex(where: { $0.id == id }) {
             pendingRequests.remove(at: index)
+            print("✅ Removed from pendingRequests")
         }
         
         // Remove from accepted requests
         if let index = acceptedRequests.firstIndex(where: { $0.id == id }) {
             acceptedRequests.remove(at: index)
+            print("✅ Removed from acceptedRequests")
         }
         
         // Notify observers
@@ -798,6 +873,7 @@ class IKisanDataController: DataController {
             object: nil,
             userInfo: ["requestId": id]
         )
+        print("📢 Posted notification for request deletion")
     }
     
     func getEquipmentById(_ id: UUID) -> Equipment? {
@@ -839,12 +915,27 @@ class IKisanDataController: DataController {
         let lowercasedQuery = searchText.lowercased()
         return equipmentList.filter { equipment in
             equipment.name.lowercased().contains(lowercasedQuery) ||
-            equipment.type.lowercased().contains(lowercasedQuery)
+            equipment.type.lowercased().contains(lowercasedQuery) ||
+            equipment.location.lowercased().contains(lowercasedQuery)
         }
     }
     
     func isEquipmentAvailable(on date: Date, for equipment: Equipment) -> Bool {
-        return equipment.isAvailable(on: date)
+        // Check if the date falls within the equipment's availability period
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        
+        // Check if date is in the availability range
+        guard date >= equipment.availability.startDate &&
+              date <= equipment.availability.endDate else {
+            return false
+        }
+        
+        // Check if there are any existing bookings for this date
+        return !bookingsList.contains(where: { booking in
+            booking.equipmentID == equipment.equipmentID &&
+            calendar.isDate(booking.bookingDate, inSameDayAs: date)
+        })
     }
     
     func createRequest(_ request: Request) {
@@ -865,6 +956,59 @@ class IKisanDataController: DataController {
     func getSampleUsers() -> [User] {
         return sampleUsers
     }
+    
+    // Implement the new protocol methods
+    func getRecommendedEquipments() -> [Equipment] {
+        return equipmentList.filter { $0.isRecommended }
+    }
+    
+    func getAvailableEquipments() -> [Equipment] {
+        return equipmentList.filter { $0.isAvailable(on: Date()) }
+    }
+    
+    func getPreBookingCalendarEvents() -> [Booking] {
+        return bookingsList.filter { $0.bookingType == .prebooking }
+    }
+    
+    func getPreBookingFAQs() -> [FAQ] {
+        return faqs
+    }
+    
+    func createPreBooking(equipment: Equipment, date: Date) -> Bool {
+        let booking = Booking(
+            bookingID: UUID(),
+            userID: currentUser.shared.user?.userID ?? UUID(),
+            equipmentID: equipment.equipmentID,
+            bookingType: .prebooking,
+            bookingDate: date,
+            fieldArea: 0.0, // Set appropriate value
+            status: .pending,
+            timeSlot: .morning, // Set appropriate value
+            source: .prebooking  // Add the source parameter
+        )
+        addBooking(booking)
+        return true
+    }
+    
+    func getEquipmentsByBookingStatus(status: BookingStatus) -> [Equipment] {
+        return equipmentList.filter { $0.preBookingStatus == status }
+    }
+    
+    func updateBooking(_ booking: Booking) {
+        if let index = bookingsList.firstIndex(where: { $0.bookingID == booking.bookingID }) {
+            bookingsList[index] = booking
+        }
+    }
+    
+    func getPreBookings() -> [Booking] {
+        // Implementation of getPreBookings method
+        return []
+    }
+    
+    func getEquipment(byId: UUID) -> Equipment? {
+        // Implementation of getEquipment(byId:) method
+        return nil
+    }
 }
 
 class currentUser {
@@ -882,7 +1026,61 @@ class RequestManager {
 
     private init() {
         equipmentItems = [
-            Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
+            //
+            // Existing Harrow equipment
+            Equipment(
+                equipmentID: UUID(),
+                equipmentImage: "5.jpeg",
+                name: "Harrow",
+                type: "Agricultural",
+                capacity: "1000",
+                availability: Availability(startDate: Date(), endDate: Date()),
+                pricePerHour: 1300,
+                realPricePerHour: 1500,
+                pricePerAcre: 2400,
+                realPricePerAcre: 2500,
+                providerID: UUID(),
+                rating: 4.5,
+                location: "Bisrakh, Grater Noida",
+                coEquipDetail: .Available,
+                equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jpeg"]),
+                modelYear: "2009",
+                mielage: "15L/ac",
+                description: "Available in your Area",
+                preBookingStatus: nil  // No prebooking status initially
+            ),
+            
+            // Mahindra Tractor 275
+            Equipment(
+                equipmentID: UUID(),
+                equipmentImage: "tractor_mahindra_275.jpg",
+                name: "Mahindra Tractor",
+                type: "275 DI TU",
+                capacity: "35 HP",
+                availability: Availability(
+                    startDate: Date(),
+                    endDate: Date().addingTimeInterval(30*24*60*60)
+                ),
+                pricePerHour: 800,
+                realPricePerHour: 1000,
+                pricePerAcre: 2000,
+                realPricePerAcre: 2500,
+                providerID: UUID(),
+                rating: 4.5,
+                location: "Greater Noida",
+                coEquipDetail: .Available,
+                equipmentMoreImages: EquipmentMoreImages(images: ["tractor1.jpg", "tractor2.jpg"]),
+                modelYear: "2022",
+                mielage: "10L/hr",
+                description: "35 HP Tractor with advanced features",
+                isRecommended: true,
+                providerName: "John Doe",
+                preBookingStatus: nil  // No prebooking status initially
+            ),
+            
+            // Similar updates for other equipment...
+            // Update Mahindra Tractor 575, Swaraj Tractor 724, and Swaraj Tractor 855
+            // with preBookingStatus: nil
         ]
     }
 }
@@ -890,6 +1088,4 @@ class RequestManager {
 extension Notification.Name {
     static let requestDeleted = Notification.Name("requestDeleted")
 }
-
-
-
+//

@@ -7,14 +7,14 @@
 
 import UIKit
 
-class preBookingEquipmentSection4CollectionViewCell: UICollectionViewCell {
+class preBookingFAQSectionCollectionViewCell: UICollectionViewCell {
 
     @IBOutlet weak var needHelpLabel: UILabel!
     
     
     
     func updatePreBookingSection4Data(with indexPath :IndexPath){
-        needHelpLabel.text = PreBookingScreenData.preBookingSection4Data[indexPath.row].needHelp
+       // needHelpLabel.text = PreBookingScreenData.preBookingSection4Data[indexPath.row].needHelp
 
     }
     

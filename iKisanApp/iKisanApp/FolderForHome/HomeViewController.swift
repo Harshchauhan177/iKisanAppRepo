@@ -16,6 +16,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     private var suggestions: [Equipment] = []
     private var reviews: [ReviewData] = []
     var upcomingBookings: [Booking] = []
+    var selectedSuggestion: String?
     
     var searchBar: UISearchBar!
     var tableView: UITableView!
@@ -110,10 +111,36 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    navigationItem.searchController?.searchBar.text = filteredData[indexPath.row]
-    tableView.isHidden = true
-    navigationItem.searchController?.searchBar.resignFirstResponder()
+//    navigationItem.searchController?.searchBar.text = filteredData[indexPath.row]
+//    tableView.isHidden = true
+//    navigationItem.searchController?.searchBar.resignFirstResponder()
+
+        selectedSuggestion = filteredData[indexPath.row]
+
+        if let navController = self.navigationController {
+            // Check if CreateRequestViewController already exists in the navigation stack
+            if let existingVC = navController.viewControllers.first(where: { $0 is CreateRequestViewController }) as? CreateRequestViewController {
+                existingVC.selectedSuggestion = selectedSuggestion
+                existingVC.dataController = self.dataController
+                existingVC.applySearchFilter()
+                navController.popToViewController(existingVC, animated: true)
+                return
+            }
+            
+            // If CreateRequestViewController is not in the stack, create a new one
+            let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
+            if let createRequestVC = storyboard.instantiateViewController(withIdentifier: "CreateRequestViewController") as? CreateRequestViewController {
+                createRequestVC.dataController = self.dataController
+                createRequestVC.selectedSuggestion = self.selectedSuggestion
+                navigationController?.pushViewController(createRequestVC, animated: true)
+            }
+        }
+
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        
     }
+   
     
     //Search Bar Functions
     
