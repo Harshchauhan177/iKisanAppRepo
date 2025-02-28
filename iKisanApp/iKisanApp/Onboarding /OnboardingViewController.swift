@@ -52,10 +52,9 @@ class OnboardingViewController: UIViewController {
     
     /// Marks onboarding as complete and transitions to the main interface.
     private func completeOnboarding() {
-        // Mark onboarding as completed.
-        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        // Note: We don't mark onboarding as completed here anymore since it will be done after crop selection
         
-        // Call the SceneDelegate helper to switch the root view controller.
+        // Call the SceneDelegate helper to switch to crop selection
         if let sceneDelegate = self.view.window?.windowScene?.delegate as? SceneDelegate {
             sceneDelegate.switchToMainInterface()
         }

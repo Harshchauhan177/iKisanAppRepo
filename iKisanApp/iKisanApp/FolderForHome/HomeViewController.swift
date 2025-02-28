@@ -29,6 +29,21 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     @IBOutlet var collectionView: UICollectionView!
     
     var selectedIndexPath: IndexPath?
+    
+    // Add a computed property to track number of sections
+    private var numberOfSections: Int {
+        return hasUpcomingBookings ? 4 : 3 // Return 4 sections if there are bookings, 3 if not
+    }
+    
+    // Add a function to map visual section to data section
+    private func getDataSection(for visualSection: Int) -> Int {
+        if !hasUpcomingBookings && visualSection >= 1 {
+            // If no upcoming bookings, shift sections up by 1
+            return visualSection + 1
+        }
+        return visualSection
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         collectionView.isHidden = false
@@ -41,14 +56,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             return
         }
         
-        allEquipment = dataController.getAllEquipment()
-        suggestions = dataController.getSuggestions()
-        reviews = dataController.getAllReviews()
-        upcomingBookings = dataController.getUpcomingBookings()
-        
-        // Update hasUpcomingBookings based on actual bookings
-        hasUpcomingBookings = !upcomingBookings.isEmpty
-    
+        // Load data and refresh suggestions
+        loadData()
         
         // Registering Nibs for cells
         let discountsNib = UINib(nibName: "DiscountsCell", bundle: nil)
@@ -76,6 +85,22 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         collectionView.delegate = self
     }
     
+    private func loadData() {
+        allEquipment = dataController.getAllEquipment()
+        suggestions = dataController.getSuggestions()  // This will now use persisted crop selections
+        reviews = dataController.getAllReviews()
+        upcomingBookings = dataController.getUpcomingBookings()
+        
+        // Update hasUpcomingBookings based on actual bookings
+        hasUpcomingBookings = !upcomingBookings.isEmpty
+        
+        // Print debug info
+        print("Loaded suggestions count: \(suggestions.count)")
+        print("Selected crops: \(dataController.getSelectedCrops())")
+        
+        // Refresh UI
+        collectionView.reloadData()
+    }
     
     //MARK: Search Bar Implementation
     
@@ -171,16 +196,16 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     //MARK: Collection View Implementation
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 4 // Always return 4 sections
+        return numberOfSections
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        switch section {
+        let dataSection = getDataSection(for: section)
+        switch dataSection {
         case 0:
             return 6 // Discounts
         case 1:
-            let count = hasUpcomingBookings ? min(upcomingBookings.count, 3) : 0
-            return count
+            return min(upcomingBookings.count, 3)
         case 2:
             return suggestions.count
         case 3:
@@ -191,7 +216,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        switch indexPath.section {
+        let dataSection = getDataSection(for: indexPath.section)
+        switch dataSection {
         case 0:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DiscountsCell", for: indexPath) as! DiscountsCollectionViewCell
             cell.layer.cornerRadius = 10
@@ -204,7 +230,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             cell.layer.cornerRadius = 13
             cell.delegate = self
             
-            // Get the booking and corresponding equipment
             let booking = upcomingBookings[indexPath.row]
             if let equipment = allEquipment.first(where: { $0.equipmentID == booking.equipmentID }) {
                 cell.updateUpcomingBookingsData(with: booking, equipment: equipment)
@@ -214,22 +239,16 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 2:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SuggestionCell", for: indexPath) as! SuggestionCollectionViewCell
             cell.layer.cornerRadius = 13
-            
             let suggestion = suggestions[indexPath.row]
             cell.updateSuggestionData(with: suggestion)
-           // cell.updateSuggestionData(with: indexPath)
             return cell
            
-            
         case 3:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ExploreMoreCell", for: indexPath) as! ExploreMoreCollectionViewCell
             cell.layer.cornerRadius = 13
-            
             let equipment = allEquipment[indexPath.row]
             cell.updateExploreMoreData(with: equipment)
-           // cell.updateExploreMoreData(with: indexPath)
             return cell
-           
 
         default:
             return UICollectionViewCell()
@@ -238,9 +257,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     func generateLayout() -> UICollectionViewLayout {
         let layout = UICollectionViewCompositionalLayout { sectionIndex, _ in
+            let dataSection = self.getDataSection(for: sectionIndex)
             let section: NSCollectionLayoutSection
             
-            switch sectionIndex {
+            switch dataSection {
             case 0:
                 section = self.generateDiscountSection()
             case 1:
@@ -251,41 +271,43 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                 section = self.generateExploreMoreSection()
             default:
                 section = self.generateDiscountSection()
-//            case 1:
-//                section = self.generateSuggestionSection()
-//            case 2:
-//                section = self.generateExploreMoreSection()
-//            default:
-//                section = self.generateDiscountSection()
             }
             
             let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(44))
             let header = NSCollectionLayoutBoundarySupplementaryItem(
                 layoutSize: headerSize,
                 elementKind: UICollectionView.elementKindSectionHeader,
-                alignment: .top
+                alignment: .topLeading
             )
+            
+            // Add consistent insets to header
+            header.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+            
             section.boundarySupplementaryItems = [header]
             return section
         }
         return layout
     }
-
+    
     func generateDiscountSection() -> NSCollectionLayoutSection {
-      // let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(120), heightDimension: .absolute(150))
-       
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
-        
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        
         let groupSize = NSCollectionLayoutSize(widthDimension: .absolute(130), heightDimension: .absolute(116))
-      //let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(116))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.interItemSpacing = .fixed(8)
-        group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 4)
+        
+        // Add 8-point spacing between items (same as suggestions)
+        group.contentInsets = .init(top: 0, leading: 0, bottom: 0, trailing: 8)
+        
         let section = NSCollectionLayoutSection(group: group)
-        section.orthogonalScrollingBehavior = .continuous
+        section.contentInsets = .init(top: 0, leading: 16, bottom: 0, trailing: 8)
+        
+        // Use continuousGroupLeadingBoundary for smoother scrolling
+        section.orthogonalScrollingBehavior = .continuousGroupLeadingBoundary
+        
         return section
     }
+    
     func generateUpcomingBookingsSection() -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
@@ -334,39 +356,30 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         if kind == UICollectionView.elementKindSectionHeader {
             let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as! SectionHeaderCollectionReusableView
             
-            switch indexPath.section {
+            let dataSection = getDataSection(for: indexPath.section)
+            switch dataSection {
             case 0:
                 header.headerLabel.text = "Discounts"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-                header.button.isHidden = true  // Hide button for Discounts section
-                
+                header.button.isHidden = true
             case 1:
-                // Show section and button only if there are upcoming bookings
-                if hasUpcomingBookings {
-                    header.headerLabel.text = "Upcoming Bookings"
-                    header.button.setTitle("View All", for: .normal)
-                    header.button.isHidden = false
-                    header.button.addTarget(self, action: #selector(sectionButtonTapped(_:)), for: .touchUpInside)
-                } else {
-                    header.headerLabel.text = ""
-                    header.button.isHidden = true
-                }
+                header.headerLabel.text = "Upcoming Bookings"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-                
+                header.button.setTitle("View All", for: .normal)
+                header.button.isHidden = false
+                header.button.addTarget(self, action: #selector(sectionButtonTapped(_:)), for: .touchUpInside)
             case 2:
                 header.headerLabel.text = "Suggestion"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-                header.button.isHidden = true  // Hide button for Suggestion section
-                
+                header.button.isHidden = true
             case 3:
                 header.headerLabel.text = "Explore More"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-                header.button.isHidden = true  // Hide button for Explore More section
-                
+                header.button.isHidden = true
             default:
+                header.headerLabel.text = ""
                 header.button.isHidden = true
             }
-            
             return header
         }
         return UICollectionReusableView()
@@ -432,7 +445,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
     
-    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -442,5 +454,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             hasUpcomingBookings = !upcomingBookings.isEmpty
             collectionView.reloadData()
         }
+        
+        // Refresh suggestions based on selected crop
+        suggestions = dataController.getSuggestions()
+        collectionView.reloadData()
     }
 }

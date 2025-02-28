@@ -23,18 +23,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         
         if !hasCompletedOnboarding {
-            // Load onboarding if not complete.
+            // Load onboarding if not complete
             guard let onboardingVC = storyboard.instantiateViewController(withIdentifier: "OnboardingViewController") as? OnboardingViewController else { return }
             window.rootViewController = onboardingVC
         } else {
-            // Load the main interface with DataController injection.
+            // Load the main interface with DataController injection
             guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController,
                   let viewControllers = tabBarController.viewControllers else { return }
             
+            // Initialize HomeViewController with saved crop selections
             for viewController in viewControllers {
                 if let navController = viewController as? UINavigationController {
                     if let homeVC = navController.viewControllers.first as? HomeViewController {
                         homeVC.dataController = dataController
+                        // Refresh suggestions immediately based on saved crops
+                        homeVC.loadViewIfNeeded()
                     } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
                         agriAssistVC.dataController = dataController
                     } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
@@ -42,6 +45,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     }
                 } else if let homeVC = viewController as? HomeViewController {
                     homeVC.dataController = dataController
+                    // Refresh suggestions immediately based on saved crops
+                    homeVC.loadViewIfNeeded()
                 } else if let agriAssistVC = viewController as? AgriAssistViewController {
                     agriAssistVC.dataController = dataController
                 } else if let coequipVC = viewController as? CoequipViewController {
@@ -58,6 +63,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // Helper method to transition to the main interface after onboarding.
     func switchToMainInterface() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        
+        // Check if we're coming from onboarding and haven't shown crop selection
+        if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
+            if let selectCropsVC = storyboard.instantiateViewController(withIdentifier: "selectSessionCropsViewController") as? selectSessionCropsViewController {
+                selectCropsVC.datacontroller = self.dataController as! IKisanDataController
+                
+                // Wrap in navigation controller
+                let navigationController = UINavigationController(rootViewController: selectCropsVC)
+                
+                guard let window = self.window else { return }
+                window.rootViewController = navigationController
+                return
+            }
+        }
+        
+        // Otherwise proceed to main interface
         guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController,
               let viewControllers = tabBarController.viewControllers else { return }
         
