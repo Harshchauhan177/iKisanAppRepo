@@ -221,6 +221,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 0:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DiscountsCell", for: indexPath) as! DiscountsCollectionViewCell
             cell.layer.cornerRadius = 10
+            applyShadowStyling(to: cell)
             let equipment = allEquipment[indexPath.row]
             cell.updateDiscountsData(with: equipment)
             return cell
@@ -228,6 +229,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 1:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "UpcomingBookingsCollectionViewCell", for: indexPath) as! UpcomingBookingsCollectionViewCell
             cell.layer.cornerRadius = 13
+            applyShadowStyling(to: cell)
             cell.delegate = self
             
             let booking = upcomingBookings[indexPath.row]
@@ -239,6 +241,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 2:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SuggestionCell", for: indexPath) as! SuggestionCollectionViewCell
             cell.layer.cornerRadius = 13
+            applyShadowStyling(to: cell)
             let suggestion = suggestions[indexPath.row]
             cell.updateSuggestionData(with: suggestion)
             return cell
@@ -246,6 +249,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 3:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ExploreMoreCell", for: indexPath) as! ExploreMoreCollectionViewCell
             cell.layer.cornerRadius = 13
+            applyShadowStyling(to: cell)
             let equipment = allEquipment[indexPath.row]
             cell.updateExploreMoreData(with: equipment)
             return cell
@@ -288,6 +292,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
         return layout
     }
+
+
     
     func generateDiscountSection() -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
@@ -458,5 +464,28 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         // Refresh suggestions based on selected crop
         suggestions = dataController.getSuggestions()
         collectionView.reloadData()
+    }
+    private func applyShadowStyling(to cell: UICollectionViewCell) {
+        // Create a shadow layer
+        cell.layer.shadowColor = UIColor.black.cgColor
+        cell.layer.shadowOpacity = 0.2
+        cell.layer.shadowRadius = 5
+        cell.layer.shadowOffset = CGSize(width: 0, height: 3)
+//        cell.layer.shadowColor = UIColor.black.cgColor
+//        cell.layer.shadowOffset = CGSize(width: 0, height: 2)
+//        cell.layer.shadowRadius = 4
+//        cell.layer.shadowOpacity = 1
+        cell.layer.masksToBounds = false
+        
+        // Make sure the content view keeps the corner radius
+        cell.contentView.layer.cornerRadius = cell.layer.cornerRadius
+        cell.contentView.layer.masksToBounds = true
+        
+        // Make sure the background is not transparent
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .white
+        
+        // Improve shadow performance by setting its path
+        cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: cell.layer.cornerRadius).cgPath
     }
 }
