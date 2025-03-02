@@ -37,7 +37,7 @@ class preBookingEquipmentSectionAddPreBookCollectionViewCell: UICollectionViewCe
     func configure(with equipment: Equipment) {
         equipmentImageView.image = UIImage(named: equipment.equipmentImage)
         equipmentNameLabel.text = equipment.name
-        equipmentPriceLabel.text = "₹\(equipment.pricePerHour)/hr"
+        equipmentPriceLabel.text = "₹\(equipment.pricePerHour)"
         equipmentStatusLabel.text = "Available"
         equipmentOwnerNameLabel.text = "Hosted By \(equipment.providerName ?? "Unknown")"
         
