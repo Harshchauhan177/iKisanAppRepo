@@ -11,7 +11,7 @@ class helpViewController: UIViewController{
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "mail us"
+        self.title = "Help Center"
 
         // Do any additional setup after loading the view.
     }

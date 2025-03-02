@@ -656,14 +656,35 @@
                     <view key="view" contentMode="scaleToFill" id="B32-Cv-uJf">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="justified" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Tci-TV-2sl">
+                                <rect key="frame" x="16" y="123" width="361" height="510"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="510" id="NHw-lf-c4h"/>
+                                    <constraint firstAttribute="width" constant="361" id="X8q-UE-ada"/>
+                                </constraints>
+                                <mutableString key="text">iKisan is revolutionizing how farmers in India access farming equipment. Our app connects small and mid-sized farmers with reliable and cost-effective machinery rentals, ensuring they get the tools they need at the right time.
+With iKisan, farmers can easily rent tractors, harvesters, plows, and other essential equipment from trusted providers. Our smart recommendation system suggests the best equipment based on crop type, soil conditions, and farming needs.
+Imagine a world where no farmer struggles to find the right tools. Need a tractor for sowing season? Get it delivered to your farm. Looking for a superseder? Find one instantly.
+Our goal is to make farming efficient, affordable, and accessible for everyone. By providing quick access to high-quality equipment, iKisan helps farmers save time, reduce costs, and increase productivity.
+iKisan is owned and managed by [Your Company Name], dedicated to empowering farmers with technology-driven solutions for a brighter future.</mutableString>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="Sm4-Jp-Y48"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <constraints>
+                            <constraint firstItem="Tci-TV-2sl" firstAttribute="leading" secondItem="Sm4-Jp-Y48" secondAttribute="leading" constant="16" id="RZR-rw-r1v"/>
+                            <constraint firstItem="Tci-TV-2sl" firstAttribute="top" secondItem="Sm4-Jp-Y48" secondAttribute="top" constant="20" id="fZy-Xc-u2e"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="App info" id="lz6-8d-LbY"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EsA-GX-7MW" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="6671" y="1141"/>
+            <point key="canvasLocation" x="6670.9923664122134" y="1140.1408450704225"/>
         </scene>
         <!--Setting-->
         <scene sceneID="vRp-jl-uup">
@@ -1743,6 +1764,9 @@
                                                         <constraint firstAttribute="height" constant="35" id="mvR-Gp-U8W"/>
                                                     </constraints>
                                                     <buttonConfiguration key="configuration" style="tinted" image="plus" catalog="system" title="Add Money" cornerStyle="capsule"/>
+                                                    <connections>
+                                                        <segue destination="zCm-4R-vUY" kind="show" id="Uz4-UZ-yS7"/>
+                                                    </connections>
                                                 </button>
                                             </subviews>
                                             <constraints>
@@ -1973,6 +1997,64 @@
             </objects>
             <point key="canvasLocation" x="10625.190839694656" y="-128.16901408450704"/>
         </scene>
+        <!--View Controller-->
+        <scene sceneID="PpD-VO-mVb">
+            <objects>
+                <viewController id="zCm-4R-vUY" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="dim-Tr-jML">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="iKisan wallet can only be used to pay for equipment on iKiasn" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hSV-r9-fVK">
+                                <rect key="frame" x="26.666666666666657" y="113" width="340" height="65"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="340" id="Npg-Fw-u1n"/>
+                                    <constraint firstAttribute="height" constant="65" id="PoP-BQ-gbp"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XAY-hL-OQL">
+                                <rect key="frame" x="26.666666666666657" y="717" width="340" height="52"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="340" id="aYC-sT-4m7"/>
+                                    <constraint firstAttribute="height" constant="52" id="j34-NH-715"/>
+                                </constraints>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" image="plus" catalog="system" title="  Add Money" cornerStyle="capsule">
+                                    <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                </buttonConfiguration>
+                            </button>
+                            <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="FJe-Vh-a05">
+                                <rect key="frame" x="104.66666666666669" y="208" width="184" height="34"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="184" id="fbP-uC-X0Y"/>
+                                    <constraint firstAttribute="height" constant="34" id="vS4-kK-1EY"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="VN4-qj-YQL"/>
+                        <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <constraints>
+                            <constraint firstItem="XAY-hL-OQL" firstAttribute="top" secondItem="FJe-Vh-a05" secondAttribute="bottom" constant="475" id="06O-jL-fjn"/>
+                            <constraint firstItem="VN4-qj-YQL" firstAttribute="bottom" secondItem="XAY-hL-OQL" secondAttribute="bottom" constant="49" id="6cC-yA-ZUX"/>
+                            <constraint firstItem="FJe-Vh-a05" firstAttribute="centerX" secondItem="dim-Tr-jML" secondAttribute="centerX" id="9hk-B9-M6r"/>
+                            <constraint firstItem="FJe-Vh-a05" firstAttribute="centerX" secondItem="dim-Tr-jML" secondAttribute="centerX" id="PMe-V9-bET"/>
+                            <constraint firstItem="XAY-hL-OQL" firstAttribute="centerX" secondItem="dim-Tr-jML" secondAttribute="centerX" id="PYL-Yf-xS4"/>
+                            <constraint firstItem="FJe-Vh-a05" firstAttribute="top" secondItem="hSV-r9-fVK" secondAttribute="bottom" constant="30" id="T0L-5Y-U5k"/>
+                            <constraint firstItem="hSV-r9-fVK" firstAttribute="centerX" secondItem="dim-Tr-jML" secondAttribute="centerX" id="bwl-Ct-s37"/>
+                            <constraint firstItem="hSV-r9-fVK" firstAttribute="top" secondItem="VN4-qj-YQL" secondAttribute="top" constant="10" id="cjF-OW-GM4"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="psp-0d-wWw"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="DUP-IQ-u80" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="11500" y="-123.23943661971832"/>
+        </scene>
         <!--Your Bookings-->
         <scene sceneID="Bri-we-aep">
             <objects>
@@ -2030,10 +2112,10 @@
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGray6Color">
-            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemRedColor">
-            <color red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
