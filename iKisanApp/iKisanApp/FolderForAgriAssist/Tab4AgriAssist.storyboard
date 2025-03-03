@@ -289,10 +289,10 @@
             </objects>
             <point key="canvasLocation" x="5701" y="665"/>
         </scene>
-        <!--Table View Controller-->
+        <!--Account Table View Controller-->
         <scene sceneID="x9h-tg-gIQ">
             <objects>
-                <tableViewController id="cxN-dy-tva" sceneMemberID="viewController">
+                <tableViewController id="cxN-dy-tva" customClass="accountTableViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="q0i-xr-9ou">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -307,7 +307,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="105"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Harsh" translatesAutoresizingMaskIntoConstraints="NO" id="TdB-m5-tOo">
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Harsh" translatesAutoresizingMaskIntoConstraints="NO" id="TdB-m5-tOo">
                                                     <rect key="frame" x="36" y="12.666666666666664" width="80" height="80"/>
                                                     <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     <constraints>
@@ -644,6 +644,10 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" largeTitleDisplayMode="never" id="4yn-i3-A5I"/>
+                    <connections>
+                        <outlet property="imageView" destination="TdB-m5-tOo" id="eOl-4i-a97"/>
+                        <outlet property="nameLabel" destination="Y4i-kG-DQD" id="JTf-1n-Vwv"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="7MT-iP-y5F" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -652,35 +656,90 @@
         <!--App info-->
         <scene sceneID="k0b-nG-1iP">
             <objects>
-                <viewController id="QBK-wt-vSp" sceneMemberID="viewController">
+                <viewController id="QBK-wt-vSp" customClass="appInfoViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="B32-Cv-uJf">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="justified" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Tci-TV-2sl">
-                                <rect key="frame" x="16" y="123" width="361" height="510"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="510" id="NHw-lf-c4h"/>
-                                    <constraint firstAttribute="width" constant="361" id="X8q-UE-ada"/>
-                                </constraints>
-                                <mutableString key="text">iKisan is revolutionizing how farmers in India access farming equipment. Our app connects small and mid-sized farmers with reliable and cost-effective machinery rentals, ensuring they get the tools they need at the right time.
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mtf-xT-nwH">
+                                <rect key="frame" x="16" y="120" width="361" height="456"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="justified" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="769-ME-QiR">
+                                        <rect key="frame" x="8" y="8" width="345" height="257"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="257" id="kee-x2-WNS"/>
+                                            <constraint firstAttribute="width" constant="345" id="ls2-cz-GDR"/>
+                                        </constraints>
+                                        <string key="text">iKisan is revolutionizing how farmers in India access farming equipment. Our app connects small and mid-sized farmers with reliable and cost-effective machinery rentals, ensuring they get the tools they need at the right time.
 With iKisan, farmers can easily rent tractors, harvesters, plows, and other essential equipment from trusted providers. Our smart recommendation system suggests the best equipment based on crop type, soil conditions, and farming needs.
-Imagine a world where no farmer struggles to find the right tools. Need a tractor for sowing season? Get it delivered to your farm. Looking for a superseder? Find one instantly.
-Our goal is to make farming efficient, affordable, and accessible for everyone. By providing quick access to high-quality equipment, iKisan helps farmers save time, reduce costs, and increase productivity.
-iKisan is owned and managed by [Your Company Name], dedicated to empowering farmers with technology-driven solutions for a brighter future.</mutableString>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
+</string>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="justified" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NkZ-q8-aHl">
+                                        <rect key="frame" x="8" y="250" width="345" height="198"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="198" id="VQf-D9-fTv"/>
+                                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="345" id="gvg-YX-bx7"/>
+                                            <constraint firstAttribute="width" constant="345" id="hlx-JG-yBa"/>
+                                        </constraints>
+                                        <string key="text">Imagine a world where no farmer struggles to find the right tools. Need a tractor for sowing season? Get it delivered to your farm. Looking for a superseder? Find one instantly.
+Our goal is to make farming efficient, affordable, and accessible for everyone. By providing quick access to high-quality equipment, iKisan helps farmers save time, reduce costs, and increase productivity.</string>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <constraints>
+                                    <constraint firstItem="769-ME-QiR" firstAttribute="top" secondItem="mtf-xT-nwH" secondAttribute="top" constant="8" id="39S-04-8vB"/>
+                                    <constraint firstAttribute="trailing" secondItem="769-ME-QiR" secondAttribute="trailing" constant="8" id="9v7-Ix-rOk"/>
+                                    <constraint firstItem="NkZ-q8-aHl" firstAttribute="top" secondItem="mtf-xT-nwH" secondAttribute="top" constant="250" id="CXD-FX-CcK"/>
+                                    <constraint firstItem="NkZ-q8-aHl" firstAttribute="leading" secondItem="mtf-xT-nwH" secondAttribute="leading" constant="8" id="I4d-Jy-W3j"/>
+                                    <constraint firstItem="769-ME-QiR" firstAttribute="leading" secondItem="mtf-xT-nwH" secondAttribute="leading" constant="8" id="Qwk-fv-1Ez"/>
+                                    <constraint firstAttribute="trailing" secondItem="NkZ-q8-aHl" secondAttribute="trailing" constant="8" id="Tpv-rw-86y"/>
+                                    <constraint firstAttribute="trailing" secondItem="NkZ-q8-aHl" secondAttribute="trailing" constant="8" id="hBy-Gj-cco"/>
+                                    <constraint firstAttribute="width" constant="361" id="jhE-yr-YbL"/>
+                                    <constraint firstAttribute="height" constant="456" id="lI3-iH-xli"/>
+                                    <constraint firstItem="NkZ-q8-aHl" firstAttribute="leading" secondItem="mtf-xT-nwH" secondAttribute="leading" constant="8" id="zDi-YE-GTF"/>
+                                </constraints>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fxj-qk-QVB">
+                                <rect key="frame" x="16" y="584" width="361" height="100"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" textAlignment="justified" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ypa-rH-o9n">
+                                        <rect key="frame" x="8" y="8" width="345" height="85"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <string key="text">iKisan is owned and managed by [Your Company Name], dedicated to empowering farmers with technology-driven solutions for a brighter future.</string>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="361" id="JnH-Ye-3O2"/>
+                                    <constraint firstAttribute="height" constant="100" id="V7j-Gi-Jz4"/>
+                                </constraints>
+                            </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Sm4-Jp-Y48"/>
                         <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         <constraints>
-                            <constraint firstItem="Tci-TV-2sl" firstAttribute="leading" secondItem="Sm4-Jp-Y48" secondAttribute="leading" constant="16" id="RZR-rw-r1v"/>
-                            <constraint firstItem="Tci-TV-2sl" firstAttribute="top" secondItem="Sm4-Jp-Y48" secondAttribute="top" constant="20" id="fZy-Xc-u2e"/>
+                            <constraint firstItem="Sm4-Jp-Y48" firstAttribute="trailing" secondItem="fxj-qk-QVB" secondAttribute="trailing" constant="16" id="2wb-Br-CWP"/>
+                            <constraint firstItem="mtf-xT-nwH" firstAttribute="top" secondItem="Sm4-Jp-Y48" secondAttribute="top" constant="17" id="BJh-kf-OV7"/>
+                            <constraint firstItem="fxj-qk-QVB" firstAttribute="leading" secondItem="Sm4-Jp-Y48" secondAttribute="leading" constant="16" id="PPN-hY-Cng"/>
+                            <constraint firstItem="mtf-xT-nwH" firstAttribute="leading" secondItem="Sm4-Jp-Y48" secondAttribute="leading" constant="16" id="TrQ-hO-Edf"/>
+                            <constraint firstItem="fxj-qk-QVB" firstAttribute="top" secondItem="mtf-xT-nwH" secondAttribute="bottom" constant="8" symbolic="YES" id="nCF-xe-64b"/>
+                            <constraint firstItem="Sm4-Jp-Y48" firstAttribute="trailing" secondItem="mtf-xT-nwH" secondAttribute="trailing" constant="16" id="v6P-cO-Bj9"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="App info" id="lz6-8d-LbY"/>
+                    <connections>
+                        <outlet property="aboutCompanyView" destination="fxj-qk-QVB" id="OoC-vY-gKj"/>
+                        <outlet property="infoView" destination="mtf-xT-nwH" id="beH-7K-Zhq"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EsA-GX-7MW" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -1093,91 +1152,129 @@ iKisan is owned and managed by [Your Company Name], dedicated to empowering farm
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Need Help? Contact Us!" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4nu-WD-fLo">
-                                <rect key="frame" x="10" y="128" width="264" height="21"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Qty-Eo-QK6">
+                                <rect key="frame" x="16" y="103" width="361" height="110"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Need Help? Contact Us!" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4nu-WD-fLo">
+                                        <rect key="frame" x="8" y="8" width="264" height="21"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="264" id="6KY-Vb-wDC"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="We're here to assist You . If you have any questions or need support, feel free to reach out via email." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="am3-l1-Zf1">
+                                        <rect key="frame" x="8" y="34" width="353" height="65"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="65" id="FLn-NE-NME"/>
+                                            <constraint firstAttribute="width" constant="353" id="KTG-qk-6dC"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="264" id="FlX-lj-Vat"/>
-                                    <constraint firstAttribute="height" constant="21" id="Rvy-Mb-TNw"/>
+                                    <constraint firstAttribute="trailing" secondItem="4nu-WD-fLo" secondAttribute="trailing" constant="89" id="FEP-VK-b1o"/>
+                                    <constraint firstItem="4nu-WD-fLo" firstAttribute="leading" secondItem="Qty-Eo-QK6" secondAttribute="leading" constant="8" id="QZG-5H-hwy"/>
+                                    <constraint firstItem="am3-l1-Zf1" firstAttribute="leading" secondItem="Qty-Eo-QK6" secondAttribute="leading" constant="8" id="VF8-Ql-xfe"/>
+                                    <constraint firstItem="4nu-WD-fLo" firstAttribute="top" secondItem="Qty-Eo-QK6" secondAttribute="top" constant="8" id="Vmu-jb-qca"/>
+                                    <constraint firstItem="am3-l1-Zf1" firstAttribute="top" secondItem="4nu-WD-fLo" secondAttribute="bottom" constant="5" id="Vzh-PW-4EK"/>
+                                    <constraint firstAttribute="width" constant="361" id="b7M-9u-sOo"/>
+                                    <constraint firstAttribute="height" constant="110" id="xBV-hT-Lgf"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="We're here to assist You . If you have any questions or need support, feel free to reach out via email." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="am3-l1-Zf1">
-                                <rect key="frame" x="10" y="154" width="367" height="65"/>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jjo-iF-CjY">
+                                <rect key="frame" x="20" y="228" width="353" height="61"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="mail.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="MYH-hV-7Bg">
+                                        <rect key="frame" x="8" y="12.333333333333321" width="40" height="37"/>
+                                        <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="JiT-34-wTf"/>
+                                            <constraint firstAttribute="width" constant="40" id="Vzb-JO-hQP"/>
+                                        </constraints>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Email us at : " textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4rn-Wq-tsd">
+                                        <rect key="frame" x="56" y="20" width="100" height="21"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="100" id="62u-Ve-hff"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0bH-3T-APt">
+                                        <rect key="frame" x="143" y="13" width="202" height="35"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="202" id="HtO-3V-0fM"/>
+                                        </constraints>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="support@example.com"/>
+                                        <connections>
+                                            <action selector="emailTapped:" destination="bud-Ye-ylk" eventType="touchUpInside" id="77c-0g-fgY"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="65" id="1P9-iB-7gz"/>
-                                    <constraint firstAttribute="width" constant="367" id="C8s-WT-FNc"/>
+                                    <constraint firstItem="MYH-hV-7Bg" firstAttribute="leading" secondItem="jjo-iF-CjY" secondAttribute="leading" constant="8" id="Cm5-a0-F3D"/>
+                                    <constraint firstItem="0bH-3T-APt" firstAttribute="centerY" secondItem="jjo-iF-CjY" secondAttribute="centerY" id="K6a-9U-egU"/>
+                                    <constraint firstAttribute="width" constant="353" id="Los-Gh-HYo"/>
+                                    <constraint firstAttribute="trailing" secondItem="0bH-3T-APt" secondAttribute="trailing" constant="8" id="MpZ-d1-c54"/>
+                                    <constraint firstAttribute="trailing" secondItem="4rn-Wq-tsd" secondAttribute="trailing" constant="197" id="Y2d-hl-RTT"/>
+                                    <constraint firstItem="4rn-Wq-tsd" firstAttribute="leading" secondItem="MYH-hV-7Bg" secondAttribute="trailing" constant="8" symbolic="YES" id="ZAX-L5-FMK"/>
+                                    <constraint firstItem="MYH-hV-7Bg" firstAttribute="centerY" secondItem="jjo-iF-CjY" secondAttribute="centerY" id="i4u-dQ-sCY"/>
+                                    <constraint firstItem="4rn-Wq-tsd" firstAttribute="centerY" secondItem="jjo-iF-CjY" secondAttribute="centerY" id="kXH-fv-ob8"/>
+                                    <constraint firstAttribute="height" constant="61" id="mSe-S4-Aa2"/>
+                                    <constraint firstItem="0bH-3T-APt" firstAttribute="leading" secondItem="MYH-hV-7Bg" secondAttribute="trailing" constant="95" id="riK-dg-AF6"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="mail.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="MYH-hV-7Bg">
-                                <rect key="frame" x="10" y="224.66666666666666" width="40" height="36.999999999999972"/>
-                                <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hq9-in-6st">
+                                <rect key="frame" x="20" y="304" width="353" height="60"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Our team will get response to you as soon as possible." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pLX-jY-RNm">
+                                        <rect key="frame" x="8" y="8" width="367" height="40.666666666666686"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="40" id="KsE-o0-vY6"/>
-                                    <constraint firstAttribute="height" constant="40" id="fBU-yy-Xnn"/>
-                                    <constraint firstAttribute="width" constant="40" id="qPz-MU-rWM"/>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="40" id="rBz-cL-YVB"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="60" id="SFp-Sa-NHP"/>
+                                    <constraint firstAttribute="width" constant="353" id="WAo-uT-XU9"/>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="353" id="byu-hw-ele"/>
+                                    <constraint firstAttribute="height" constant="60" id="gy5-X3-uOF"/>
                                 </constraints>
-                            </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Email us at : " textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4rn-Wq-tsd">
-                                <rect key="frame" x="58" y="233" width="100" height="21"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="100" id="5cu-Wz-BBq"/>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="100" id="AMn-hB-Y07"/>
-                                    <constraint firstAttribute="height" constant="21" id="Kzu-nu-jMx"/>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="21" id="TuG-F9-js5"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Our team will get response to you as soon as possible." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pLX-jY-RNm">
-                                <rect key="frame" x="10" y="273" width="367" height="40.666666666666686"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="367" id="HXe-Tg-gms"/>
-                                    <constraint firstAttribute="height" constant="40.670000000000002" id="Zu6-6J-waA"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0bH-3T-APt">
-                                <rect key="frame" x="154" y="226" width="202" height="35"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="202" id="WuW-iH-0f1"/>
-                                    <constraint firstAttribute="height" constant="35" id="qHX-tN-AOj"/>
-                                </constraints>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="support@example.com"/>
-                                <connections>
-                                    <action selector="emailTapped:" destination="bud-Ye-ylk" eventType="touchUpInside" id="77c-0g-fgY"/>
-                                </connections>
-                            </button>
+                            </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="3Pa-tH-dND"/>
                         <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         <constraints>
-                            <constraint firstItem="4rn-Wq-tsd" firstAttribute="leading" secondItem="MYH-hV-7Bg" secondAttribute="trailing" constant="8" symbolic="YES" id="2p4-ap-Sor"/>
-                            <constraint firstItem="am3-l1-Zf1" firstAttribute="top" secondItem="4nu-WD-fLo" secondAttribute="bottom" constant="5" id="6h1-ja-eFu"/>
-                            <constraint firstItem="4nu-WD-fLo" firstAttribute="top" secondItem="3Pa-tH-dND" secondAttribute="top" constant="25" id="EqW-yg-f9P"/>
-                            <constraint firstItem="4rn-Wq-tsd" firstAttribute="leading" secondItem="MYH-hV-7Bg" secondAttribute="trailing" constant="8" symbolic="YES" id="H3H-WH-DbM"/>
-                            <constraint firstItem="MYH-hV-7Bg" firstAttribute="leading" secondItem="3Pa-tH-dND" secondAttribute="leading" constant="10" id="KCd-xB-GFJ"/>
-                            <constraint firstItem="4rn-Wq-tsd" firstAttribute="top" secondItem="am3-l1-Zf1" secondAttribute="bottom" constant="14" id="Qtf-oe-vb6"/>
-                            <constraint firstItem="MYH-hV-7Bg" firstAttribute="leading" secondItem="3Pa-tH-dND" secondAttribute="leading" constant="10" id="Wa3-sR-K9v"/>
-                            <constraint firstItem="pLX-jY-RNm" firstAttribute="leading" secondItem="3Pa-tH-dND" secondAttribute="leading" constant="10" id="Yrb-gb-2EX"/>
-                            <constraint firstItem="4nu-WD-fLo" firstAttribute="leading" secondItem="3Pa-tH-dND" secondAttribute="leading" constant="10" id="Z1m-X8-vP2"/>
-                            <constraint firstItem="0bH-3T-APt" firstAttribute="leading" secondItem="MYH-hV-7Bg" secondAttribute="trailing" constant="104" id="ZIp-tE-ArU"/>
-                            <constraint firstItem="pLX-jY-RNm" firstAttribute="top" secondItem="MYH-hV-7Bg" secondAttribute="bottom" constant="10" id="ZOx-KN-BR1"/>
-                            <constraint firstItem="MYH-hV-7Bg" firstAttribute="top" secondItem="am3-l1-Zf1" secondAttribute="bottom" constant="4" id="ewE-Og-VUN"/>
-                            <constraint firstItem="am3-l1-Zf1" firstAttribute="leading" secondItem="3Pa-tH-dND" secondAttribute="leading" constant="10" id="iBa-Mz-HAy"/>
-                            <constraint firstItem="0bH-3T-APt" firstAttribute="top" secondItem="am3-l1-Zf1" secondAttribute="bottom" constant="7" id="o5l-5a-4Vo"/>
+                            <constraint firstItem="hq9-in-6st" firstAttribute="leading" secondItem="3Pa-tH-dND" secondAttribute="leading" constant="20" id="3JQ-rA-5jl"/>
+                            <constraint firstItem="hq9-in-6st" firstAttribute="leading" secondItem="3Pa-tH-dND" secondAttribute="leading" constant="20" id="3Q9-up-mCy"/>
+                            <constraint firstItem="hq9-in-6st" firstAttribute="top" secondItem="jjo-iF-CjY" secondAttribute="bottom" constant="15" id="5vh-xh-ryl"/>
+                            <constraint firstItem="Qty-Eo-QK6" firstAttribute="top" secondItem="3Pa-tH-dND" secondAttribute="top" id="97u-gb-n3d"/>
+                            <constraint firstItem="Qty-Eo-QK6" firstAttribute="leading" secondItem="3Pa-tH-dND" secondAttribute="leading" constant="16" id="D3F-rI-Zkz"/>
+                            <constraint firstItem="3Pa-tH-dND" firstAttribute="trailing" secondItem="hq9-in-6st" secondAttribute="trailing" constant="20" id="Fb4-Ut-h1q"/>
+                            <constraint firstItem="3Pa-tH-dND" firstAttribute="trailing" secondItem="Qty-Eo-QK6" secondAttribute="trailing" constant="16" id="KVT-22-Jr1"/>
+                            <constraint firstItem="jjo-iF-CjY" firstAttribute="leading" secondItem="3Pa-tH-dND" secondAttribute="leading" constant="20" id="R8b-9h-88t"/>
+                            <constraint firstItem="3Pa-tH-dND" firstAttribute="trailing" secondItem="jjo-iF-CjY" secondAttribute="trailing" constant="20" id="RGw-Py-YMQ"/>
+                            <constraint firstItem="jjo-iF-CjY" firstAttribute="top" secondItem="Qty-Eo-QK6" secondAttribute="bottom" constant="15" id="U5y-yp-zLb"/>
+                            <constraint firstItem="3Pa-tH-dND" firstAttribute="trailing" secondItem="hq9-in-6st" secondAttribute="trailing" constant="20" id="aFI-XM-jgM"/>
+                            <constraint firstItem="hq9-in-6st" firstAttribute="top" secondItem="jjo-iF-CjY" secondAttribute="bottom" constant="15" id="odq-XW-8t1"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="Hpd-RO-v3J"/>
+                    <connections>
+                        <outlet property="mailUsView" destination="jjo-iF-CjY" id="zNv-Mm-Zo7"/>
+                        <outlet property="needhelpview" destination="Qty-Eo-QK6" id="zml-A8-fem"/>
+                        <outlet property="teamView" destination="hq9-in-6st" id="lZJ-rQ-i2v"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="w6m-k9-h75" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -1527,10 +1624,10 @@ iKisan is owned and managed by [Your Company Name], dedicated to empowering farm
             </objects>
             <point key="canvasLocation" x="6178" y="-446"/>
         </scene>
-        <!--Table View Controller-->
+        <!--Profile Table View Controller-->
         <scene sceneID="bHS-XX-I4n">
             <objects>
-                <tableViewController id="bhN-bQ-WZj" sceneMemberID="viewController">
+                <tableViewController id="bhN-bQ-WZj" customClass="profileTableViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="OG7-dz-ptN">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1545,7 +1642,7 @@ iKisan is owned and managed by [Your Company Name], dedicated to empowering farm
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="150"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Harsh" translatesAutoresizingMaskIntoConstraints="NO" id="pBf-LV-sVv">
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Harsh" translatesAutoresizingMaskIntoConstraints="NO" id="pBf-LV-sVv">
                                                     <rect key="frame" x="126.66666666666669" y="25" width="100" height="100"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="100" id="4ty-dT-1uP"/>
@@ -1696,6 +1793,12 @@ iKisan is owned and managed by [Your Company Name], dedicated to empowering farm
                             <outlet property="delegate" destination="bhN-bQ-WZj" id="JS9-lI-Gss"/>
                         </connections>
                     </tableView>
+                    <connections>
+                        <outlet property="emailLabel" destination="3fZ-3x-xlL" id="rxd-44-u6p"/>
+                        <outlet property="imageView" destination="pBf-LV-sVv" id="9ya-Xu-5Fm"/>
+                        <outlet property="mobNumLabel" destination="w7h-vZ-0Eh" id="UJs-ta-g8P"/>
+                        <outlet property="nameLabel" destination="wkf-G4-udm" id="fSv-BB-XMO"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BVd-cI-7dJ" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -1997,10 +2100,10 @@ iKisan is owned and managed by [Your Company Name], dedicated to empowering farm
             </objects>
             <point key="canvasLocation" x="10625.190839694656" y="-128.16901408450704"/>
         </scene>
-        <!--View Controller-->
+        <!--Kisan Wallet View Controller-->
         <scene sceneID="PpD-VO-mVb">
             <objects>
-                <viewController id="zCm-4R-vUY" sceneMemberID="viewController">
+                <viewController id="zCm-4R-vUY" customClass="iKisanWalletViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="dim-Tr-jML">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2025,6 +2128,9 @@ iKisan is owned and managed by [Your Company Name], dedicated to empowering farm
                                 <buttonConfiguration key="configuration" style="filled" image="plus" catalog="system" title="  Add Money" cornerStyle="capsule">
                                     <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 </buttonConfiguration>
+                                <connections>
+                                    <action selector="addMoneyButton:" destination="zCm-4R-vUY" eventType="touchUpInside" id="Vol-jN-VSB"/>
+                                </connections>
                             </button>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="FJe-Vh-a05">
                                 <rect key="frame" x="104.66666666666669" y="208" width="184" height="34"/>
@@ -2050,6 +2156,9 @@ iKisan is owned and managed by [Your Company Name], dedicated to empowering farm
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="psp-0d-wWw"/>
+                    <connections>
+                        <outlet property="amountTextField" destination="FJe-Vh-a05" id="s0r-cW-1Wm"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="DUP-IQ-u80" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -2112,10 +2221,10 @@ iKisan is owned and managed by [Your Company Name], dedicated to empowering farm
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGray6Color">
-            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemRedColor">
-            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
