@@ -13,14 +13,17 @@ class OnboardingViewController: UIViewController {
             pageControl.currentPage = currentPage
             if currentPage == slides.count - 1 {
                 nextBtn.setTitle("Get Started", for: .normal)
+               // nextBtn.layer.cornerRadius = 10
             } else {
                 nextBtn.setTitle("Next", for: .normal)
+               // nextBtn.layer.cornerRadius = 10
             }
         }
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        nextBtn.layer.cornerRadius = 7
         
         slides = [
             OnboardingSlide(title: "Find Equipments", description: "Find the best Equipments as service nearby your locality.", image: UIImage(named: "on1") ?? UIImage(), logo: UIImage(systemName: "magnifyingglass")),

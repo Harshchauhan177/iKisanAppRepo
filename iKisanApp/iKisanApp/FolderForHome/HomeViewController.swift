@@ -119,7 +119,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             tableView.dataSource = self
             tableView.isHidden = true
             tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-            tableView.backgroundColor = .init(red: 0.6667, green: 0.6667, blue: 0.5882, alpha: 1.0)
+            tableView.backgroundColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)/*.init(red: 0.6667, green: 0.6667, blue: 0.5882, alpha: 1.0)*/
         
             view.addSubview(tableView)
         }
@@ -131,7 +131,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.text = filteredData[indexPath.row]
-        cell.backgroundColor = .init(red: 0.6667, green: 0.6667, blue: 0.5882, alpha: 1.0)
+        cell.backgroundColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)
         return cell
     }
     
@@ -221,7 +221,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 0:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DiscountsCell", for: indexPath) as! DiscountsCollectionViewCell
             cell.layer.cornerRadius = 10
-            applyShadowStyling(to: cell)
+            //applyShadowStyling(to: cell)
             let equipment = allEquipment[indexPath.row]
             cell.updateDiscountsData(with: equipment)
             return cell
@@ -229,7 +229,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 1:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "UpcomingBookingsCollectionViewCell", for: indexPath) as! UpcomingBookingsCollectionViewCell
             cell.layer.cornerRadius = 13
-            applyShadowStyling(to: cell)
+           // applyShadowStyling(to: cell)
             cell.delegate = self
             
             let booking = upcomingBookings[indexPath.row]
@@ -241,7 +241,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 2:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SuggestionCell", for: indexPath) as! SuggestionCollectionViewCell
             cell.layer.cornerRadius = 13
-            applyShadowStyling(to: cell)
+          //  applyShadowStyling(to: cell)
             let suggestion = suggestions[indexPath.row]
             cell.updateSuggestionData(with: suggestion)
             return cell
@@ -249,7 +249,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 3:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ExploreMoreCell", for: indexPath) as! ExploreMoreCollectionViewCell
             cell.layer.cornerRadius = 13
-            applyShadowStyling(to: cell)
+           // applyShadowStyling(to: cell)
             let equipment = allEquipment[indexPath.row]
             cell.updateExploreMoreData(with: equipment)
             return cell
@@ -465,27 +465,27 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         suggestions = dataController.getSuggestions()
         collectionView.reloadData()
     }
-    private func applyShadowStyling(to cell: UICollectionViewCell) {
-        // Create a shadow layer
-        cell.layer.shadowColor = UIColor.black.cgColor
-        cell.layer.shadowOpacity = 0.2
-        cell.layer.shadowRadius = 5
-        cell.layer.shadowOffset = CGSize(width: 0, height: 3)
+//    private func applyShadowStyling(to cell: UICollectionViewCell) {
+//        // Create a shadow layer
 //        cell.layer.shadowColor = UIColor.black.cgColor
-//        cell.layer.shadowOffset = CGSize(width: 0, height: 2)
-//        cell.layer.shadowRadius = 4
-//        cell.layer.shadowOpacity = 1
-        cell.layer.masksToBounds = false
-        
-        // Make sure the content view keeps the corner radius
-        cell.contentView.layer.cornerRadius = cell.layer.cornerRadius
-        cell.contentView.layer.masksToBounds = true
-        
-        // Make sure the background is not transparent
-        cell.backgroundColor = .clear
-        cell.contentView.backgroundColor = .white
-        
-        // Improve shadow performance by setting its path
-        cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: cell.layer.cornerRadius).cgPath
-    }
+//        cell.layer.shadowOpacity = 0.2
+//        cell.layer.shadowRadius = 5
+//        cell.layer.shadowOffset = CGSize(width: 0, height: 3)
+////        cell.layer.shadowColor = UIColor.black.cgColor
+////        cell.layer.shadowOffset = CGSize(width: 0, height: 2)
+////        cell.layer.shadowRadius = 4
+////        cell.layer.shadowOpacity = 1
+//        cell.layer.masksToBounds = false
+//        
+//        // Make sure the content view keeps the corner radius
+//        cell.contentView.layer.cornerRadius = cell.layer.cornerRadius
+//        cell.contentView.layer.masksToBounds = true
+//        
+//        // Make sure the background is not transparent
+//        cell.backgroundColor = .clear
+//        cell.contentView.backgroundColor = .white
+//        
+//        // Improve shadow performance by setting its path
+//        cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: cell.layer.cornerRadius).cgPath
+//    }
 }

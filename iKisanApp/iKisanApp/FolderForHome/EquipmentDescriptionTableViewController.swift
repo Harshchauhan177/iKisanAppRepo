@@ -106,12 +106,15 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     private func setupUI() {
         bigView.layer.cornerRadius = 10
+        bigView.applyCardShadow()
         ratingView.layer.cornerRadius = 17
+        ratingView.applyCardShadow()
         bigImageView.layer.cornerRadius = 10
         smallImageView1.layer.cornerRadius = 7
         smallImageView2.layer.cornerRadius = 7
         smallImageView3.layer.cornerRadius = 7
         moreView.layer.cornerRadius = 7
+        moreView.applyCardShadow()
         
         collectionView.delegate = self
         collectionView.dataSource = self
