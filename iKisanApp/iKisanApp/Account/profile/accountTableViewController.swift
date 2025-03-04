@@ -14,6 +14,9 @@ class accountTableViewController: UITableViewController {
     
     @IBOutlet weak var nameLabel: UILabel!
     
+    
+    @IBOutlet weak var selectCropsCell: UITableViewCell!
+    
     private let userDefaults = UserDefaults.standard
     
     override func viewDidLoad() {
@@ -56,6 +59,9 @@ class accountTableViewController: UITableViewController {
         if let singOutCellIndexPath = tableView.indexPath(for: singOutcell), indexPath == singOutCellIndexPath {
             showSignOutAlert()
         }
+        if let selectCropCellIndexPath = tableView.indexPath(for: selectCropsCell), indexPath == selectCropCellIndexPath {
+            selectCropViewController()
+        }
         tableView.deselectRow(at: indexPath, animated: true)
     }
 
@@ -66,5 +72,12 @@ class accountTableViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
 
+    private func selectCropViewController() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let viewController = storyboard.instantiateViewController(withIdentifier: "selectSessionCropsViewController") as? selectSessionCropsViewController{
+            
+            navigationController?.pushViewController(viewController, animated: true)
+        }
+    }
 
 }
