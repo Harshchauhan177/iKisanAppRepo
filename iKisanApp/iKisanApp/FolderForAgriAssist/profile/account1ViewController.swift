@@ -7,7 +7,7 @@
 
 import UIKit
 
-class accountViewController: UIViewController,UITableViewDataSource, UITableViewDelegate {
+class account1ViewController: UIViewController,UITableViewDataSource, UITableViewDelegate {
 
     @IBOutlet weak var accountTableView: UITableView!
     
