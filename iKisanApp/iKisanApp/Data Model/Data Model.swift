@@ -39,17 +39,18 @@ struct Equipment {
 }
 struct Request {
     let id: UUID
-    let userId: UUID
-    let equipmentId: UUID
-    let requestedDate: Date
+    var userId: UUID
+    var equipmentId: UUID
+    var requestedDate: Date
     var status: BookingStatus
-    let type: BookingType
-    let area: Double
+    var type: BookingType
+    var area: Double
     let timeSlot: TimeSlot
-    let timePeriod: String?
-    let location: String
-    let selectedUsers: [User]
-    let joinedFarmers: [UUID]
+    var timePeriod: String?
+    var location: String
+    var typeOfRequest: RequestType
+    var selectedUsers: [User]
+    var joinedFarmers: [UUID]
     
     init(id: UUID = UUID(), // Default to new UUID if not provided
          userId: UUID,
@@ -61,6 +62,7 @@ struct Request {
          timeSlot: TimeSlot,
          timePeriod: String?,
          location: String,
+         typeOfRequest: RequestType,
          selectedUsers: [User],
          joinedFarmers: [UUID]) {
         self.id = id
@@ -73,6 +75,7 @@ struct Request {
         self.timeSlot = timeSlot
         self.timePeriod = timePeriod
         self.location = location
+        self.typeOfRequest = typeOfRequest
         self.selectedUsers = selectedUsers
         self.joinedFarmers = joinedFarmers
     }
@@ -81,7 +84,11 @@ struct Availability {
     var startDate: Date
     var endDate: Date
 }
-
+enum RequestType {
+    case myRequest
+    case acceptedRequest
+    
+}
 enum coEquipState{
     case Available
     case Unavailable

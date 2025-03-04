@@ -140,6 +140,51 @@ enum EquipmentData {
         ReviewData(reviewHeading: "Very Bad", reviewDescription: "The Swaraj Combine was disappointing. It kept breaking down, fuel consumption was high, and I lost valuable time waiting for repairs. Not worth the hassle.", rating: 1),
         
         ]
+    static  let sampleRequests: [Request] = [
+        Request(
+            userId: sampleUsers[0].userID,
+            equipmentId: UUID(), // Replace with an actual sample equipment ID if available
+            requestedDate: Date(),
+            status: .pending,
+            type: .onDemand,
+            area: 5.0,
+            timeSlot: .morning,
+            timePeriod: "2 hours",
+            location: "Delhi",
+            typeOfRequest: .acceptedRequest,
+            selectedUsers: [sampleUsers[1], sampleUsers[2]],
+            joinedFarmers: [sampleUsers[3].userID]
+        ),
+        Request(
+            userId: sampleUsers[1].userID,
+            equipmentId: UUID(),
+            requestedDate: Date().addingTimeInterval(86400), // One day later
+            status: .confirmed,
+            type: .prebooking,
+            area: 10.0,
+            timeSlot: .afternoon,
+            timePeriod: "4 hours",
+            location: "Punjab",
+            typeOfRequest: .acceptedRequest,
+            selectedUsers: [sampleUsers[0], sampleUsers[3]],
+            joinedFarmers: [sampleUsers[2].userID]
+        ),
+        Request(
+            userId: sampleUsers[2].userID,
+            equipmentId: UUID(),
+            requestedDate: Date().addingTimeInterval(172800), // Two days later
+            status: .completed,
+            type: .coEquip,
+            area: 7.5,
+            timeSlot: .evening,
+            timePeriod: "3 hours",
+            location: "Uttar Pradesh",
+            typeOfRequest: .myRequest,
+            selectedUsers: [sampleUsers[1]],
+            joinedFarmers: [sampleUsers[0].userID, sampleUsers[3].userID]
+        )
+    ]
+
     static let suggestionsEquipment: [Equipment] = [
         Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Square Baler", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area(For Rice Fields)"),
         Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
@@ -735,7 +780,6 @@ class IKisanDataController: DataController {
             let filteredEquipment = suggestionList.filter { equipment in
                 selectedCrops.contains(equipment.type)
             }
-            print("Filtered equipment count: \(filteredEquipment.count) for crops: \(selectedCrops)")
             return filteredEquipment
         }
         return suggestionList
@@ -763,23 +807,17 @@ class IKisanDataController: DataController {
             $0.location.lowercased().contains(lowercasedQuery)
         }
     }
-    
-    // AgriAssist implementations
     func getAllCrops() -> [AgriCrop] {
         return crops
     }
     
     func getCropCategory(forCrop cropId: UUID) -> CropCategory? {
-        print("Looking for crop category with ID: \(cropId)")
         let category = cropCategories.first { $0.id == cropId }
-        print("Found category: \(category?.cropName ?? "nil")")
         return category
     }
     
     func getEquipmentCategories(forCrop cropId: UUID) -> [EquipmentCategory] {
-        print("Looking for equipment categories for crop ID: \(cropId)")
         let categories = cropCategories.first { $0.id == cropId }?.equipments ?? []
-        print("Found \(categories.count) equipment categories")
         return categories
     }
     
@@ -839,24 +877,17 @@ class IKisanDataController: DataController {
         }
         return false
     }
-    // MARK: - CoEquip Methods
-    
     func getAllCoEquipRequests() -> [Request] {
-        print("📋 Getting all co-equip requests: \(coEquipRequests.count)")
         return coEquipRequests
     }
     
     func getAcceptedRequests() -> [Request] {
-        print("📋 Getting accepted requests: \(acceptedRequests.count)")
         return acceptedRequests
     }
     
     func addNewCoEquipRequest(_ request: Request) {
-        // Check if request already exists
         if !coEquipRequests.contains(where: { $0.id == request.id }) {
             coEquipRequests.append(request)
-            print("✅ Added new co-equip request: \(request.id)")
-            print("Total requests: \(coEquipRequests.count)")
         }
     }
     
@@ -866,33 +897,20 @@ class IKisanDataController: DataController {
         }
     }
     func deleteRequest(with id: UUID) {
-        print("🗑️ Attempting to delete request with ID: \(id)")
-        
-        // Remove from coEquip requests
         if let index = coEquipRequests.firstIndex(where: { $0.id == id }) {
             coEquipRequests.remove(at: index)
-            print("✅ Removed from coEquipRequests")
         }
-        
-        // Remove from pending requests
         if let index = pendingRequests.firstIndex(where: { $0.id == id }) {
             pendingRequests.remove(at: index)
-            print("✅ Removed from pendingRequests")
         }
-        
-        // Remove from accepted requests
         if let index = acceptedRequests.firstIndex(where: { $0.id == id }) {
             acceptedRequests.remove(at: index)
-            print("✅ Removed from acceptedRequests")
         }
-        
-        // Notify observers
         NotificationCenter.default.post(
             name: .requestDeleted,
             object: nil,
             userInfo: ["requestId": id]
         )
-        print("📢 Posted notification for request deletion")
     }
     
     func getEquipmentById(_ id: UUID) -> Equipment? {
@@ -900,7 +918,6 @@ class IKisanDataController: DataController {
     }
     
     func getCoEquipUsers() -> [User] {
-        // Return list of users who can participate in co-equip
         return []
     }
     func getEquipmentSuggestions() -> [String] {
@@ -915,7 +932,7 @@ class IKisanDataController: DataController {
     
     func filterEquipment(by query: String) -> [Equipment] {
         _ = query.lowercased()
-        return [] // Placeholder implementation
+        return []
     }
     
     func getCategories() -> [String] {
@@ -1058,8 +1075,6 @@ class RequestManager {
 
     private init() {
         equipmentItems = [
-            //
-            // Existing Harrow equipment
             Equipment(
                 equipmentID: UUID(),
                 equipmentImage: "5.jpeg",
@@ -1079,10 +1094,8 @@ class RequestManager {
                 modelYear: "2009",
                 mielage: "15L/ac",
                 description: "Available in your Area",
-                preBookingStatus: nil  // No prebooking status initially
+                preBookingStatus: nil  
             ),
-            
-            // Mahindra Tractor 275
             Equipment(
                 equipmentID: UUID(),
                 equipmentImage: "tractor_mahindra_275.jpg",
@@ -1107,17 +1120,12 @@ class RequestManager {
                 description: "35 HP Tractor with advanced features",
                 isRecommended: true,
                 providerName: "John Doe",
-                preBookingStatus: nil  // No prebooking status initially
+                preBookingStatus: nil
             ),
-            
-            // Similar updates for other equipment...
-            // Update Mahindra Tractor 575, Swaraj Tractor 724, and Swaraj Tractor 855
-            // with preBookingStatus: nil
         ]
     }
 }
-
 extension Notification.Name {
     static let requestDeleted = Notification.Name("requestDeleted")
 }
-//
+

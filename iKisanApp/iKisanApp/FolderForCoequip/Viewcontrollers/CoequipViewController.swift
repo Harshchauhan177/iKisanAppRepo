@@ -5,24 +5,13 @@ class CoequipViewController: UIViewController {
     @IBOutlet weak var CoequipSegmentedControl: UISegmentedControl!
     @IBOutlet weak var CoequipTableView: UITableView!
     
-    var dataController: DataController? {
-        didSet {
-            if isViewLoaded {
-                // Fetch initial data
-                loadInitialData()
-                CoequipTableView?.reloadData()
-            }
-        }
-    }
-    
-    var currentRequest: Request? // Define a property for the current request
+    var dataController: DataController!
+    var currentRequest: Request?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
-        updateUI() // Call to update UI when the view loads
-        
-        // Add observer for request deletion
+        updateUI()
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleRequestDeletion(_:)),
@@ -33,13 +22,9 @@ class CoequipViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        print("📱 CoequipViewController will appear")
-        
-        // Load data and update UI
+       
         loadInitialData()
         updateUI()
-        
-        // If we have a current request, scroll to it
         if let currentRequest = currentRequest,
            let dataController = dataController {
             let requests = dataController.getAllCoEquipRequests()
@@ -51,7 +36,6 @@ class CoequipViewController: UIViewController {
     }
     
     private func setupTableView() {
-        // Register cells from nibs
         CoequipTableView.register(UINib(nibName: "MyRequestTableViewCell", bundle: nil), 
                                 forCellReuseIdentifier: "MyRequestTableViewCell")
         CoequipTableView.register(UINib(nibName: "AcceptRequestTableViewCell", bundle: nil), 
@@ -59,14 +43,11 @@ class CoequipViewController: UIViewController {
         
         CoequipTableView.delegate = self
         CoequipTableView.dataSource = self
-        
         CoequipSegmentedControl.selectedSegmentIndex = 0
     }
-    
     @IBAction func segmentedControlValueChanged(_ sender: UISegmentedControl) {
         CoequipTableView.reloadData()
     }
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "goToAcceptRequest",
            let destinationVC = segue.destination as? AcceptRequestTableViewController,
@@ -78,97 +59,52 @@ class CoequipViewController: UIViewController {
                   let request = sender as? Request {
             destinationVC.request = request
             destinationVC.dataController = dataController
-            self.currentRequest = request // Set the current request
-        } else if segue.identifier == "goToSearchViewController", // Replace with actual segue ID
+            self.currentRequest = request
+        } else if segue.identifier == "goToSearchViewController",
                let searchVC = segue.destination as? SearchViewController {
                 searchVC.dataController = self.dataController
             }
     }
 
-    func someFunction() {
-        // Use the currentRequest property
-        if let request = currentRequest {
-            if let equipment = dataController?.getEquipmentById(request.equipmentId) {
-                // Now you can safely use equipment
-                print("Equipment name: \(equipment.name)")
-                // Continue with your logic...
-            } else {
-                print("Equipment not found for ID: \(request.equipmentId)")
-            }
-        }
-    }
 
      func loadInitialData() {
         guard let dataController = dataController else {
-            print("⚠️ DataController is nil in CoequipViewController")
             return
         }
-        
-        print("📱 Loading initial data for CoequipViewController")
         let requests = dataController.getAllCoEquipRequests()
-        print("📊 Found \(requests.count) requests")
-        
-        // If there's a current request, check if it still exists
         if let currentRequest = currentRequest {
-            print("🔍 Current request: \(currentRequest.id)")
-            
-            // If the current request was deleted, clear it
             if !requests.contains(where: { $0.id == currentRequest.id }) {
-                print("❌ Current request no longer exists")
                 self.currentRequest = nil
             }
         }
-        
         DispatchQueue.main.async {
             self.CoequipTableView.reloadData()
         }
     }
 
     private func updateUI() {
-        print("🔄 Updating UI")
-        if let request = currentRequest {
-            print("📝 Current request ID: \(request.id)")
-            if let equipment = dataController?.getEquipmentById(request.equipmentId) {
-                print("🔍 Found equipment: \(equipment.name)")
-                print("⏰ Time Slot: \(request.timeSlot.rawValue)")
-                print("⏱️ Time Period: \(request.timePeriod ?? "nil")")
-            }
-        }
         CoequipTableView.reloadData()
     }
-
-    // Add method to remove specific request
     func removeRequest(with id: UUID) {
         guard let dataController = dataController else { return }
-        
-        // Remove from data controller
         dataController.deleteRequest(with: id)
-        
-        // Clear current request if it was the one deleted
+       
         if currentRequest?.id == id {
             currentRequest = nil
         }
-        
-        // Reload table view
         loadInitialData()
     }
 
     @objc private func handleRequestDeletion(_ notification: Notification) {
         if let requestId = notification.userInfo?["requestId"] as? UUID {
-            print("📢 Received deletion notification for request: \(requestId)")
-            
-            // Clear current request if it was deleted
             if currentRequest?.id == requestId {
                 currentRequest = nil
             }
-            
-            // Reload data
             loadInitialData()
         }
     }
 
     deinit {
-        // Remove observer when view controller is deallocated
         NotificationCenter.default.removeObserver(self)
     }
 }
@@ -176,25 +112,19 @@ class CoequipViewController: UIViewController {
 extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let dataController = dataController else {
-            print("⚠️ DataController is nil when getting number of rows")
             return 0
         }
-        
-        // Get requests based on selected segment
         if CoequipSegmentedControl.selectedSegmentIndex == 0 {
             let requests = dataController.getAllCoEquipRequests()
-            print("📊 Number of co-equip requests: \(requests.count)")
             return requests.count
         } else {
             let requests = dataController.getAcceptedRequests()
-            print("📊 Number of accepted requests: \(requests.count)")
             return requests.count
         }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let dataController = dataController else {
-            print("⚠️ DataController is nil when configuring cell")
             return UITableViewCell()
         }
         
@@ -202,26 +132,19 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "MyRequestTableViewCell", for: indexPath) as? MyRequestTableViewCell else {
                 return UITableViewCell()
             }
-            
             let requests = dataController.getAllCoEquipRequests()
             let request = requests[indexPath.row]
-            
             if let equipment = dataController.getEquipmentById(request.equipmentId) {
                 cell.configure(with: equipment, request: request)
                 cell.delegate = self
-                print("✅ Configured cell with request ID: \(request.id)")
             }
-            
             return cell
         } else {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "AcceptRequestTableViewCell", for: indexPath) as? AcceptRequestTableViewCell else {
                 return UITableViewCell()
             }
-            
             let acceptedRequests = dataController.getAcceptedRequests()
             let request = acceptedRequests[indexPath.row]
-            
-            // Get equipment data and configure cell
             if let equipment = dataController.getEquipmentById(request.equipmentId) {
                 cell.configure(with: request, equipment: equipment)
                 cell.delegate = self
@@ -269,7 +192,6 @@ extension CoequipViewController: MyRequestTableViewCellDelegate {
         var request = dataController.getAllCoEquipRequests()[indexPath.row]
         request.status = .pending
         dataController.updateRequest(request)
-        
         performSegue(withIdentifier: "goToMyRequest1", sender: request)
     }
 }
@@ -304,5 +226,17 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
         })
         
         present(alertController, animated: true)
+    }
+    private func applyShadowStyling(to cell: UICollectionViewCell) {
+        cell.layer.shadowColor = UIColor.black.cgColor
+        cell.layer.shadowOpacity = 0.2
+        cell.layer.shadowRadius = 5
+        cell.layer.shadowOffset = CGSize(width: 0, height: 3)
+        cell.layer.masksToBounds = false
+        cell.contentView.layer.cornerRadius = cell.layer.cornerRadius
+        cell.contentView.layer.masksToBounds = true
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .white
+        cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: cell.layer.cornerRadius).cgPath
     }
 }

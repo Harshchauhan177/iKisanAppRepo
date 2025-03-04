@@ -9,14 +9,9 @@ class AcceptRequestTableViewController: UITableViewController {
     @IBOutlet weak var viewLabel: UIButton!
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var hostLabel: UILabel!
-    
-    
     @IBOutlet weak var LocationLabel: UILabel!
-    
     @IBOutlet weak var dateLabel: UILabel!
-    
     @IBOutlet weak var intputArea: UITextField!
-    
     @IBOutlet weak var timeSlotLabel: UILabel!
     
     let validStartTime = "08:00"
@@ -24,7 +19,6 @@ class AcceptRequestTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         imageLabel.layer.cornerRadius = 7
-        //IntputArea.addTarget(self, action: #selector(areaInputChanged), for: .editingChanged)
     }
     @objc func areaInputChanged() {
     
@@ -39,7 +33,6 @@ class AcceptRequestTableViewController: UITableViewController {
                 let endTime = getEndTime(from: startTime, durationInMinutes:durationInMinutes)
                 timeSlotLabel.text = "\(startTime) - \(endTime)"
     }
-    
     func getEndTime(from startTime: String,durationInMinutes: Int) -> String {
         let formatter = DateFormatter()
                 formatter.dateFormat = "HH:mm"
@@ -79,8 +72,6 @@ class AcceptRequestTableViewController: UITableViewController {
     @IBAction func modifyButtonTapped(_ sender: Any) {
         if let request = request,
            let infoVC = storyboard?.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
-            
-            // Pass the existing request data to InfoTableViewController
             infoVC.isModifying = true
             infoVC.existingRequest = request
             infoVC.TitleLabel.text = titleLabel.text
@@ -90,13 +81,10 @@ class AcceptRequestTableViewController: UITableViewController {
             infoVC.TimeSlotLabel.text = timeSlotLabel.text
             infoVC.location = LocationLabel.text ?? ""
             infoVC.timeSlot = timeSlotLabel.text ?? ""
-            
-            // Get selected users from the request
             let selectedUsers = request.joinedFarmers.compactMap { farmerId in
                 return sampleUsers.first(where: { $0.userID == farmerId })
             }
             infoVC.selectedUsers = selectedUsers
-            
             navigationController?.pushViewController(infoVC, animated: true)
         }
     }
@@ -111,24 +99,18 @@ class AcceptRequestTableViewController: UITableViewController {
         alertController.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             guard let self = self,
                   let requestToDelete = self.request else { return }
-            
-            // Remove request from RequestManager
             let requestManager = RequestManager.shared
             if let index = requestManager.requests.firstIndex(where: { $0.id == requestToDelete.id }) {
                 requestManager.requests.remove(at: index)
-                
-                // Show success alert
                 let successAlert = UIAlertController(title: "Success", 
                                                    message: "Request deleted successfully", 
                                                    preferredStyle: .alert)
                 successAlert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-                    // Navigate back to CoequipViewController
                     self?.navigationController?.popViewController(animated: true)
                 })
                 self.present(successAlert, animated: true)
             }
         })
-        
         present(alertController, animated: true)
     }
     
@@ -139,9 +121,7 @@ class AcceptRequestTableViewController: UITableViewController {
             present(alertController, animated: true, completion: nil)
         }
 
-    // Add a method to configure the view with the request
     func configure(with request: Request) {
         self.request = request
-        // Update UI elements based on the request
     }
 }
