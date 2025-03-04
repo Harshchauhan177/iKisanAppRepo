@@ -334,23 +334,23 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.paddleWheelCultivatorId,
                                 categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Spring",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Spring",imageName: "Image",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.riceHarvesterId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Rigid",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                            EquipmentAgri(
+                                id: Self.riceTransplanterId,
+                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
+                                name: "Rotary",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.powerTillerId,
                                 categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Rigid",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Power",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
-                                id: Self.powerTillerId,
+                                id: Self.laserLandLevelerId,
                                 categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Rotary",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.powerTillerId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Power",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.powerTillerId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Mini",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Mini",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     ),
                     EquipmentCategory(
@@ -360,19 +360,19 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.riceHarvesterId,
                                 categoryId: Self.harvestersCategoryId,  // Add categoryId
-                                name: "Disc",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Disc",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.powerTillerId,
                                 categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Spike",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Spike",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.powerTillerId,
                                 categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Chain",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Chain",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.powerTillerId,
                                 categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Tine",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Tine",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     ),
                     EquipmentCategory(
@@ -382,19 +382,19 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.riceHarvesterId,
                                 categoryId: Self.harvestersCategoryId,  // Add categoryId
-                                name: "Paddy",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Paddy",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.powerTillerId,
                                 categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Direct",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Direct",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.powerTillerId,
                                 categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Drum",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Drum",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.powerTillerId,
                                 categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Automatic",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Automatic",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     )
                 ]
@@ -411,19 +411,19 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.wheatSeederId,
                                 categoryId: Self.seedersCategoryId,
-                                name: "Mouldboard",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Mouldboard",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: UUID(),
                                 categoryId: Self.seedersCategoryId,
-                                name: "Reversible",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Reversible",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: UUID(),
                                 categoryId: Self.seedersCategoryId,
-                                name: "Chisel",imageName: "Image 6",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Chisel",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: UUID(),
                                 categoryId: Self.seedersCategoryId,
-                                name: "Disc",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Disc",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     ),
                     EquipmentCategory(
@@ -433,19 +433,19 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.wheatHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Broadcast",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Broadcast",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.wheatHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Air",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Air",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.wheatHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Seed",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Seed",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.wheatHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Precision",imageName: "Image 6",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Precision",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     )
                 ]
@@ -471,11 +471,11 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Automatic",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Automatic",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Manual",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Manual",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     ),EquipmentCategory(
                         id: Self.planterCategoryId,
@@ -484,19 +484,19 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Sugarcane",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
+                                name: "Sugarcane",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Row Sugarcane",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Row Sugarcane",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Automatic",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Automatic",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Manual",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Manual",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     ),
                     EquipmentCategory(
@@ -506,19 +506,19 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Sugarcane",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Sugarcane",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Row Sugarcane",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Row Sugarcane",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Automatic",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
+                                name: "Automatic",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Manual",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Manual",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     ),
                     EquipmentCategory(
@@ -528,19 +528,19 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Sugarcane",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Sugarcane",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Row Sugarcane",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Row Sugarcane",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Automatic",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Automatic",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Manual",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Manual",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     )
                 ]
@@ -557,19 +557,19 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.sugarcanePlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Shovel",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
+                                name: "Shovel",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
                             EquipmentAgri(
                                 id: Self.sugarcanePlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Tine",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Tine",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.sugarcanePlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Rotary",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Rotary",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.sugarcanePlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Mini",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Mini",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     ),
                     EquipmentCategory(
@@ -583,15 +583,15 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.sugarcanePlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Air Seed",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Air Seed",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.sugarcanePlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Drill",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
+                                name: "Drill",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
                             EquipmentAgri(
                                 id: Self.sugarcanePlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Precision",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Precision",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     ),
                     EquipmentCategory(
@@ -601,19 +601,19 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.sugarcaneHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Cotton",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
+                                name: "Cotton",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
                             EquipmentAgri(
                                 id: Self.chopperHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Stripper",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
+                                name: "Stripper",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
                             EquipmentAgri(
                                 id: Self.chopperHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Combine",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Combine",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.chopperHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Self-Propelled",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 )
+                                name: "Self-Propelled",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 )
                         ]
                     )
                 ]
@@ -630,11 +630,11 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cornPlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Tea",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Tea",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cornPlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Handheld",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Handheld",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cornPlanterId,
                                 categoryId: Self.planterCategoryId,
@@ -642,7 +642,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cornPlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Battery Operated",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
+                                name: "Operated",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
                         ]
                     ),
                     EquipmentCategory(
@@ -652,11 +652,11 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.maizeHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Tea Plucking",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Plucking",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.maizeHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Shear",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Shear",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                         ]
                     )
                 ]
@@ -673,7 +673,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cornPlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                                name: "Paddle Wheel",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
                             )
                         ]
                     ),
@@ -684,7 +684,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.maizeHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                                name: "Planters Wheel",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
                             )
                         ]
                     )
@@ -701,7 +701,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cornPlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                                name: "Paddle ",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
                             )
                         ]
                     ),
@@ -712,7 +712,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.maizeHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                                name: "Cultivator",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
                             )
                         ]
                     )
@@ -729,7 +729,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cornPlanterId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                                name: "Paddle Wheel ",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
                             )
                         ]
                     ),
@@ -740,7 +740,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.maizeHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Paddle Wheel Cultivator",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
+                                name: "Planters",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
                             )
                         ]
                     )
