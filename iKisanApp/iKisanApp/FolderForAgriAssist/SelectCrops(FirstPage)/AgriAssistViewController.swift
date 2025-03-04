@@ -97,5 +97,8 @@ class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableV
                 equipmentsVC.selectedCropId = selectedCrop.id
             }
         }
+    
+    
+    
     }
 
