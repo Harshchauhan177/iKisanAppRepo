@@ -153,7 +153,7 @@ class InfoTableViewController: UITableViewController,UITextFieldDelegate{
                 area: area,
                 timeSlot: currentTimeSlot,
                 timePeriod: timeSlot,
-                location: location,
+                location: location, typeOfRequest: .myRequest,
                 selectedUsers: selectedUsers,
                 joinedFarmers: selectedUsers.map { $0.userID }
             )
@@ -182,7 +182,7 @@ class InfoTableViewController: UITableViewController,UITextFieldDelegate{
                 timeSlot: currentTimeSlot,
                 timePeriod: timeSlot,
                 location: location,
-                selectedUsers: selectedUsers,
+                typeOfRequest: .myRequest, selectedUsers: selectedUsers,
                 joinedFarmers: selectedUsers.map { $0.userID }
             )
             dataController.addNewCoEquipRequest(newRequest)

@@ -140,6 +140,51 @@ enum EquipmentData {
         ReviewData(reviewHeading: "Very Bad", reviewDescription: "The Swaraj Combine was disappointing. It kept breaking down, fuel consumption was high, and I lost valuable time waiting for repairs. Not worth the hassle.", rating: 1),
         
         ]
+    static  let sampleRequests: [Request] = [
+        Request(
+            userId: sampleUsers[0].userID,
+            equipmentId: UUID(), // Replace with an actual sample equipment ID if available
+            requestedDate: Date(),
+            status: .pending,
+            type: .onDemand,
+            area: 5.0,
+            timeSlot: .morning,
+            timePeriod: "2 hours",
+            location: "Delhi",
+            typeOfRequest: .acceptedRequest,
+            selectedUsers: [sampleUsers[1], sampleUsers[2]],
+            joinedFarmers: [sampleUsers[3].userID]
+        ),
+        Request(
+            userId: sampleUsers[1].userID,
+            equipmentId: UUID(),
+            requestedDate: Date().addingTimeInterval(86400), // One day later
+            status: .confirmed,
+            type: .prebooking,
+            area: 10.0,
+            timeSlot: .afternoon,
+            timePeriod: "4 hours",
+            location: "Punjab",
+            typeOfRequest: .acceptedRequest,
+            selectedUsers: [sampleUsers[0], sampleUsers[3]],
+            joinedFarmers: [sampleUsers[2].userID]
+        ),
+        Request(
+            userId: sampleUsers[2].userID,
+            equipmentId: UUID(),
+            requestedDate: Date().addingTimeInterval(172800), // Two days later
+            status: .completed,
+            type: .coEquip,
+            area: 7.5,
+            timeSlot: .evening,
+            timePeriod: "3 hours",
+            location: "Uttar Pradesh",
+            typeOfRequest: .myRequest,
+            selectedUsers: [sampleUsers[1]],
+            joinedFarmers: [sampleUsers[0].userID, sampleUsers[3].userID]
+        )
+    ]
+
     static let suggestionsEquipment: [Equipment] = [
         Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Square Baler", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area(For Rice Fields)"),
         Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
