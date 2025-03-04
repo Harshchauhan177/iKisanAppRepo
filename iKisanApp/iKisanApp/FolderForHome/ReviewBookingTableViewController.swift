@@ -26,6 +26,9 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         }
     }
     
+    @IBOutlet var tableViewR: UITableView!
+    
+    
     var bookingSource: BookingSource = .home // Default to home
     
     weak var delegate: ReviewBookingDelegate?
@@ -238,4 +241,16 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
 //            navigationController?.pushViewController(paymentVC, animated: true)
 //        }
 //    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        // Apply shadow to the whole table view
+        tableViewR.layer.shadowColor = UIColor.black.cgColor
+        tableViewR.layer.shadowOpacity = 0.2
+        tableViewR.layer.shadowOffset = CGSize(width: 0, height: 3)
+        tableViewR.layer.shadowRadius = 8
+        tableViewR.layer.masksToBounds = false
+        tableViewR.layer.cornerRadius = 13  // Matches your UI style
+    }
 }

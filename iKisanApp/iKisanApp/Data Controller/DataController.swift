@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 
 protocol DataController {
@@ -1121,3 +1122,13 @@ extension Notification.Name {
     static let requestDeleted = Notification.Name("requestDeleted")
 }
 //
+extension UIView {
+    func applyCardShadow() {
+        self.layer.shadowColor = UIColor.black.cgColor
+        self.layer.shadowOpacity = 0.2  // Soft shadow
+        self.layer.shadowOffset = CGSize(width: 0, height: 3)  // Downward natural shadow
+        self.layer.shadowRadius = 8  // Blurred effect
+        self.layer.masksToBounds = false
+        self.layer.cornerRadius = 13  // Matches your UI preference
+    }
+}
