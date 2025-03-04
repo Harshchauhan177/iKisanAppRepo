@@ -34,7 +34,7 @@ class accountTableViewController: UITableViewController {
     }
     
     private func loadSavedData() {
-        nameLabel.text = userDefaults.string(forKey: "userName") ?? "Your Name"
+        nameLabel.text = userDefaults.string(forKey: "userName") ?? "Harsh Kumar"
         
         if let imageData = userDefaults.data(forKey: "userProfileImage"),
            let savedImage = UIImage(data: imageData) {

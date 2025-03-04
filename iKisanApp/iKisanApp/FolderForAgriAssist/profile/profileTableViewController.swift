@@ -163,9 +163,9 @@ class profileTableViewController: UITableViewController {
     // Add this new method
     private func loadSavedData() {
         // Load text data
-        nameLabel.text = userDefaults.string(forKey: nameKey) ?? "Your Name"
-        emailLabel.text = userDefaults.string(forKey: emailKey) ?? "your.email@example.com"
-        mobNumLabel.text = userDefaults.string(forKey: mobileKey) ?? "1234567890"
+        nameLabel.text = userDefaults.string(forKey: nameKey) ?? "Harsh Kumar"
+        emailLabel.text = userDefaults.string(forKey: emailKey) ?? "harsh7617rajput@gmail.com"
+        mobNumLabel.text = userDefaults.string(forKey: mobileKey) ?? "8865830411"
         
         // Load profile image
         if let imageData = userDefaults.data(forKey: profileImageKey),
