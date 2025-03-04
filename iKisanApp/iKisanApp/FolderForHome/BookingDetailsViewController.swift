@@ -37,6 +37,7 @@ class BookingDetailsViewController: UIViewController {
         super.viewDidLoad()
         imageView.layer.cornerRadius = 7
         backgroundCollectionView.layer.cornerRadius = 10
+        backgroundCollectionView.applyCardShadow()
         setupUI()
         // Do any additional setup after loading the view.
     }

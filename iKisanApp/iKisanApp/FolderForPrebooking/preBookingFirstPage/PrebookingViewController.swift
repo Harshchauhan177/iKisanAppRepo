@@ -808,7 +808,7 @@ extension PrebookingViewController: UISearchResultsUpdating {
         searchTableView.isHidden = searchSuggestions.isEmpty
         searchTableView.reloadData()
         
-        searchTableView.backgroundColor = .init(red: 0.6667, green: 0.6667, blue: 0.5882, alpha: 1.0)
+        searchTableView.backgroundColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)
 
     }
 }
@@ -828,7 +828,7 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
         content.text = equipment.name
         content.secondaryText = "\(equipment.type) - \(equipment.location)"
         cell.contentConfiguration = content
-        cell.backgroundColor = .init(red: 0.6667, green: 0.6667, blue: 0.5882, alpha: 1.0)
+        cell.backgroundColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)
         
         return cell
     }

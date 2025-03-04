@@ -14,7 +14,6 @@ class preBookingFAQSectionCollectionViewCell: UICollectionViewCell {
     
     
     func updatePreBookingSection4Data(with indexPath :IndexPath){
-       // needHelpLabel.text = PreBookingScreenData.preBookingSection4Data[indexPath.row].needHelp
 
     }
     
