@@ -132,7 +132,7 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
             }
             cell.configure(with: equipment)
             cell.layer.cornerRadius = 7
-            applyShadowStyling(to: cell)
+//            applyShadowStyling(to: cell)
             return cell
             
         case 1:
@@ -142,7 +142,7 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
             }
             cell.configure(with: equipment)
             cell.layer.cornerRadius = 7
-            applyShadowStyling(to: cell)
+//            applyShadowStyling(to: cell)
             return cell
             
         default:
@@ -243,29 +243,29 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
 
                 return section
     }
-    private func applyShadowStyling(to cell: UICollectionViewCell) {
-        // Create a shadow layer
-        cell.layer.shadowColor = UIColor.black.cgColor
-        cell.layer.shadowOpacity = 0.2
-        cell.layer.shadowRadius = 5
-        cell.layer.shadowOffset = CGSize(width: 0, height: 3)
+//    private func applyShadowStyling(to cell: UICollectionViewCell) {
+//        // Create a shadow layer
 //        cell.layer.shadowColor = UIColor.black.cgColor
-//        cell.layer.shadowOffset = CGSize(width: 0, height: 2)
-//        cell.layer.shadowRadius = 4
-//        cell.layer.shadowOpacity = 1
-        cell.layer.masksToBounds = false
-        
-        // Make sure the content view keeps the corner radius
-        cell.contentView.layer.cornerRadius = cell.layer.cornerRadius
-        cell.contentView.layer.masksToBounds = true
-        
-        // Make sure the background is not transparent
-        cell.backgroundColor = .clear
-        cell.contentView.backgroundColor = .white
-        
-        // Improve shadow performance by setting its path
-        cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: cell.layer.cornerRadius).cgPath
-    }
+//        cell.layer.shadowOpacity = 0.2
+//        cell.layer.shadowRadius = 5
+//        cell.layer.shadowOffset = CGSize(width: 0, height: 3)
+////        cell.layer.shadowColor = UIColor.black.cgColor
+////        cell.layer.shadowOffset = CGSize(width: 0, height: 2)
+////        cell.layer.shadowRadius = 4
+////        cell.layer.shadowOpacity = 1
+//        cell.layer.masksToBounds = false
+//        
+//        // Make sure the content view keeps the corner radius
+//        cell.contentView.layer.cornerRadius = cell.layer.cornerRadius
+//        cell.contentView.layer.masksToBounds = true
+//        
+//        // Make sure the background is not transparent
+//        cell.backgroundColor = .clear
+//        cell.contentView.backgroundColor = .white
+//        
+//        // Improve shadow performance by setting its path
+//        cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: cell.layer.cornerRadius).cgPath
+//    }
   
 }
 
