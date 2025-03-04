@@ -467,7 +467,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Row Sugarcane",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Row ",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
@@ -488,7 +488,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Row Sugarcane",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Row ",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
@@ -510,7 +510,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Row Sugarcane",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Row ",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
@@ -532,7 +532,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
-                                name: "Row Sugarcane",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
+                                name: "Row",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
                             EquipmentAgri(
                                 id: Self.cottonSeederId,
                                 categoryId: Self.planterCategoryId,
@@ -613,7 +613,7 @@ class IKisanDataController: DataController {
                             EquipmentAgri(
                                 id: Self.chopperHarvesterId,
                                 categoryId: Self.harvestersCategoryId,
-                                name: "Self-Propelled",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 )
+                                name: "Propelled",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 )
                         ]
                     )
                 ]
