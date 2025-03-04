@@ -735,7 +735,6 @@ class IKisanDataController: DataController {
             let filteredEquipment = suggestionList.filter { equipment in
                 selectedCrops.contains(equipment.type)
             }
-            print("Filtered equipment count: \(filteredEquipment.count) for crops: \(selectedCrops)")
             return filteredEquipment
         }
         return suggestionList
@@ -763,23 +762,17 @@ class IKisanDataController: DataController {
             $0.location.lowercased().contains(lowercasedQuery)
         }
     }
-    
-    // AgriAssist implementations
     func getAllCrops() -> [AgriCrop] {
         return crops
     }
     
     func getCropCategory(forCrop cropId: UUID) -> CropCategory? {
-        print("Looking for crop category with ID: \(cropId)")
         let category = cropCategories.first { $0.id == cropId }
-        print("Found category: \(category?.cropName ?? "nil")")
         return category
     }
     
     func getEquipmentCategories(forCrop cropId: UUID) -> [EquipmentCategory] {
-        print("Looking for equipment categories for crop ID: \(cropId)")
         let categories = cropCategories.first { $0.id == cropId }?.equipments ?? []
-        print("Found \(categories.count) equipment categories")
         return categories
     }
     
@@ -839,24 +832,17 @@ class IKisanDataController: DataController {
         }
         return false
     }
-    // MARK: - CoEquip Methods
-    
     func getAllCoEquipRequests() -> [Request] {
-        print("📋 Getting all co-equip requests: \(coEquipRequests.count)")
         return coEquipRequests
     }
     
     func getAcceptedRequests() -> [Request] {
-        print("📋 Getting accepted requests: \(acceptedRequests.count)")
         return acceptedRequests
     }
     
     func addNewCoEquipRequest(_ request: Request) {
-        // Check if request already exists
         if !coEquipRequests.contains(where: { $0.id == request.id }) {
             coEquipRequests.append(request)
-            print("✅ Added new co-equip request: \(request.id)")
-            print("Total requests: \(coEquipRequests.count)")
         }
     }
     
@@ -866,33 +852,20 @@ class IKisanDataController: DataController {
         }
     }
     func deleteRequest(with id: UUID) {
-        print("🗑️ Attempting to delete request with ID: \(id)")
-        
-        // Remove from coEquip requests
         if let index = coEquipRequests.firstIndex(where: { $0.id == id }) {
             coEquipRequests.remove(at: index)
-            print("✅ Removed from coEquipRequests")
         }
-        
-        // Remove from pending requests
         if let index = pendingRequests.firstIndex(where: { $0.id == id }) {
             pendingRequests.remove(at: index)
-            print("✅ Removed from pendingRequests")
         }
-        
-        // Remove from accepted requests
         if let index = acceptedRequests.firstIndex(where: { $0.id == id }) {
             acceptedRequests.remove(at: index)
-            print("✅ Removed from acceptedRequests")
         }
-        
-        // Notify observers
         NotificationCenter.default.post(
             name: .requestDeleted,
             object: nil,
             userInfo: ["requestId": id]
         )
-        print("📢 Posted notification for request deletion")
     }
     
     func getEquipmentById(_ id: UUID) -> Equipment? {
@@ -900,7 +873,6 @@ class IKisanDataController: DataController {
     }
     
     func getCoEquipUsers() -> [User] {
-        // Return list of users who can participate in co-equip
         return []
     }
     func getEquipmentSuggestions() -> [String] {
@@ -915,7 +887,7 @@ class IKisanDataController: DataController {
     
     func filterEquipment(by query: String) -> [Equipment] {
         _ = query.lowercased()
-        return [] // Placeholder implementation
+        return []
     }
     
     func getCategories() -> [String] {
@@ -1058,8 +1030,6 @@ class RequestManager {
 
     private init() {
         equipmentItems = [
-            //
-            // Existing Harrow equipment
             Equipment(
                 equipmentID: UUID(),
                 equipmentImage: "5.jpeg",
@@ -1079,10 +1049,8 @@ class RequestManager {
                 modelYear: "2009",
                 mielage: "15L/ac",
                 description: "Available in your Area",
-                preBookingStatus: nil  // No prebooking status initially
+                preBookingStatus: nil  
             ),
-            
-            // Mahindra Tractor 275
             Equipment(
                 equipmentID: UUID(),
                 equipmentImage: "tractor_mahindra_275.jpg",
@@ -1107,17 +1075,12 @@ class RequestManager {
                 description: "35 HP Tractor with advanced features",
                 isRecommended: true,
                 providerName: "John Doe",
-                preBookingStatus: nil  // No prebooking status initially
+                preBookingStatus: nil
             ),
-            
-            // Similar updates for other equipment...
-            // Update Mahindra Tractor 575, Swaraj Tractor 724, and Swaraj Tractor 855
-            // with preBookingStatus: nil
         ]
     }
 }
-
 extension Notification.Name {
     static let requestDeleted = Notification.Name("requestDeleted")
 }
-//
+
