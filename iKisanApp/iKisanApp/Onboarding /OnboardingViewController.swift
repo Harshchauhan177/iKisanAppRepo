@@ -24,8 +24,8 @@ class OnboardingViewController: UIViewController {
         
         slides = [
             OnboardingSlide(title: "Find Equipments", description: "Find the best Equipments as service nearby your locality.", image: UIImage(named: "on1") ?? UIImage(), logo: UIImage(systemName: "magnifyingglass")),
-            OnboardingSlide(title: "Co-Equip", description: "Team up with other users who need the same equipment for shared services.", image: UIImage(named: "schedule") ?? UIImage(), logo: UIImage(systemName: "person.3.fill")) ,
-            OnboardingSlide(title: "AgriAssist", description: "Find the best equipment for your agricultural needs.", image: UIImage(named: "schedule") ?? UIImage(), logo: UIImage(systemName: "lightbulb.max.fill"))
+            OnboardingSlide(title: "Co-Equip", description: "Team up with other users who need the same equipment for shared services.", image: UIImage(named: "on2") ?? UIImage(), logo: UIImage(systemName: "person.3.fill")) ,
+            OnboardingSlide(title: "AgriAssist", description: "Find the best equipment for your agricultural needs.", image: UIImage(named: "on3") ?? UIImage(), logo: UIImage(systemName: "lightbulb.max.fill"))
         ]
         
         registerCells()

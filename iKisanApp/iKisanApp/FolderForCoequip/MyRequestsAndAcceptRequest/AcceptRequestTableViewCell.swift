@@ -15,7 +15,6 @@ class AcceptRequestTableViewCell: UITableViewCell {
     @IBOutlet weak var hostLabel: UILabel!
     @IBOutlet weak var locationLabel: UILabel!
     @IBOutlet weak var dateLabel: UILabel!
-    
     @IBOutlet weak var acceptButton: UIButton!
     @IBOutlet weak var rejectButton: UIButton!
     
@@ -25,13 +24,11 @@ class AcceptRequestTableViewCell: UITableViewCell {
         super.awakeFromNib()
         imageLabel.layer.cornerRadius = 7
     }
-    
-    // Configure method
     func configure(with request: Request, equipment: Equipment) {
         self.request = request
         titleLabel.text = equipment.name
         priceLabel.text = "₹ \(equipment.pricePerHour)"
-        hostLabel.text = equipment.providerID.uuidString // Assuming providerID is a UUID
+        hostLabel.text = equipment.providerID.uuidString
         locationLabel.text = equipment.location
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "E, d MMM"

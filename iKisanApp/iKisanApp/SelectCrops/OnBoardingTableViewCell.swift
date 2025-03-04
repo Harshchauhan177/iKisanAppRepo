@@ -24,7 +24,7 @@ class OnBoardingTableViewCell: UITableViewCell {
         inputTextField.isHidden = true
         inputTextField.alpha = 0
         inputTextField.borderStyle = .roundedRect
-        inputTextField.placeholder = "Enter details..."
+        inputTextField.placeholder = "Enter your field area (in acres)"
         inputTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
     }
     

@@ -689,7 +689,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         searchController = UISearchController(searchResultsController: nil)
         searchController.searchBar.delegate = self
         searchController.searchResultsUpdater = self
-        searchController.searchBar.placeholder = "Search equipment..."
+        searchController.searchBar.placeholder = "Search Equipment"
         searchController.obscuresBackgroundDuringPresentation = false
         navigationItem.searchController = searchController
         definesPresentationContext = true
@@ -807,6 +807,9 @@ extension PrebookingViewController: UISearchResultsUpdating {
         
         searchTableView.isHidden = searchSuggestions.isEmpty
         searchTableView.reloadData()
+        
+        searchTableView.backgroundColor = .init(red: 0.6667, green: 0.6667, blue: 0.5882, alpha: 1.0)
+
     }
 }
 
@@ -825,6 +828,7 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
         content.text = equipment.name
         content.secondaryText = "\(equipment.type) - \(equipment.location)"
         cell.contentConfiguration = content
+        cell.backgroundColor = .init(red: 0.6667, green: 0.6667, blue: 0.5882, alpha: 1.0)
         
         return cell
     }
@@ -1003,12 +1007,11 @@ extension PrebookingViewController {
             heightDimension: .absolute(180)
         )
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        
         // Section
         let section = NSCollectionLayoutSection(group: group)
         section.orthogonalScrollingBehavior = .groupPaging
         section.interGroupSpacing = 10
-        section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 10)
         
         // Header
         let headerSize = NSCollectionLayoutSize(
