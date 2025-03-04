@@ -90,11 +90,7 @@
                             <constraint firstItem="VeT-zk-pPE" firstAttribute="top" secondItem="EWY-Ca-xz7" secondAttribute="bottom" constant="30" id="zul-Tx-Npy"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Select Crop" id="3FN-yw-Y2R">
-                        <barButtonItem key="rightBarButtonItem" image="person.crop.circle" catalog="system" id="IHW-6R-wsu">
-                            <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                        </barButtonItem>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" title="Select Crop" id="3FN-yw-Y2R"/>
                     <connections>
                         <outlet property="cropSearchBar" destination="EWY-Ca-xz7" id="VLR-Gj-ncn"/>
                         <outlet property="tableView" destination="y4s-fN-kIk" id="QHf-c2-kWa"/>
@@ -418,6 +414,5 @@
         <image name="chevron.right" catalog="system" width="97" height="128"/>
         <image name="lightbulb.max" catalog="system" width="121" height="128"/>
         <image name="lightbulb.min.fill" catalog="system" width="115" height="128"/>
-        <image name="person.crop.circle" catalog="system" width="128" height="123"/>
     </resources>
 </document>
