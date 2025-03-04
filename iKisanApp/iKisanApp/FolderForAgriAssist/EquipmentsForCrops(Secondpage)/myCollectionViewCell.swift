@@ -20,7 +20,7 @@ class myCollectionViewCell: UICollectionViewCell {
     private func setupUI() {
         myEquipmentImage.layer.cornerRadius = myEquipmentImage.frame.size.width / 2
         myEquipmentImage.clipsToBounds = true
-        myEquipmentImage.layer.borderWidth = 2.0
+        myEquipmentImage.layer.borderWidth = 1.5
         myEquipmentImage.layer.borderColor = UIColor.gray.cgColor
     }
     

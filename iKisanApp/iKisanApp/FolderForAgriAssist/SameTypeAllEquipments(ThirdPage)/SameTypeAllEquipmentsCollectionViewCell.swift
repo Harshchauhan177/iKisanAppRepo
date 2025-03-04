@@ -45,7 +45,7 @@ class SameTypeAllEquipmentsCollectionViewCell: UICollectionViewCell {
         // Apply existing styling
         SameTypeAllEquipmentsImage.layer.cornerRadius = SameTypeAllEquipmentsImage.frame.size.width / 2
         SameTypeAllEquipmentsImage.clipsToBounds = true
-        SameTypeAllEquipmentsImage.layer.borderWidth = 3
+        SameTypeAllEquipmentsImage.layer.borderWidth = 1.5
         SameTypeAllEquipmentsImage.layer.borderColor = UIColor.gray.cgColor
     }
 }

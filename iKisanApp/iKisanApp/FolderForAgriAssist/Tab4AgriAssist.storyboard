@@ -33,7 +33,7 @@
                             </label>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="y4s-fN-kIk">
                                 <rect key="frame" x="0.0" y="321.66666666666674" width="393" height="496.33333333333326"/>
-                                <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="CropCell" id="pnF-Ct-Mq1" customClass="CropTableViewCell" customModule="iKisanApp" customModuleProvider="target">
                                         <rect key="frame" x="20" y="55.333332061767578" width="353" height="43.666667938232422"/>
@@ -76,7 +76,7 @@
                             </tableView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="vDu-zF-Fre"/>
-                        <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="vDu-zF-Fre" firstAttribute="bottom" secondItem="y4s-fN-kIk" secondAttribute="bottom" id="5fq-Wa-QMJ"/>
@@ -132,7 +132,7 @@
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="211" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="AbA-SX-kvE">
                                 <rect key="frame" x="7" y="160" width="379" height="658"/>
-                                <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="cell" rowHeight="211" id="GWh-ke-N9Q" customClass="myTableViewCell" customModule="iKisanApp" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="50" width="379" height="211"/>
@@ -230,7 +230,7 @@
                                                 <constraint firstAttribute="bottomMargin" secondItem="9U1-1e-GcA" secondAttribute="bottom" constant="156" id="ntu-O1-Kbo"/>
                                             </constraints>
                                         </tableViewCellContentView>
-                                        <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <connections>
                                             <outlet property="EquipmentTypeLabel" destination="9U1-1e-GcA" id="sX1-k3-4wx"/>
                                             <outlet property="myCollectionView" destination="sC2-oA-sSd" id="8dj-UF-0Un"/>
@@ -245,7 +245,7 @@
                             </tableView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="fI0-Kv-iNU"/>
-                        <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="fI0-Kv-iNU" firstAttribute="bottom" secondItem="AbA-SX-kvE" secondAttribute="bottom" id="7cc-I6-zQI"/>
                             <constraint firstItem="fI0-Kv-iNU" firstAttribute="trailing" secondItem="AbA-SX-kvE" secondAttribute="trailing" constant="7" id="RIJ-08-kWU"/>
@@ -275,7 +275,7 @@
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="lOV-hC-WWy">
                                 <rect key="frame" x="0.0" y="103" width="393" height="715"/>
-                                <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="0.0" minimumInteritemSpacing="0.0" id="FTl-13-ak3">
                                     <size key="itemSize" width="130" height="158"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
@@ -305,7 +305,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
-                                            <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             <constraints>
                                                 <constraint firstAttribute="trailing" secondItem="UaT-xL-CXO" secondAttribute="trailing" constant="25" id="CZI-FJ-ANW"/>
                                                 <constraint firstItem="UaT-xL-CXO" firstAttribute="top" secondItem="t3G-xo-Bjm" secondAttribute="top" constant="5" id="DrU-3v-nDu"/>
@@ -316,7 +316,7 @@
                                                 <constraint firstAttribute="bottom" secondItem="WUS-Sc-5vk" secondAttribute="bottom" constant="19" id="efW-V3-iJX"/>
                                             </constraints>
                                         </collectionViewCellContentView>
-                                        <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <size key="customSize" width="130" height="158"/>
                                         <connections>
                                             <outlet property="SameTypeAllEquipmentsImage" destination="UaT-xL-CXO" id="HcN-Ca-PVf"/>
@@ -331,7 +331,7 @@
                             </collectionView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="RGV-aa-aq9"/>
-                        <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="lOV-hC-WWy" firstAttribute="top" secondItem="RGV-aa-aq9" secondAttribute="top" id="98U-g9-We9"/>
                             <constraint firstItem="RGV-aa-aq9" firstAttribute="trailing" secondItem="lOV-hC-WWy" secondAttribute="trailing" id="dC1-Dq-sOl"/>
@@ -360,7 +360,7 @@
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="tlF-db-qoQ">
                                 <rect key="frame" x="0.0" y="49" width="393" height="793"/>
-                                <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="KR0-7p-Jh3">
                                     <size key="itemSize" width="128" height="128"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
@@ -380,11 +380,11 @@
                             </collectionView>
                             <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WDi-Ne-n8j">
                                 <rect key="frame" x="0.0" y="5" width="393" height="44"/>
-                                <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </navigationBar>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="AOg-Mx-9ck"/>
-                        <color key="backgroundColor" red="0.71372550729999995" green="0.70588237050000002" blue="0.62745100259999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="AOg-Mx-9ck" firstAttribute="trailing" secondItem="tlF-db-qoQ" secondAttribute="trailing" id="1q4-SY-ZAR"/>
                             <constraint firstItem="AOg-Mx-9ck" firstAttribute="bottom" secondItem="tlF-db-qoQ" secondAttribute="bottom" id="I4B-6z-gSo"/>
@@ -406,7 +406,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="LHV-Yn-kxN"/>
+        <segue reference="uIU-k3-bJT"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="Image" width="313" height="205"/>
