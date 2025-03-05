@@ -159,13 +159,13 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return reviews.count//EquipmentData.reviews.count
+        return ReviewDataClass.reviews.count//EquipmentData.reviews.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardCell", for: indexPath) as! ReviewCardCollectionViewCell
 
-        let review = reviews[indexPath.row] //ReviewData.reviews[indexPath.row]
+        let review = ReviewDataClass.reviews[indexPath.row]
             
             // Pass the review data to the update function in the cell
             cell.updateReviewCardData(reviewData: review)
