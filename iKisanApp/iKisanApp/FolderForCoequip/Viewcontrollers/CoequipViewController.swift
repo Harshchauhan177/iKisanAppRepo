@@ -227,16 +227,5 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
         
         present(alertController, animated: true)
     }
-    private func applyShadowStyling(to cell: UICollectionViewCell) {
-        cell.layer.shadowColor = UIColor.black.cgColor
-        cell.layer.shadowOpacity = 0.2
-        cell.layer.shadowRadius = 5
-        cell.layer.shadowOffset = CGSize(width: 0, height: 3)
-        cell.layer.masksToBounds = false
-        cell.contentView.layer.cornerRadius = cell.layer.cornerRadius
-        cell.contentView.layer.masksToBounds = true
-        cell.backgroundColor = .clear
-        cell.contentView.backgroundColor = .white
-        cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: cell.layer.cornerRadius).cgPath
-    }
+   
 }

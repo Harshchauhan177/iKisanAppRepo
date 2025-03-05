@@ -267,7 +267,6 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             cell.ratingLabel.text = "\(card.rating)"
             setOriginalPrice("\(card.realPricePerHour)", for: cell)
             cell.layer.cornerRadius = 10
-            applyShadowStyling(to: cell)
             return cell
         }
     }
@@ -377,17 +376,5 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
-    }
-    private func applyShadowStyling(to cell: UICollectionViewCell) {
-        cell.layer.shadowColor = UIColor.black.cgColor
-        cell.layer.shadowOpacity = 0.2
-        cell.layer.shadowRadius = 5
-        cell.layer.shadowOffset = CGSize(width: 0, height: 3)
-        cell.layer.masksToBounds = false
-        cell.contentView.layer.cornerRadius = cell.layer.cornerRadius
-        cell.contentView.layer.masksToBounds = true
-        cell.backgroundColor = .clear
-        cell.contentView.backgroundColor = .white
-        cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: cell.layer.cornerRadius).cgPath
     }
 }
