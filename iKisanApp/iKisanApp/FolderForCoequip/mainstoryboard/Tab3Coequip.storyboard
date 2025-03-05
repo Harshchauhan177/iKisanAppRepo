@@ -948,7 +948,7 @@
             </objects>
             <point key="canvasLocation" x="10808.396946564884" y="-99.295774647887328"/>
         </scene>
-        <!--Create Request-->
+        <!--Select Equipment-->
         <scene sceneID="Wbr-TI-hnU">
             <objects>
                 <viewController storyboardIdentifier="CreateRequestViewController" id="wNL-bN-u1b" customClass="CreateRequestViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
@@ -991,29 +991,24 @@
                                     </collectionViewCell>
                                 </cells>
                             </collectionView>
-                            <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4yA-C3-6b0">
-                                <rect key="frame" x="16" y="227" width="170.66666666666666" height="50"/>
-                                <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2zd-lx-Qdv">
-                                        <rect key="frame" x="0.0" y="0.0" width="129.33333333333334" height="50"/>
-                                        <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                        <state key="normal" title="Button"/>
-                                        <buttonConfiguration key="configuration" style="plain" image="calendar" catalog="system"/>
-                                        <connections>
-                                            <action selector="calendarbuttonTapped:" destination="wNL-bN-u1b" eventType="touchUpInside" id="LWb-c0-d1L"/>
-                                        </connections>
-                                    </button>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Rqz-Ui-vad">
-                                        <rect key="frame" x="129.33333333333334" y="0.0" width="41.333333333333343" height="50"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                </subviews>
-                            </stackView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2zd-lx-Qdv">
+                                <rect key="frame" x="16" y="226" width="44" height="34.333333333333314"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="44" id="fD0-V8-bdr"/>
+                                </constraints>
+                                <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" image="calendar" catalog="system"/>
+                                <connections>
+                                    <action selector="calendarbuttonTapped:" destination="wNL-bN-u1b" eventType="touchUpInside" id="LWb-c0-d1L"/>
+                                </connections>
+                            </button>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="4C5-kQ-99D">
                                 <rect key="frame" x="10" y="287" width="373" height="531"/>
                                 <color key="backgroundColor" red="0.92156863209999995" green="0.92156863209999995" blue="0.92156863209999995" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="531" id="ofX-Wv-8ds"/>
+                                </constraints>
                                 <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="gfx-ga-Nth">
                                     <size key="itemSize" width="339" height="427"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
@@ -1034,27 +1029,36 @@
                                     </collectionViewCell>
                                 </cells>
                             </collectionView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Rqz-Ui-vad">
+                                <rect key="frame" x="60" y="231" width="223" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="byX-yh-yOK"/>
+                                    <constraint firstAttribute="width" constant="223" id="qOn-gy-Y2V"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="dE3-qG-weo"/>
                         <color key="backgroundColor" red="0.92156863209999995" green="0.92156863209999995" blue="0.92156863209999995" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         <constraints>
-                            <constraint firstItem="4yA-C3-6b0" firstAttribute="top" secondItem="klG-aB-4dZ" secondAttribute="bottom" constant="10" id="1Rk-fG-yN1"/>
                             <constraint firstItem="HGn-vv-pin" firstAttribute="leading" secondItem="dE3-qG-weo" secondAttribute="leading" constant="10" id="22I-ND-TxS"/>
                             <constraint firstItem="klG-aB-4dZ" firstAttribute="trailing" secondItem="dE3-qG-weo" secondAttribute="trailing" constant="10" id="3ZX-cq-tIE"/>
+                            <constraint firstItem="Rqz-Ui-vad" firstAttribute="top" secondItem="klG-aB-4dZ" secondAttribute="bottom" constant="14" id="7Ta-sf-da6"/>
                             <constraint firstItem="klG-aB-4dZ" firstAttribute="top" secondItem="HGn-vv-pin" secondAttribute="bottom" constant="10" id="ApO-HX-rzb"/>
                             <constraint firstAttribute="trailing" secondItem="HGn-vv-pin" secondAttribute="trailing" constant="10" id="C7c-iP-BaH"/>
                             <constraint firstItem="HGn-vv-pin" firstAttribute="top" secondItem="dE3-qG-weo" secondAttribute="top" constant="10" id="F4d-Zm-Znw"/>
                             <constraint firstItem="4C5-kQ-99D" firstAttribute="bottom" secondItem="dE3-qG-weo" secondAttribute="bottom" id="FtK-mI-3YS"/>
                             <constraint firstItem="4C5-kQ-99D" firstAttribute="leading" secondItem="dE3-qG-weo" secondAttribute="leading" constant="10" id="Q1I-vH-eJz"/>
-                            <constraint firstItem="dE3-qG-weo" firstAttribute="trailing" secondItem="4yA-C3-6b0" secondAttribute="trailing" constant="206.33333333333334" id="ZC1-OY-QE7"/>
-                            <constraint firstItem="4yA-C3-6b0" firstAttribute="leading" secondItem="dE3-qG-weo" secondAttribute="leading" constant="16" id="eoU-b4-Etw"/>
-                            <constraint firstAttribute="bottom" secondItem="4yA-C3-6b0" secondAttribute="bottom" constant="575" id="gJ7-2L-f1G"/>
+                            <constraint firstItem="2zd-lx-Qdv" firstAttribute="leading" secondItem="dE3-qG-weo" secondAttribute="leading" constant="16" id="UPq-yw-wcC"/>
                             <constraint firstItem="klG-aB-4dZ" firstAttribute="leading" secondItem="dE3-qG-weo" secondAttribute="leading" constant="10" id="iTX-Qr-ASB"/>
-                            <constraint firstItem="4C5-kQ-99D" firstAttribute="top" secondItem="4yA-C3-6b0" secondAttribute="bottom" constant="10" id="lYn-ON-rID"/>
+                            <constraint firstItem="Rqz-Ui-vad" firstAttribute="leading" secondItem="2zd-lx-Qdv" secondAttribute="trailing" id="lD9-g6-LJf"/>
                             <constraint firstItem="dE3-qG-weo" firstAttribute="trailing" secondItem="4C5-kQ-99D" secondAttribute="trailing" constant="10" id="uZ0-PD-ju8"/>
+                            <constraint firstItem="2zd-lx-Qdv" firstAttribute="top" secondItem="klG-aB-4dZ" secondAttribute="bottom" constant="9" id="w9k-KJ-byY"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Create Request" id="sov-kR-8QZ"/>
+                    <navigationItem key="navigationItem" title="Select Equipment" largeTitleDisplayMode="never" id="sov-kR-8QZ"/>
                     <connections>
                         <outlet property="calendarLabel" destination="2zd-lx-Qdv" id="WRG-Co-lqk"/>
                         <outlet property="cardCollectionView" destination="4C5-kQ-99D" id="5Xp-ho-jOl"/>
