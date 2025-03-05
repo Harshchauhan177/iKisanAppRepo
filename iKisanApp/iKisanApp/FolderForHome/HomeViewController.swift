@@ -375,7 +375,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                 header.button.isHidden = false
                 header.button.addTarget(self, action: #selector(sectionButtonTapped(_:)), for: .touchUpInside)
             case 2:
-                header.headerLabel.text = "Suggestion"
+                header.headerLabel.text = "   Suggestion"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
                 header.button.isHidden = true
             case 3:
