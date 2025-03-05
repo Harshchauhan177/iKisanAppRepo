@@ -36,13 +36,14 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
         self.contentView.layer.cornerRadius = 10
         self.contentView.layer.masksToBounds = true
         self.contentView.layer.borderWidth = 3
-        self.contentView.layer.borderColor = UIColor.systemGray6.cgColor
+//        self.contentView.layer.borderColor = UIColor.systemGray6.cgColor
+        self.contentView.layer.borderColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)
         self.contentView.backgroundColor = .white
 
         // Add shadow for spacing effect
         self.layer.shadowColor = UIColor.gray.cgColor
         self.layer.shadowOffset = CGSize(width: 0, height: 2)
-        self.layer.shadowOpacity = 0.4
+        self.layer.shadowOpacity = 0.2
         self.layer.shadowRadius = 4
         self.layer.masksToBounds = false
     }
