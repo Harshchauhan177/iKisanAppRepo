@@ -108,13 +108,13 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         bigView.layer.cornerRadius = 10
         bigView.applyCardShadow()
         ratingView.layer.cornerRadius = 17
-        ratingView.applyCardShadow()
+        //ratingView.applyCardShadow()
         bigImageView.layer.cornerRadius = 10
         smallImageView1.layer.cornerRadius = 7
         smallImageView2.layer.cornerRadius = 7
         smallImageView3.layer.cornerRadius = 7
         moreView.layer.cornerRadius = 7
-        moreView.applyCardShadow()
+       // moreView.applyCardShadow()
         
         collectionView.delegate = self
         collectionView.dataSource = self
