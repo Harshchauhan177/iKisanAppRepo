@@ -56,6 +56,13 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             return
         }
         
+        Task {
+            allEquipment = await RequestManager.shared.fetchEquipments()
+            DispatchQueue.main.async {
+                self.collectionView.reloadData()
+            }
+        }
+        
         // Load data and refresh suggestions
         loadData()
         
@@ -203,7 +210,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         let dataSection = getDataSection(for: section)
         switch dataSection {
         case 0:
-            return 6 // Discounts
+            return allEquipment.count
         case 1:
             return min(upcomingBookings.count, 3)
         case 2:

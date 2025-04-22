@@ -9,34 +9,68 @@ import Foundation
 
 //MARK: Model for Equipment
 
-struct Equipment {
-    let equipmentID: UUID
+struct Equipment: Codable, Sendable {
+    let equipmentID: UUID = .init()
     var equipmentImage: String
     var name: String
     var type: String
     var capacity: String
-    var availability: Availability
+    var availability: Availability {
+        return Availability(startDate: availabilityStartDate, endDate: availabilityEndDate)
+    }
+
     var pricePerHour: Double
     var realPricePerHour: Double
     var pricePerAcre: Double
     var realPricePerAcre: Double
+
     var providerID: UUID
     var rating: Double
     var location: String
     var coEquipDetail: coEquipState
-    var equipmentMoreImages: EquipmentMoreImages
+    var equipmentMoreImages: EquipmentMoreImages {
+        return EquipmentMoreImages(images: [])
+    }
     var modelYear: String
     var mielage: String
     var description: String?
     var isRecommended: Bool = false//
     var providerName: String?//
     var preBookingStatus: BookingStatus?//
-    
+        
+    var availabilityStartDate: Date = .init()
+    var availabilityEndDate: Date = .init()
+
     func isAvailable(on date: Date) -> Bool {
         return date >= availability.startDate && date <= availability.endDate
     }
-    //Review to add
+    
+    enum CodingKeys: String, CodingKey {
+        case equipmentID
+        case equipmentImage
+        case name
+        case type
+        case capacity
+        case pricePerHour
+        case realPricePerHour
+        case pricePerAcre
+        case realPricePerAcre
+        case providerID
+        case rating
+        case location
+        case coEquipDetail
+//        case equipmentMoreImages
+        case modelYear
+        case mielage
+        case description
+        case isRecommended
+        case providerName
+        case preBookingStatus
+        case availabilityStartDate
+        case availabilityEndDate
+    }
 }
+
 struct Request {
     let id: UUID
     var userId: UUID
@@ -80,16 +114,17 @@ struct Request {
         self.joinedFarmers = joinedFarmers
     }
 }
-struct Availability {
+struct Availability: Codable {
     var startDate: Date
     var endDate: Date
 }
+
 enum RequestType {
     case myRequest
     case acceptedRequest
     
 }
-enum coEquipState{
+enum coEquipState: String, Codable {
     case Available
     case Unavailable
 }
@@ -102,8 +137,12 @@ struct ReviewData{
     
 }
 
-struct EquipmentMoreImages {
+struct EquipmentMoreImages: Codable {
     var images: [String]
+    
+    enum CodingKeys: String, CodingKey {
+        case images
+    }
 }
 
 
@@ -172,7 +211,7 @@ enum BookingType: String {
     case coEquip = "Co-Equip"
 }
 
-enum BookingStatus: String {
+enum BookingStatus: String, Codable {
     case pending = "Pending"
     case confirmed = "Confirmed"
     case completed = "Completed"
@@ -220,8 +259,6 @@ struct FAQ {
 }
 
 let sampleUsers: [User] = [
-
-
     User(userID: UUID(), name: "Raj Pal", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
     User(userID: UUID(), name: "Narendra", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
 

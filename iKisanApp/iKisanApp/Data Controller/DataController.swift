@@ -1,6 +1,18 @@
 import Foundation
 import UIKit
+import Supabase
 
+class SupabaseManager {
+    public static let shared: SupabaseManager = .init()
+    private let key: String = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4dXV1cGlxZWlweWVtbHV5ZXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUzMDUzMzQsImV4cCI6MjA2MDg4MTMzNH0.zH4zUtWuYB1YTzwIMx_Js6EgnI-s-3AV6WP0qsKjzZ8"
+    private let url: String = "https://pxuuupiqeipyemluyers.supabase.co"
+    
+    public private(set) var client: SupabaseClient
+    
+    private init() {
+        self.client = SupabaseClient(supabaseURL: URL(string: url)!, supabaseKey: key)
+    }
+}
 
 protocol DataController {
     func getAllEquipment() -> [Equipment]
@@ -74,63 +86,60 @@ enum SortOption {
 
 enum EquipmentData {
     static let equipment: [Equipment] = [
-        //
-        Equipment(
-            equipmentID: UUID(),
-            equipmentImage: "1.jpeg",
-            name: "Square Baler",
-            type: "Agricultural",
-            capacity: "1000",
-            availability: Availability(
-                startDate: Calendar.current.date(byAdding: .day, value: 2, to: Date())!,
-                endDate: Calendar.current.date(byAdding: .day, value: 15, to: Date())!
-            ),
-            pricePerHour: 1000,
-            realPricePerHour: 1500,
-            pricePerAcre: 2100,
-            realPricePerAcre: 2500,
-            providerID: UUID(),
-            rating: 4.5,
-            location: "Murshadpur, Greater Noida",
-            coEquipDetail: .Available,
-            equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg"]),
-            modelYear: "2009",
-            mielage: "15L/ac",
-            description: "Best for baling hay and straw",
-            isRecommended: true,
-            providerName: "John Doe"
-        ),
-        Equipment(
-            equipmentID: UUID(),
-            equipmentImage: "4.jpeg",
-            name: "Rice Harvester",
-            type: "Agricultural",
-            capacity: "1000",
-            availability: Availability(
-                startDate: Calendar.current.date(byAdding: .day, value: 5, to: Date())!,
-                endDate: Calendar.current.date(byAdding: .day, value: 25, to: Date())!
-            ),
-            pricePerHour: 1100,
-            realPricePerHour: 1500,
-            pricePerAcre: 2200,
-            realPricePerAcre: 2500,
-            providerID: UUID(),
-            rating: 4.5,
-            location: "Dankaur, Greater Noida",
-            coEquipDetail: .Available,
-            equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg"]),
-            modelYear: "2009",
-            mielage: "15L/ac",
-            description: "Efficient rice harvesting solution",
-            isRecommended: true,
-            providerName: "Mike Johnson"
-        ),
-        Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura,Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Efficient rice harvesting solution", isRecommended: true, providerName: "Jane Smith"),
-        //
-        Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh,Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac"),
-        Equipment(equipmentID: UUID(), equipmentImage: "6.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1400,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Alpha2,Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
-        Equipment(equipmentID: UUID(), equipmentImage: "7.jpeg", name: "Tractor", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur,Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
-        Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
+//        //
+//        Equipment(
+//            equipmentID: UUID(),
+//            equipmentImage: "1.jpeg",
+//            name: "Square Baler",
+//            type: "Agricultural",
+//            capacity: "1000",
+//            availability: Availability(
+//                startDate: Calendar.current.date(byAdding: .day, value: 2, to: Date())!,
+//                endDate: Calendar.current.date(byAdding: .day, value: 15, to: Date())!
+//            ),
+//            pricePerHour: 1000,
+//            realPricePerHour: 1500,
+//            pricePerAcre: 2100,
+//            realPricePerAcre: 2500,
+//            providerID: UUID(),
+//            rating: 4.5,
+//            location: "Murshadpur, Greater Noida",
+//            coEquipDetail: .Available,
+//            equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg"]),
+//            modelYear: "2009",
+//            mielage: "15L/ac",
+//            description: "Best for baling hay and straw",
+//            isRecommended: true,
+//            providerName: "John Doe"
+//        ),
+//        Equipment(
+//            equipmentImage: "4.jpeg",
+//            name: "Rice Harvester",
+//            type: "Agricultural",
+//            capacity: "1000",
+//            availabilityStartDate: Calendar.current.date(byAdding: .day, value: 5, to: Date())!,
+//            availabilityEndDate: Calendar.current.date(byAdding: .day, value: 25, to: Date())!,
+//            pricePerHour: 1100,
+//            realPricePerHour: 1500,
+//            pricePerAcre: 2200,
+//            realPricePerAcre: 2500,
+//            providerID: UUID(),
+//            rating: 4.5,
+//            location: "Dankaur, Greater Noida",
+//            coEquipDetail: .Available,
+//            equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg"]),
+//            modelYear: "2009",
+//            mielage: "15L/ac",
+//            description: "Efficient rice harvesting solution",
+//            isRecommended: true,
+//            providerName: "Mike Johnson"
+//        ),
+//        Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura,Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Efficient rice harvesting solution", isRecommended: true, providerName: "Jane Smith"),
+//        //
+//        Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh,Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac"),
+//        Equipment(equipmentID: UUID(), equipmentImage: "6.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1400,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Alpha2,Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
+//        Equipment(equipmentID: UUID(), equipmentImage: "7.jpeg", name: "Tractor", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur,Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
+//        Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
       
     ]
     
@@ -187,11 +196,11 @@ enum EquipmentData {
     ]
 
     static let suggestionsEquipment: [Equipment] = [
-        Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Square Baler", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area(For Rice Fields)"),
-        Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
-        //
-        Equipment(equipmentID: UUID(), equipmentImage: "2.jpeg", name: "Trailed Sprayers", type: "Wheat", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1200,realPricePerHour: 1500 , pricePerAcre: 2300, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Dankaur, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["2.jpeg","2.jpeg","2.jpeg","2.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Perfect for crop spraying(For Wheat)", isRecommended: true, providerName: "Mike Johnson"),//
-        Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Wheat", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area(For Wheat)"),
+//        Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Square Baler", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area(For Rice Fields)"),
+//        Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
+//        //
+//        Equipment(equipmentID: UUID(), equipmentImage: "2.jpeg", name: "Trailed Sprayers", type: "Wheat", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1200,realPricePerHour: 1500 , pricePerAcre: 2300, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Dankaur, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["2.jpeg","2.jpeg","2.jpeg","2.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Perfect for crop spraying(For Wheat)", isRecommended: true, providerName: "Mike Johnson"),//
+//        Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Wheat", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area(For Wheat)"),
     ]
 }
 
@@ -1068,6 +1077,7 @@ class currentUser {
     
     var user: User?
 }
+
 class RequestManager {
     static let shared = RequestManager()
     
@@ -1076,54 +1086,66 @@ class RequestManager {
 
     private init() {
         equipmentItems = [
-            Equipment(
-                equipmentID: UUID(),
-                equipmentImage: "5.jpeg",
-                name: "Harrow",
-                type: "Agricultural",
-                capacity: "1000",
-                availability: Availability(startDate: Date(), endDate: Date()),
-                pricePerHour: 1300,
-                realPricePerHour: 1500,
-                pricePerAcre: 2400,
-                realPricePerAcre: 2500,
-                providerID: UUID(),
-                rating: 4.5,
-                location: "Bisrakh, Grater Noida",
-                coEquipDetail: .Available,
-                equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jpeg"]),
-                modelYear: "2009",
-                mielage: "15L/ac",
-                description: "Available in your Area",
-                preBookingStatus: nil  
-            ),
-            Equipment(
-                equipmentID: UUID(),
-                equipmentImage: "tractor_mahindra_275.jpg",
-                name: "Mahindra Tractor",
-                type: "275 DI TU",
-                capacity: "35 HP",
-                availability: Availability(
-                    startDate: Date(),
-                    endDate: Date().addingTimeInterval(30*24*60*60)
-                ),
-                pricePerHour: 800,
-                realPricePerHour: 1000,
-                pricePerAcre: 2000,
-                realPricePerAcre: 2500,
-                providerID: UUID(),
-                rating: 4.5,
-                location: "Greater Noida",
-                coEquipDetail: .Available,
-                equipmentMoreImages: EquipmentMoreImages(images: ["tractor1.jpg", "tractor2.jpg"]),
-                modelYear: "2022",
-                mielage: "10L/hr",
-                description: "35 HP Tractor with advanced features",
-                isRecommended: true,
-                providerName: "John Doe",
-                preBookingStatus: nil
-            ),
+//            Equipment(
+//                equipmentID: UUID(),
+//                equipmentImage: "5.jpeg",
+//                name: "Harrow",
+//                type: "Agricultural",
+//                capacity: "1000",
+//                availability: Availability(startDate: Date(), endDate: Date()),
+//                pricePerHour: 1300,
+//                realPricePerHour: 1500,
+//                pricePerAcre: 2400,
+//                realPricePerAcre: 2500,
+//                providerID: UUID(),
+//                rating: 4.5,
+//                location: "Bisrakh, Grater Noida",
+//                coEquipDetail: .Available,
+//                equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jpeg"]),
+//                modelYear: "2009",
+//                mielage: "15L/ac",
+//                description: "Available in your Area",
+//                preBookingStatus: nil  
+//            ),
+//            Equipment(
+//                equipmentID: UUID(),
+//                equipmentImage: "tractor_mahindra_275.jpg",
+//                name: "Mahindra Tractor",
+//                type: "275 DI TU",
+//                capacity: "35 HP",
+//                availability: Availability(
+//                    startDate: Date(),
+//                    endDate: Date().addingTimeInterval(30*24*60*60)
+//                ),
+//                pricePerHour: 800,
+//                realPricePerHour: 1000,
+//                pricePerAcre: 2000,
+//                realPricePerAcre: 2500,
+//                providerID: UUID(),
+//                rating: 4.5,
+//                location: "Greater Noida",
+//                coEquipDetail: .Available,
+//                equipmentMoreImages: EquipmentMoreImages(images: ["tractor1.jpg", "tractor2.jpg"]),
+//                modelYear: "2022",
+//                mielage: "10L/hr",
+//                description: "35 HP Tractor with advanced features",
+//                isRecommended: true,
+//                providerName: "John Doe",
+//                preBookingStatus: nil
+//            ),
         ]
+        Task {
+            self.equipmentItems = await fetchEquipments()
+        }
+    }
+    
+    func fetchEquipments() async -> [Equipment] {
+        let data: [Equipment] = try! await SupabaseManager.shared.client
+            .from("equipment")
+            .select("*")
+            .execute()
+            .value
+        return data
     }
 }
 extension Notification.Name {
