@@ -21,7 +21,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     var searchBar: UISearchBar!
     var tableView: UITableView!
 
-    let dataList =  Array(Set(EquipmentData.equipment.map { $0.name })) //(for distinct values) //EquipmentData.equipment.map { $0.name }
+    let requestManager = RequestManager.shared
+    var dataList: [String] = []
     var filteredData: [String] = []
     
     var hasUpcomingBookings: Bool = false
@@ -56,15 +57,15 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             return
         }
         
-        Task {
-            allEquipment = await RequestManager.shared.fetchEquipments()
-            DispatchQueue.main.async {
-                self.collectionView.reloadData()
-            }
+        // Set the collection view reference in the data controller if it's the right type
+        if let ikisanDataController = dataController as? IKisanDataController {
+            ikisanDataController.collectionView = self.collectionView
         }
         
-        // Load data and refresh suggestions
-        loadData()
+        // Load data asynchronously
+        Task {
+            await loadDataFromBackend()
+        }
         
         // Registering Nibs for cells
         let discountsNib = UINib(nibName: "DiscountsCell", bundle: nil)
@@ -92,21 +93,48 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         collectionView.delegate = self
     }
     
-    private func loadData() {
-        allEquipment = dataController.getAllEquipment()
-        suggestions = dataController.getSuggestions()  // This will now use persisted crop selections
-        reviews = dataController.getAllReviews()
-        upcomingBookings = dataController.getUpcomingBookings()
+    private func loadDataFromBackend() async {
+        // Fetch equipment data from backend
+        allEquipment = await requestManager.fetchEquipments()
+        
+        // Generate the search suggestions list
+        dataList = Array(Set(allEquipment.map { $0.name }))
+        
+        // Get suggestions and reviews
+        suggestions = allEquipment.filter { $0.isRecommended }
+        reviews = await requestManager.fetchReviews()
+        
+        // Get upcoming bookings
+        upcomingBookings = await requestManager.fetchBookings().filter { 
+            $0.bookingDate > Date() 
+        }
         
         // Update hasUpcomingBookings based on actual bookings
         hasUpcomingBookings = !upcomingBookings.isEmpty
         
         // Print debug info
+        print("Loaded equipment count: \(allEquipment.count)")
         print("Loaded suggestions count: \(suggestions.count)")
-        print("Selected crops: \(dataController.getSelectedCrops())")
+        print("Loaded reviews count: \(reviews.count)")
+        print("Loaded upcoming bookings count: \(upcomingBookings.count)")
         
-        // Refresh UI
-        collectionView.reloadData()
+        // Update UI on the main thread
+        DispatchQueue.main.async {
+            self.collectionView.reloadData()
+        }
+    }
+    
+    private func loadData() {
+        Task {
+            await loadDataFromBackend()
+        }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Refresh data when view appears
+        loadData()
     }
     
     //MARK: Search Bar Implementation
@@ -403,7 +431,39 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         selectedIndexPath = indexPath
         
-        let selectedEquipment = EquipmentData.equipment[indexPath.row]
+        let dataSection = getDataSection(for: indexPath.section)
+        var selectedEquipment: Equipment
+        
+        switch dataSection {
+        case 0:
+            // Discounts section
+            if indexPath.row < allEquipment.count {
+                selectedEquipment = allEquipment[indexPath.row]
+            } else {
+                print("Error: Index out of range in Discounts section")
+                return
+            }
+        case 2:
+            // Suggestions section
+            if indexPath.row < suggestions.count {
+                selectedEquipment = suggestions[indexPath.row]
+            } else {
+                print("Error: Index out of range in Suggestions section")
+                return
+            }
+        case 3:
+            // Explore More section
+            if indexPath.row < allEquipment.count {
+                selectedEquipment = allEquipment[indexPath.row]
+            } else {
+                print("Error: Index out of range in Explore More section")
+                return
+            }
+        default:
+            print("Selected item in section that doesn't navigate to details")
+            return
+        }
+        
         print("HomeViewController - Selected equipment: \(selectedEquipment.name)")
         
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
@@ -458,20 +518,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        // Refresh the bookings data when the view appears
-        if let dataController = dataController {
-            upcomingBookings = dataController.getUpcomingBookings()
-            hasUpcomingBookings = !upcomingBookings.isEmpty
-            collectionView.reloadData()
-        }
-        
-        // Refresh suggestions based on selected crop
-        suggestions = dataController.getSuggestions()
-        collectionView.reloadData()
-    }
 //    private func applyShadowStyling(to cell: UICollectionViewCell) {
 //        // Create a shadow layer
 //        cell.layer.shadowColor = UIColor.black.cgColor

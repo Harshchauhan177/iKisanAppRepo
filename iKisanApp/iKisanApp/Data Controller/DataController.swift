@@ -85,122 +85,24 @@ enum SortOption {
 }
 
 enum EquipmentData {
+    // Commented out hardcoded data to ensure only backend data is used
     static let equipment: [Equipment] = [
-//        //
-//        Equipment(
-//            equipmentID: UUID(),
-//            equipmentImage: "1.jpeg",
-//            name: "Square Baler",
-//            type: "Agricultural",
-//            capacity: "1000",
-//            availability: Availability(
-//                startDate: Calendar.current.date(byAdding: .day, value: 2, to: Date())!,
-//                endDate: Calendar.current.date(byAdding: .day, value: 15, to: Date())!
-//            ),
-//            pricePerHour: 1000,
-//            realPricePerHour: 1500,
-//            pricePerAcre: 2100,
-//            realPricePerAcre: 2500,
-//            providerID: UUID(),
-//            rating: 4.5,
-//            location: "Murshadpur, Greater Noida",
-//            coEquipDetail: .Available,
-//            equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg"]),
-//            modelYear: "2009",
-//            mielage: "15L/ac",
-//            description: "Best for baling hay and straw",
-//            isRecommended: true,
-//            providerName: "John Doe"
-//        ),
-//        Equipment(
-//            equipmentImage: "4.jpeg",
-//            name: "Rice Harvester",
-//            type: "Agricultural",
-//            capacity: "1000",
-//            availabilityStartDate: Calendar.current.date(byAdding: .day, value: 5, to: Date())!,
-//            availabilityEndDate: Calendar.current.date(byAdding: .day, value: 25, to: Date())!,
-//            pricePerHour: 1100,
-//            realPricePerHour: 1500,
-//            pricePerAcre: 2200,
-//            realPricePerAcre: 2500,
-//            providerID: UUID(),
-//            rating: 4.5,
-//            location: "Dankaur, Greater Noida",
-//            coEquipDetail: .Available,
-//            equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg"]),
-//            modelYear: "2009",
-//            mielage: "15L/ac",
-//            description: "Efficient rice harvesting solution",
-//            isRecommended: true,
-//            providerName: "Mike Johnson"
-//        ),
-//        Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura,Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Efficient rice harvesting solution", isRecommended: true, providerName: "Jane Smith"),
-//        //
-//        Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh,Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac"),
-//        Equipment(equipmentID: UUID(), equipmentImage: "6.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1400,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Alpha2,Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
-//        Equipment(equipmentID: UUID(), equipmentImage: "7.jpeg", name: "Tractor", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur,Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
-//        Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Tractor", type: "Agricultural", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","2.jpeg","3.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac"),
-      
+        // All equipment items removed/commented out to use only backend data
     ]
     
+    // Commented out hardcoded reviews to use only backend data
     static let reviews: [ReviewData] = [
-        ReviewData(reviewHeading: "Excellent", reviewDescription: "Rented the Swaraj Combine for my rice field, and it worked like a charm! Great fuel efficiency, easy handling, and the rental process was smooth.", rating: 4),
-        ReviewData(reviewHeading: "Good", reviewDescription: "Rented the Swaraj Combine for my rice field, and it worked like a charm! Great fuel efficiency, easy handling, and the rental process was smooth.", rating: 3),
-        ReviewData(reviewHeading: "Bad", reviewDescription: "The Swaraj Combine was disappointing. It kept breaking down, fuel consumption was high, and I lost valuable time waiting for repairs. Not worth the hassle.", rating: 2),
-        ReviewData(reviewHeading: "Very Bad", reviewDescription: "The Swaraj Combine was disappointing. It kept breaking down, fuel consumption was high, and I lost valuable time waiting for repairs. Not worth the hassle.", rating: 1),
-        
-        ]
+        // All review items removed/commented out to use only backend data
+    ]
+    
+    // Commented out hardcoded sample requests to use only backend data
     static  let sampleRequests: [Request] = [
-        Request(
-            userId: sampleUsers[0].userID,
-            equipmentId: UUID(), // Replace with an actual sample equipment ID if available
-            requestedDate: Date(),
-            status: .pending,
-            type: .onDemand,
-            area: 5.0,
-            timeSlot: .morning,
-            timePeriod: "2 hours",
-            location: "Delhi",
-            typeOfRequest: .acceptedRequest,
-            selectedUsers: [sampleUsers[1], sampleUsers[2]],
-            joinedFarmers: [sampleUsers[3].userID]
-        ),
-        Request(
-            userId: sampleUsers[1].userID,
-            equipmentId: UUID(),
-            requestedDate: Date().addingTimeInterval(86400), // One day later
-            status: .confirmed,
-            type: .prebooking,
-            area: 10.0,
-            timeSlot: .afternoon,
-            timePeriod: "4 hours",
-            location: "Punjab",
-            typeOfRequest: .acceptedRequest,
-            selectedUsers: [sampleUsers[0], sampleUsers[3]],
-            joinedFarmers: [sampleUsers[2].userID]
-        ),
-        Request(
-            userId: sampleUsers[2].userID,
-            equipmentId: UUID(),
-            requestedDate: Date().addingTimeInterval(172800), // Two days later
-            status: .completed,
-            type: .coEquip,
-            area: 7.5,
-            timeSlot: .evening,
-            timePeriod: "3 hours",
-            location: "Uttar Pradesh",
-            typeOfRequest: .myRequest,
-            selectedUsers: [sampleUsers[1]],
-            joinedFarmers: [sampleUsers[0].userID, sampleUsers[3].userID]
-        )
+        // All request items removed/commented out to use only backend data
     ]
 
+    // Commented out hardcoded suggestions to use only backend data
     static let suggestionsEquipment: [Equipment] = [
-//        Equipment(equipmentID: UUID(), equipmentImage: "1.jpeg", name: "Square Baler", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1000,realPricePerHour: 1500 , pricePerAcre: 2100, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Murshadpur, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg","1.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area(For Rice Fields)"),
-//        Equipment(equipmentID: UUID(), equipmentImage: "4.jpeg", name: "Rice Harvester", type: "Rice", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1100,realPricePerHour: 1500 , pricePerAcre: 2200, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Gunpura, Grater Noida", coEquipDetail: .Available, equipmentMoreImages: EquipmentMoreImages(images: ["4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg","4.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area"),
-//        //
-//        Equipment(equipmentID: UUID(), equipmentImage: "2.jpeg", name: "Trailed Sprayers", type: "Wheat", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1200,realPricePerHour: 1500 , pricePerAcre: 2300, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Dankaur, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["2.jpeg","2.jpeg","2.jpeg","2.jpeg"]), modelYear: "2009", mielage: "15L/ac", description: "Perfect for crop spraying(For Wheat)", isRecommended: true, providerName: "Mike Johnson"),//
-//        Equipment(equipmentID: UUID(), equipmentImage: "5.jpeg", name: "Harrow", type: "Wheat", capacity: "1000", availability: Availability(startDate: Date(), endDate: Date()), pricePerHour: 1300,realPricePerHour: 1500 , pricePerAcre: 2400, realPricePerAcre: 2500, providerID: UUID(), rating: 4.5, location: "Bisrakh, Grater Noida", coEquipDetail: .Available,equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jprg"]), modelYear: "2009", mielage: "15L/ac", description: "Available in your Area(For Wheat)"),
+        // All suggestion items removed/commented out to use only backend data
     ]
 }
 
@@ -267,506 +169,51 @@ class IKisanDataController: DataController {
     private static let sugarcaneCrusherId = UUID(uuidString: "D651E1F8-C36C-495A-93FC-0C247A3E6E5F")!
     private static let chopperHarvesterId = UUID(uuidString: "D652E1F8-C36C-495A-93FC-0C247A3E6E5F")!
 
-    
-    
-    
-    private var equipmentList: [Equipment]
-    private var reviewList: [ReviewData]
-    private var suggestionList: [Equipment]
+    private var equipmentList: [Equipment] = []
+    private var reviewList: [ReviewData] = []
+    private var suggestionList: [Equipment] = []
     private var bookingsList: [Booking] = []
-    // agri Assist
-    private let crops: [AgriCrop]
-    private var cropCategories: [CropCategory]
+    private var crops: [AgriCrop] = []
+    private var cropCategories: [CropCategory] = []
     private let sectionHeaders = ["Equipment Type Details", "Related Equipment"]
     private var coEquipRequests: [Request] = []
     private var acceptedRequests: [Request] = []
     private var pendingRequests: [Request] = []
-    private let sampleUsers: [User] = [
-        //
-        User(userID: UUID(), name: "Rahul Kumar", phone: "9876543210",
-             location: Location(latitude: 28.4744, longitude: 77.5040, address: "Greater Noida"),
-             selectedCrops: [], fieldArea: 5.0),
-        User(userID: UUID(), name: "Amit Singh", phone: "8765432109",
-             location: Location(latitude: 28.4745, longitude: 77.5041, address: "Noida"),
-             selectedCrops: [], fieldArea: 3.5),
-        User(userID: UUID(), name: "Priya Sharma", phone: "7654321098",
-             location: Location(latitude: 28.4746, longitude: 77.5042, address: "Delhi"),
-             selectedCrops: [], fieldArea: 4.0)
-    ]
-    private var faqs: [FAQ] = [
-        FAQ(id: UUID(),
-            question: "How does prebooking work?",
-            answer: "Select equipment, choose dates, and confirm booking."),
-        FAQ(id: UUID(),
-            question: "What if equipment is unavailable?",
-            answer: "You'll be notified and can choose alternate dates."),
-        FAQ(id: UUID(),
-            question: "Can I cancel or modify a booking?",
-            answer: "Yes, you can modify or cancel up to 24 hours before the booking.")
-    ]
-    //
-    private var selectedCrops: Set<String> = Set<String>()
-    private let selectedCropsKey = "selected_crops_key"
+    
+    private let requestManager = RequestManager.shared
+    private let selectedCropsKey = "selectedCrops"
+    private var selectedCrops: Set<String> = []
+    
+    // Reference to any collectionView that needs to be updated
+    weak var collectionView: UICollectionView?
     
     init() {
-        self.equipmentList = EquipmentData.equipment
-        self.reviewList = EquipmentData.reviews
-        self.suggestionList = EquipmentData.suggestionsEquipment
-        
-        // Load previously selected crops from UserDefaults
+        // Load selected crops from UserDefaults
         if let savedCrops = UserDefaults.standard.array(forKey: selectedCropsKey) as? [String] {
-            self.selectedCrops = Set(savedCrops)
-            print("Loaded saved crops: \(selectedCrops)")
+            selectedCrops = Set(savedCrops)
+            print("Loaded selected crops: \(selectedCrops)")
         }
         
-        // Initialize crops
-        self.crops = [
-            AgriCrop(id: Self.riceId, name: "Rice", imageName: "Rice"),
-            AgriCrop(id: Self.wheatId, name: "Wheat", imageName: "Wheat"),
-            AgriCrop(id: Self.oatsId, name: "Oats", imageName: "Oats"),
-            AgriCrop(id: Self.cottonId, name: "Cotton", imageName: "Cotton"),
-            AgriCrop(id: Self.teaId, name: "Tea", imageName: "Tea"),
-            AgriCrop(id: Self.maizeId, name: "Maize", imageName: "Maize"),
-            AgriCrop(id: Self.tobaccoId, name: "Tobacco", imageName: "Tobacco"),
-            AgriCrop(id: Self.sugarcaneId, name: "Sugarcane", imageName: "Sugarcane")
-        ]
-        
-        // Initialize crop categories with updated EquipmentAgri instances
-        self.cropCategories = [
-            CropCategory(
-                id: Self.riceId,
-                cropName: "Rice",equipmentsForCrops: "Equipments For Rice",
-                equipments: [
-                    EquipmentCategory(
-                        id: Self.cultivatorsCategoryId,
-                        title: "Cultivators",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.paddleWheelCultivatorId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Spring",imageName: "Image",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.riceHarvesterId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Rigid",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.riceTransplanterId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Rotary",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.powerTillerId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Power",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.laserLandLevelerId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Mini",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.harvestersCategoryId,
-                        title: "Harrow",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.riceHarvesterId,
-                                categoryId: Self.harvestersCategoryId,  // Add categoryId
-                                name: "Disc",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.powerTillerId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Spike",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.powerTillerId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Chain",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.powerTillerId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Tine",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.harvestersCategoryId,
-                        title: "Seeder",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.riceHarvesterId,
-                                categoryId: Self.harvestersCategoryId,  // Add categoryId
-                                name: "Paddy",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.powerTillerId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Direct",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.powerTillerId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Drum",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.powerTillerId,
-                                categoryId: Self.cultivatorsCategoryId,  // Add categoryId
-                                name: "Automatic",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    )
-                ]
-            ),
-            CropCategory(
-                id: Self.wheatId,
-                cropName: "Wheat",
-                equipmentsForCrops: "Equipments For Wheat",
-                equipments: [
-                    EquipmentCategory(
-                        id: Self.seedersCategoryId,
-                        title: "Plough",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.wheatSeederId,
-                                categoryId: Self.seedersCategoryId,
-                                name: "Mouldboard",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: UUID(),
-                                categoryId: Self.seedersCategoryId,
-                                name: "Reversible",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: UUID(),
-                                categoryId: Self.seedersCategoryId,
-                                name: "Chisel",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: UUID(),
-                                categoryId: Self.seedersCategoryId,
-                                name: "Disc",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.harvestersCategoryId,
-                        title: "Seeder",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.wheatHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Broadcast",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.wheatHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Air",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.wheatHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Seed",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.wheatHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Precision",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    )
-                ]
-            ),
-            
-            CropCategory(
-                id: Self.oatsId,
-                cropName: "Oats",
-                equipmentsForCrops: "Equipments For Oats",
-                equipments: [
-                    EquipmentCategory(
-                        id: Self.planterCategoryId,
-                        title: "Planter",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Sugarcane",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Row ",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Automatic",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Manual",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    ),EquipmentCategory(
-                        id: Self.planterCategoryId,
-                        title: "Planter",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Sugarcane",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Row ",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Automatic",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Manual",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.planterCategoryId,
-                        title: "Planter",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Sugarcane",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Row ",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Automatic",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Manual",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.planterCategoryId,
-                        title: "Planter",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Sugarcane",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Row",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Automatic",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cottonSeederId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Manual",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    )
-                ]
-            ),
-            CropCategory(
-                id: Self.cottonId,
-                cropName: "Cotton",
-                equipmentsForCrops: "Equipments For Cotton",
-                equipments: [
-                    EquipmentCategory(
-                        id: Self.cultivatorsCategoryId,
-                        title: "Cultivator",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.sugarcanePlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Shovel",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45  ),
-                            EquipmentAgri(
-                                id: Self.sugarcanePlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Tine",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.sugarcanePlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Rotary",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.sugarcanePlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Mini",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.planterCategoryId,
-                        title: "Planter",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.sugarcanePlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Cotton",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
-                            EquipmentAgri(
-                                id: Self.sugarcanePlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Air Seed",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.sugarcanePlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Drill",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
-                            EquipmentAgri(
-                                id: Self.sugarcanePlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Precision",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.harvestersCategoryId,
-                        title: "Harvesters",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.sugarcaneHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Cotton",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
-                            EquipmentAgri(
-                                id: Self.chopperHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Stripper",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 ),
-                            EquipmentAgri(
-                                id: Self.chopperHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Combine",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.chopperHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Propelled",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45 )
-                        ]
-                    )
-                ]
-            ),
-            CropCategory(
-                id: Self.teaId,
-                cropName: "Tea",
-                equipmentsForCrops: "Equipments For Tea",
-                equipments: [
-                    EquipmentCategory(
-                        id: Self.planterCategoryId,
-                        title: "Pruner",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.cornPlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Tea",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cornPlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Handheld",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cornPlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Hydraulic",imageName: "Image 1",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.cornPlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Operated",imageName: "Image 2",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45)
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.harvestersCategoryId,
-                        title: "Harvesters",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.maizeHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Plucking",imageName: "Image 3",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                            EquipmentAgri(
-                                id: Self.maizeHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Shear",imageName: "Image 4",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45),
-                        ]
-                    )
-                ]
-            ),
-            CropCategory(
-                id: Self.maizeId,
-                cropName: "Maize",
-                equipmentsForCrops: "Maize Equipment",
-                equipments: [
-                    EquipmentCategory(
-                        id: Self.planterCategoryId,
-                        title: "Planters",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.cornPlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Paddle Wheel",imageName: "Image 5",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
-                            )
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.harvestersCategoryId,
-                        title: "Harvesters",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.maizeHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Planters Wheel",imageName: "Image 9",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
-                            )
-                        ]
-                    )
-                ]
-            ),CropCategory(
-                id: Self.tobaccoId,
-                cropName: "Maize",
-                equipmentsForCrops: "Maize Equipment",
-                equipments: [
-                    EquipmentCategory(
-                        id: Self.planterCategoryId,
-                        title: "Planters",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.cornPlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Paddle ",imageName: "Image 10",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
-                            )
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.harvestersCategoryId,
-                        title: "Harvesters",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.maizeHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Cultivator",imageName: "Image 11",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
-                            )
-                        ]
-                    )
-                ]
-            ),CropCategory(
-                id: Self.sugarcaneId,
-                cropName: "Maize",
-                equipmentsForCrops: "Maize Equipment",
-                equipments: [
-                    EquipmentCategory(
-                        id: Self.planterCategoryId,
-                        title: "Planters",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.cornPlanterId,
-                                categoryId: Self.planterCategoryId,
-                                name: "Paddle Wheel ",imageName: "Image 12",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
-                            )
-                        ]
-                    ),
-                    EquipmentCategory(
-                        id: Self.harvestersCategoryId,
-                        title: "Harvesters",
-                        equipmentList: [
-                            EquipmentAgri(
-                                id: Self.maizeHarvesterId,
-                                categoryId: Self.harvestersCategoryId,
-                                name: "Planters",imageName: "Image 13",purpose: "For paddy fields",bestFor: "Small farms",averageCost: "₹1000/day",needs: "Tractor attachment",likedBy: 45
-                            )
-                        ]
-                    )
-                ]
-            )
-        ]
-
-        setupInitialRequests()
+        // Setup initial data
+        Task {
+            await loadDataFromBackend()
+        }
     }
     
-    private func setupInitialRequests() {
-        // Create some accepted requests using the existing equipment data
-        acceptedRequests = [] // Remove dummy data, start with empty array
+    private func loadDataFromBackend() async {
+        // Load all data from backend
+        self.equipmentList = await requestManager.fetchEquipments()
+        self.reviewList = await requestManager.fetchReviews()
+        self.bookingsList = await requestManager.fetchBookings()
+        self.crops = await requestManager.fetchCrops()
+        self.cropCategories = await requestManager.fetchCropCategories()
         
-        // Add these requests to coEquipRequests as well
-        coEquipRequests.append(contentsOf: acceptedRequests)
+        // Load requests
+        self.coEquipRequests = await requestManager.fetchRequests()
+        self.acceptedRequests = self.coEquipRequests.filter { $0.status == .confirmed }
+        
+        // Make a local copy of suggestions for quick access
+        self.suggestionList = self.equipmentList.filter { $0.isRecommended }
     }
     
     func getAllEquipment() -> [Equipment] {
@@ -783,110 +230,157 @@ class IKisanDataController: DataController {
     
     func addReview(_ review: ReviewData) {
         reviewList.append(review)
+        // Ideally should save to backend but not implemented in RequestManager yet
     }
     
     func getSuggestions() -> [Equipment] {
-        if !selectedCrops.isEmpty {
-            let filteredEquipment = suggestionList.filter { equipment in
-                selectedCrops.contains(equipment.type)
-            }
-            return filteredEquipment
-        }
         return suggestionList
     }
     
-    func getEquipment(sortedBy option: SortOption) -> [Equipment] {
-        switch option {
+    func getEquipment(sortedBy: SortOption) -> [Equipment] {
+        var sortedEquipment = equipmentList
+        
+        switch sortedBy {
         case .priceHighToLow:
-            return equipmentList.sorted { $0.pricePerHour > $1.pricePerHour }
+            sortedEquipment.sort { $0.pricePerHour > $1.pricePerHour }
         case .priceLowToHigh:
-            return equipmentList.sorted { $0.pricePerHour < $1.pricePerHour }
+            sortedEquipment.sort { $0.pricePerHour < $1.pricePerHour }
         case .rating:
-            return equipmentList.sorted { $0.rating > $1.rating }
+            sortedEquipment.sort { $0.rating > $1.rating }
         case .name:
-            return equipmentList.sorted { $0.name < $1.name }
+            sortedEquipment.sort { $0.name < $1.name }
+        }
+        
+        return sortedEquipment
+    }
+
+    func searchEquipment(query: String) -> [Equipment] {
+        let lowercaseQuery = query.lowercased()
+        return equipmentList.filter { equipment in
+            equipment.name.lowercased().contains(lowercaseQuery) ||
+            equipment.type.lowercased().contains(lowercaseQuery) ||
+            equipment.location.lowercased().contains(lowercaseQuery)
         }
     }
     
-
-    func searchEquipment(query: String) -> [Equipment] {
-        let lowercasedQuery = query.lowercased()
-        return equipmentList.filter {
-            $0.name.lowercased().contains(lowercasedQuery) ||
-            $0.type.lowercased().contains(lowercasedQuery) ||
-            $0.location.lowercased().contains(lowercasedQuery)
+    func getUpcomingBookings() -> [Booking] {
+        let currentDate = Date()
+        return bookingsList.filter { $0.bookingDate > currentDate }
+    }
+    
+    func addBooking(_ booking: Booking) {
+        bookingsList.append(booking)
+        
+        // Save to backend
+        Task {
+            _ = await requestManager.createBooking(booking)
         }
     }
+    
+    // MARK: - AgriAssist Functions
+    
     func getAllCrops() -> [AgriCrop] {
         return crops
     }
     
     func getCropCategory(forCrop cropId: UUID) -> CropCategory? {
-        let category = cropCategories.first { $0.id == cropId }
+        // Check if we already have the category
+        if let category = cropCategories.first(where: { $0.id == cropId }) {
         return category
+        }
+        
+        // If not, fetch it asynchronously but return nil immediately
+        Task {
+            self.cropCategories = await requestManager.fetchCropCategories()
+            DispatchQueue.main.async {
+                self.collectionView?.reloadData()
+            }
+        }
+        
+        return nil
     }
     
     func getEquipmentCategories(forCrop cropId: UUID) -> [EquipmentCategory] {
-        let categories = cropCategories.first { $0.id == cropId }?.equipments ?? []
-        return categories
+        if let category = getCropCategory(forCrop: cropId) {
+            return category.equipments
+        }
+        return []
     }
     
     func getEquipmentAgri(forCategory categoryId: UUID) -> [EquipmentAgri] {
-        return cropCategories.flatMap { $0.equipments }
-            .first { $0.id == categoryId }?.equipmentList ?? []
+        for category in cropCategories {
+            for equipment in category.equipments {
+                if equipment.id == categoryId {
+                    return equipment.equipmentList
+                }
+            }
+        }
+        return []
     }
     
     func getEquipmentAgriDetails(id: UUID) -> EquipmentAgri? {
-        return cropCategories.flatMap { $0.equipments }
-            .flatMap { $0.equipmentList }
-            .first { $0.id == id }
+        for category in cropCategories {
+            for equipmentCategory in category.equipments {
+                if let equipment = equipmentCategory.equipmentList.first(where: { $0.id == id }) {
+                    return equipment
+                }
+            }
+        }
+        return nil
     }
     
-    // Static section headers
+    // MARK: - InfoAboutEquipments Functions
+    
     func getEquipmentSectionHeaders() -> [String] {
         return sectionHeaders
     }
     
     func getEquipmentTypeDetails() -> [EquipmentAgri] {
-        // Return equipment details from first section
-        return cropCategories.flatMap { $0.equipments }
-            .flatMap { $0.equipmentList }
+        // Placeholder implementation
+        for category in cropCategories {
+            for equipment in category.equipments {
+                if !equipment.equipmentList.isEmpty {
+                    return equipment.equipmentList
+                }
+            }
+        }
+        return []
     }
     
     func getRelatedEquipment() -> [EquipmentAgri] {
-        // Return related equipment from second section
-        return cropCategories.flatMap { $0.equipments }
-            .flatMap { $0.equipmentList }
-            .filter { $0.purpose != nil } // Or any other filtering logic
+        // Placeholder implementation
+        for category in cropCategories {
+            for equipment in category.equipments {
+                if !equipment.equipmentList.isEmpty {
+                    return equipment.equipmentList
+                }
+            }
+        }
+        return []
     }
+    
+    // MARK: - SameTypeAllEquipments Function
     
     func getEquipmentsByCategory(categoryId: UUID) -> [EquipmentAgri] {
-        return cropCategories.flatMap { $0.equipments }
-            .first { $0.id == categoryId }?.equipmentList ?? []
-    }
-    
-    // home -------
-    
-    func getUpcomingBookings() -> [Booking] {
-        let upcoming = bookingsList.filter { $0.status != .completed }
-            .sorted { $0.bookingDate > $1.bookingDate }
-        return upcoming
-    }
-    
-    func addBooking(_ booking: Booking) {
-        // Check if booking already exists
-        if !bookingsList.contains(where: { $0.bookingID == booking.bookingID }) {
-            bookingsList.append(booking)
-        } else {
-            print("DataController - Booking with ID \(booking.bookingID) already exists")
+        for category in cropCategories {
+            for equipment in category.equipments {
+                if equipment.id == categoryId {
+                    return equipment.equipmentList
+                }
+            }
         }
+        return []
     }
+    
+    // MARK: - CoEquip Functions
+    
     func isEquipmentAvailable(on date: Date, for equipmentName: String) -> Bool {
         if let equipment = equipmentList.first(where: { $0.name == equipmentName }) {
             return equipment.isAvailable(on: date)
         }
         return false
     }
+    
     func getAllCoEquipRequests() -> [Request] {
         return coEquipRequests
     }
@@ -898,14 +392,25 @@ class IKisanDataController: DataController {
     func addNewCoEquipRequest(_ request: Request) {
         if !coEquipRequests.contains(where: { $0.id == request.id }) {
             coEquipRequests.append(request)
+            
+            // Save to backend
+            Task {
+                _ = await requestManager.createRequest(request)
+            }
         }
     }
     
     func updateRequest(_ request: Request) {
         if let index = coEquipRequests.firstIndex(where: { $0.id == request.id }) {
             coEquipRequests[index] = request
+            
+            // Update on backend
+            Task {
+                _ = await requestManager.updateRequest(request)
         }
     }
+    }
+    
     func deleteRequest(with id: UUID) {
         if let index = coEquipRequests.firstIndex(where: { $0.id == id }) {
             coEquipRequests.remove(at: index)
@@ -916,6 +421,12 @@ class IKisanDataController: DataController {
         if let index = acceptedRequests.firstIndex(where: { $0.id == id }) {
             acceptedRequests.remove(at: index)
         }
+        
+        // Delete from backend
+        Task {
+            _ = await requestManager.deleteRequest(with: id)
+        }
+        
         NotificationCenter.default.post(
             name: .requestDeleted,
             object: nil,
@@ -928,8 +439,18 @@ class IKisanDataController: DataController {
     }
     
     func getCoEquipUsers() -> [User] {
-        return []
+        var users: [User] = []
+        
+        // Load users from backend if needed
+        if users.isEmpty {
+            Task {
+                users = await requestManager.fetchAllUsers()
+            }
+        }
+        
+        return users
     }
+    
     func getEquipmentSuggestions() -> [String] {
         return [
             "Harvester", "Rice Harvester", "Wheat Harvester",
@@ -941,8 +462,12 @@ class IKisanDataController: DataController {
     }
     
     func filterEquipment(by query: String) -> [Equipment] {
-        _ = query.lowercased()
-        return []
+        let lowercasedQuery = query.lowercased()
+        return equipmentList.filter { equipment in
+            equipment.name.lowercased().contains(lowercasedQuery) ||
+            equipment.type.lowercased().contains(lowercasedQuery) ||
+            equipment.location.lowercased().contains(lowercasedQuery)
+        }
     }
     
     func getCategories() -> [String] {
@@ -952,6 +477,7 @@ class IKisanDataController: DataController {
     func getEquipmentList() -> [Equipment] {
         return equipmentList
     }
+    
     func filterEquipment(byCategory category: String?) -> [Equipment] {
         guard let category = category else { return equipmentList }
         return equipmentList.filter { $0.type.contains(category) }
@@ -986,30 +512,35 @@ class IKisanDataController: DataController {
     
     func createRequest(_ request: Request) {
         coEquipRequests.append(request)
+        
+        // Save to backend
+        Task {
+            _ = await requestManager.createRequest(request)
     }
+    }
+    
     func getTimeSlots(for area: Double) -> [TimeSlot] {
-        let duration = Int(area * 30) // 30 minutes per acre
-        if duration <= 240 { // 4 hours
-            return [.morning]
-        } else if duration <= 480 { // 8 hours
+        // Logic to determine available time slots based on area
+        if area <= 5 {
+            return [.morning, .afternoon, .evening]
+        } else if area <= 10 {
             return [.morning, .afternoon]
         } else {
-            return [.morning, .afternoon, .evening]
+            return [.morning]
         }
     }
     
-    // Method to get sample users
-    func getSampleUsers() -> [User] {
-        return sampleUsers
-    }
+    // MARK: - Prebooking Functions
     
-    // Implement the new protocol methods
     func getRecommendedEquipments() -> [Equipment] {
         return equipmentList.filter { $0.isRecommended }
     }
     
     func getAvailableEquipments() -> [Equipment] {
-        return equipmentList.filter { $0.isAvailable(on: Date()) }
+        let currentDate = Date()
+        return equipmentList.filter { equipment in
+            equipment.isAvailable(on: currentDate)
+        }
     }
     
     func getPreBookingCalendarEvents() -> [Booking] {
@@ -1017,43 +548,69 @@ class IKisanDataController: DataController {
     }
     
     func getPreBookingFAQs() -> [FAQ] {
+        var faqs: [FAQ] = []
+        
+        // Fetch from backend if needed
+        if faqs.isEmpty {
+            Task {
+                faqs = await requestManager.fetchFAQs()
+            }
+        }
+        
         return faqs
     }
     
     func createPreBooking(equipment: Equipment, date: Date) -> Bool {
+        // Check if already booked
+        let calendar = Calendar.current
+        if bookingsList.contains(where: { booking in
+            booking.equipmentID == equipment.equipmentID &&
+            calendar.isDate(booking.bookingDate, inSameDayAs: date)
+        }) {
+            return false
+        }
+        
+        // Create booking
         let booking = Booking(
             bookingID: UUID(),
-            userID: currentUser.shared.user?.userID ?? UUID(),
+            userID: UUID(), // Should be current user ID
             equipmentID: equipment.equipmentID,
             bookingType: .prebooking,
             bookingDate: date,
-            fieldArea: 0.0, // Set appropriate value
+            fieldArea: 0, // Default value, should be set by user
             status: .pending,
-            timeSlot: .morning, // Set appropriate value
-            source: .prebooking  // Add the source parameter
+            timeSlot: .morning, // Default, should be selected by user
+            source: .prebooking
         )
+        
         addBooking(booking)
         return true
     }
     
     func getEquipmentsByBookingStatus(status: BookingStatus) -> [Equipment] {
-        return equipmentList.filter { $0.preBookingStatus == status }
+        let bookingsWithStatus = bookingsList.filter { $0.status == status }
+        let equipmentIDs = Set(bookingsWithStatus.map { $0.equipmentID })
+        
+        return equipmentList.filter { equipmentIDs.contains($0.equipmentID) }
     }
     
     func updateBooking(_ booking: Booking) {
         if let index = bookingsList.firstIndex(where: { $0.bookingID == booking.bookingID }) {
             bookingsList[index] = booking
+            
+            // Update on backend
+            Task {
+                _ = await requestManager.createBooking(booking) // This is an upsert operation
+            }
         }
     }
     
     func getPreBookings() -> [Booking] {
-        // Implementation of getPreBookings method
-        return []
+        return bookingsList.filter { $0.bookingType == .prebooking }
     }
     
     func getEquipment(byId: UUID) -> Equipment? {
-        // Implementation of getEquipment(byId:) method
-        return nil
+        return equipmentList.first { $0.equipmentID == byId }
     }
     
     func setSelectedCrops(_ cropNames: Set<String>) {
@@ -1066,8 +623,6 @@ class IKisanDataController: DataController {
     func getSelectedCrops() -> Set<String> {
         return selectedCrops
     }
-
-      
 }
 
 class currentUser {
@@ -1083,71 +638,637 @@ class RequestManager {
     
     var equipmentItems: [Equipment] = []
     var requests: [Request] = []
+    var reviews: [ReviewData] = []
+    var users: [User] = []
+    var bookings: [Booking] = []
+    var crops: [AgriCrop] = []
+    var equipmentCategories: [EquipmentCategory] = []
+    var equipmentAgri: [EquipmentAgri] = []
+    var faqs: [FAQ] = []
 
     private init() {
-        equipmentItems = [
-//            Equipment(
-//                equipmentID: UUID(),
-//                equipmentImage: "5.jpeg",
-//                name: "Harrow",
-//                type: "Agricultural",
-//                capacity: "1000",
-//                availability: Availability(startDate: Date(), endDate: Date()),
-//                pricePerHour: 1300,
-//                realPricePerHour: 1500,
-//                pricePerAcre: 2400,
-//                realPricePerAcre: 2500,
-//                providerID: UUID(),
-//                rating: 4.5,
-//                location: "Bisrakh, Grater Noida",
-//                coEquipDetail: .Available,
-//                equipmentMoreImages: EquipmentMoreImages(images: ["5.jpeg","5.jpeg","5.jpeg","5.jpeg","5.jpeg"]),
-//                modelYear: "2009",
-//                mielage: "15L/ac",
-//                description: "Available in your Area",
-//                preBookingStatus: nil  
-//            ),
-//            Equipment(
-//                equipmentID: UUID(),
-//                equipmentImage: "tractor_mahindra_275.jpg",
-//                name: "Mahindra Tractor",
-//                type: "275 DI TU",
-//                capacity: "35 HP",
-//                availability: Availability(
-//                    startDate: Date(),
-//                    endDate: Date().addingTimeInterval(30*24*60*60)
-//                ),
-//                pricePerHour: 800,
-//                realPricePerHour: 1000,
-//                pricePerAcre: 2000,
-//                realPricePerAcre: 2500,
-//                providerID: UUID(),
-//                rating: 4.5,
-//                location: "Greater Noida",
-//                coEquipDetail: .Available,
-//                equipmentMoreImages: EquipmentMoreImages(images: ["tractor1.jpg", "tractor2.jpg"]),
-//                modelYear: "2022",
-//                mielage: "10L/hr",
-//                description: "35 HP Tractor with advanced features",
-//                isRecommended: true,
-//                providerName: "John Doe",
-//                preBookingStatus: nil
-//            ),
-        ]
         Task {
             self.equipmentItems = await fetchEquipments()
         }
     }
     
     func fetchEquipments() async -> [Equipment] {
-        let data: [Equipment] = try! await SupabaseManager.shared.client
+        do {
+            let data: [Equipment] = try await SupabaseManager.shared.client
             .from("equipment")
             .select("*")
             .execute()
             .value
         return data
+        } catch {
+            print("Error fetching equipment: \(error)")
+            return []
+        }
+    }
+    
+    func fetchReviews() async -> [ReviewData] {
+        do {
+            // Using the correct table name and field names
+            let reviewsData: [ReviewDataDTO] = try await SupabaseManager.shared.client
+                .from("reviews")
+                .select("*")
+                .execute()
+                .value
+            
+            // Convert DTO to model with the correct field names
+            return reviewsData.map { dto in
+                return ReviewData(
+                    reviewHeading: dto.reviewHeading, 
+                    reviewDescription: dto.reviewDescription, 
+                    rating: dto.rating
+                )
+            }
+        } catch {
+            print("Error fetching reviews: \(error)")
+            return [] // Return empty array instead of fallback data to ensure only backend data is used
+        }
+    }
+    
+    func fetchRequests() async -> [Request] {
+        do {
+            let data: [RequestDTO] = try await SupabaseManager.shared.client
+                .from("requests")
+                .select("*")
+                .execute()
+                .value
+            
+            // Convert DTOs to domain models with relationships
+            var requests: [Request] = []
+            for dto in data {
+                let selectedUsers = await fetchUsersById(userIds: dto.selectedUsersIds)
+                
+                let request = Request(
+                    id: dto.id,
+                    userId: dto.userId,
+                    equipmentId: dto.equipmentId,
+                    requestedDate: dto.requestedDate,
+                    status: BookingStatus(rawValue: dto.status) ?? .pending,
+                    type: BookingType(rawValue: dto.type) ?? .onDemand,
+                    area: dto.area,
+                    timeSlot: TimeSlot(rawValue: dto.timeSlot) ?? .morning,
+                    timePeriod: dto.timePeriod,
+                    location: dto.location,
+                    typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest,
+                    selectedUsers: selectedUsers,
+                    joinedFarmers: dto.joinedFarmers
+                )
+                requests.append(request)
+            }
+            return requests
+        } catch {
+            print("Error fetching requests: \(error)")
+            return []
+        }
+    }
+    
+    func fetchUsersById(userIds: [String]) async -> [User] {
+        do {
+            let data: [UserDTO] = try await SupabaseManager.shared.client
+                .from("users")
+                .select("*")
+                .in("userID", values: userIds) // Changed from "id" to "userID"
+                .execute()
+                .value
+            
+            return data.map { dto in
+                User(
+                    userID: UUID(uuidString: dto.id) ?? UUID(),
+                    name: dto.name,
+                    phone: dto.phone,
+                    location: Location(
+                        latitude: dto.latitude,
+                        longitude: dto.longitude,
+                        address: dto.address
+                    ),
+                    selectedCrops: dto.selectedCrops.compactMap { UUID(uuidString: $0) },
+                    fieldArea: dto.fieldArea,
+                    groupID: dto.groupId != nil ? UUID(uuidString: dto.groupId!) : nil
+                )
+            }
+        } catch {
+            print("Error fetching users: \(error)")
+            return []
+        }
+    }
+    
+    func fetchAllUsers() async -> [User] {
+        do {
+            let data: [UserDTO] = try await SupabaseManager.shared.client
+                .from("users")
+                .select("*")
+                .execute()
+                .value
+            
+            return data.map { dto in
+                User(
+                    userID: UUID(uuidString: dto.id) ?? UUID(),
+                    name: dto.name,
+                    phone: dto.phone,
+                    location: Location(
+                        latitude: dto.latitude,
+                        longitude: dto.longitude,
+                        address: dto.address
+                    ),
+                    selectedCrops: dto.selectedCrops.compactMap { UUID(uuidString: $0) },
+                    fieldArea: dto.fieldArea,
+                    groupID: dto.groupId != nil ? UUID(uuidString: dto.groupId!) : nil
+                )
+            }
+        } catch {
+            print("Error fetching all users: \(error)")
+            return []
+        }
+    }
+    
+    func fetchBookings() async -> [Booking] {
+        do {
+            let data: [BookingDTO] = try await SupabaseManager.shared.client
+                .from("bookings")
+                .select("*")
+                .execute()
+                .value
+            
+            return data.map { dto in
+                Booking(
+                    bookingID: dto.id,
+                    userID: dto.userId,
+                    equipmentID: dto.equipmentId,
+                    bookingType: BookingType(rawValue: dto.type) ?? .onDemand,
+                    bookingDate: dto.date,
+                    fieldArea: dto.fieldArea,
+                    status: BookingStatus(rawValue: dto.status) ?? .pending,
+                    timeSlot: TimeSlot(rawValue: dto.timeSlot) ?? .morning,
+                    source: dto.source == "home" ? .home : .prebooking
+                )
+            }
+        } catch {
+            print("Error fetching bookings: \(error)")
+            return []
+        }
+    }
+    
+    func fetchCrops() async -> [AgriCrop] {
+        do {
+            // Use the correct camelCase table name "agriCrops" instead of "agri_crops"
+            let data: [AgriCropDTO] = try await SupabaseManager.shared.client
+                .from("agriCrops")
+                .select("*")
+                .execute()
+                .value
+            
+            return data.map { dto in
+                AgriCrop(
+                    id: UUID(uuidString: dto.id) ?? UUID(),
+                    name: dto.name,
+                    imageName: dto.imageName
+                )
+            }
+        } catch {
+            print("Error fetching crops: \(error)")
+            
+            // FALLBACK DATA: Used only when backend request fails
+            let fallbackCrops: [AgriCrop] = [
+                AgriCrop(id: UUID(uuidString: "F621E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Rice", imageName: "Rice"),
+                AgriCrop(id: UUID(uuidString: "F622E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Wheat", imageName: "Wheat"),
+                AgriCrop(id: UUID(uuidString: "F623E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Oats", imageName: "Oats"),
+                AgriCrop(id: UUID(uuidString: "F624E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Cotton", imageName: "Cotton"),
+                AgriCrop(id: UUID(uuidString: "F625E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Tea", imageName: "Tea"),
+                AgriCrop(id: UUID(uuidString: "F626E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Maize", imageName: "Maize")
+            ]
+            return fallbackCrops
+        }
+    }
+    
+    func fetchEquipmentCategories() async -> [EquipmentCategory] {
+        do {
+            // Use the correct camelCase table name
+            let data: [EquipmentCategoryDTO] = try await SupabaseManager.shared.client
+                .from("equipmentCategories")
+                .select("*")
+                .execute()
+                .value
+            
+            var categories: [EquipmentCategory] = []
+            
+            for dto in data {
+                let equipmentList = await fetchEquipmentAgriByCategory(categoryId: dto.id)
+                
+                let category = EquipmentCategory(
+                    id: UUID(uuidString: dto.id) ?? UUID(),
+                    title: dto.title,
+                    equipmentList: equipmentList
+                )
+                
+                categories.append(category)
+            }
+            
+            return categories
+        } catch {
+            print("Error fetching equipment categories: \(error)")
+            
+            // FALLBACK DATA: Used only when backend request fails
+            let fallbackCategories: [EquipmentCategory] = [
+                EquipmentCategory(
+                    id: UUID(uuidString: "A621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+                    title: "Cultivators",
+                    equipmentList: []
+                ),
+                EquipmentCategory(
+                    id: UUID(uuidString: "A622E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+                    title: "Harvesters",
+                    equipmentList: []
+                ),
+                EquipmentCategory(
+                    id: UUID(uuidString: "A623E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+                    title: "Seeders",
+                    equipmentList: []
+                )
+            ]
+            return fallbackCategories
+        }
+    }
+    
+    func fetchEquipmentAgriByCategory(categoryId: String) async -> [EquipmentAgri] {
+        do {
+            // Use the correct camelCase table name and column name
+            let data: [EquipmentAgriDTO] = try await SupabaseManager.shared.client
+                .from("equipmentAgri")
+                .select("*")
+                .eq("categoryId", value: categoryId)
+                .execute()
+                .value
+            
+            return data.map { dto in
+                EquipmentAgri(
+                    id: UUID(uuidString: dto.id) ?? UUID(),
+                    categoryId: UUID(uuidString: dto.categoryId) ?? UUID(),
+                    name: dto.name,
+                    imageName: dto.imageName,
+                    purpose: dto.purpose,
+                    bestFor: dto.bestFor,
+                    averageCost: dto.averageCost,
+                    needs: dto.needs,
+                    likedBy: dto.likedBy
+                )
+            }
+        } catch {
+            print("Error fetching equipment agri by category: \(error)")
+            return []
+        }
+    }
+    
+    func fetchFAQs() async -> [FAQ] {
+        do {
+            // Using the correct table name (this one doesn't need changing)
+            let data: [FAQDTO] = try await SupabaseManager.shared.client
+                .from("faqs")
+                .select("*")
+                .execute()
+                .value
+            
+            return data.map { dto in
+                FAQ(
+                    id: UUID(uuidString: dto.id) ?? UUID(),
+                    question: dto.question,
+                    answer: dto.answer
+                )
+            }
+        } catch {
+            print("Error fetching FAQs: \(error)")
+            
+            // FALLBACK DATA: Used only when backend request fails
+            let fallbackFAQs: [FAQ] = [
+                FAQ(id: UUID(),
+                    question: "How does prebooking work?",
+                    answer: "Select equipment, choose dates, and confirm booking."),
+                FAQ(id: UUID(),
+                    question: "What if equipment is unavailable?",
+                    answer: "You'll be notified and can choose alternate dates."),
+                FAQ(id: UUID(),
+                    question: "Can I cancel or modify a booking?",
+                    answer: "Yes, you can modify or cancel up to 24 hours before the booking.")
+            ]
+            
+            return fallbackFAQs
+        }
+    }
+    
+    // MARK: Create/Update methods
+    
+    func createBooking(_ booking: Booking) async -> Bool {
+        do {
+            let dto = BookingDTO(
+                id: booking.bookingID,
+                userId: booking.userID,
+                equipmentId: booking.equipmentID,
+                type: booking.bookingType.rawValue,
+                date: booking.bookingDate,
+                fieldArea: booking.fieldArea,
+                status: booking.status.rawValue,
+                timeSlot: booking.timeSlot.rawValue,
+                source: booking.source == .home ? "home" : "prebooking"
+            )
+            
+            try await SupabaseManager.shared.client
+                .from("bookings")
+                .insert(dto)
+                .execute()
+            
+            return true
+        } catch {
+            print("Error creating booking: \(error)")
+            return false
+        }
+    }
+    
+    func updateBookingStatus(_ bookingId: UUID, status: BookingStatus) async -> Bool {
+        do {
+            try await SupabaseManager.shared.client
+                .from("bookings")
+                .update(["status": status.rawValue])
+                .eq("id", value: bookingId.uuidString)
+                .execute()
+            
+            return true
+        } catch {
+            print("Error updating booking status: \(error)")
+            return false
+        }
+    }
+    
+    func createRequest(_ request: Request) async -> Bool {
+        do {
+            let dto = RequestDTO(
+                id: request.id,
+                userId: request.userId,
+                equipmentId: request.equipmentId,
+                requestedDate: request.requestedDate,
+                status: request.status.rawValue,
+                type: request.type.rawValue,
+                area: request.area,
+                timeSlot: request.timeSlot.rawValue,
+                timePeriod: request.timePeriod,
+                location: request.location,
+                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
+                selectedUsersIds: request.selectedUsers.map { $0.userID.uuidString },
+                joinedFarmers: request.joinedFarmers
+            )
+            
+            try await SupabaseManager.shared.client
+                .from("requests")
+                .insert(dto)
+                .execute()
+            
+            return true
+        } catch {
+            print("Error creating request: \(error)")
+            return false
+        }
+    }
+    
+    func updateRequest(_ request: Request) async -> Bool {
+        do {
+            let dto = RequestDTO(
+                id: request.id,
+                userId: request.userId,
+                equipmentId: request.equipmentId,
+                requestedDate: request.requestedDate,
+                status: request.status.rawValue,
+                type: request.type.rawValue,
+                area: request.area,
+                timeSlot: request.timeSlot.rawValue,
+                timePeriod: request.timePeriod,
+                location: request.location,
+                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
+                selectedUsersIds: request.selectedUsers.map { $0.userID.uuidString },
+                joinedFarmers: request.joinedFarmers
+            )
+            
+            try await SupabaseManager.shared.client
+                .from("requests")
+                .update(dto)
+                .eq("id", value: request.id.uuidString)
+                .execute()
+            
+            return true
+        } catch {
+            print("Error updating request: \(error)")
+            return false
+        }
+    }
+    
+    func deleteRequest(with id: UUID) async -> Bool {
+        do {
+            try await SupabaseManager.shared.client
+                .from("requests")
+                .delete()
+                .eq("id", value: id.uuidString)
+                .execute()
+            
+            return true
+        } catch {
+            print("Error deleting request: \(error)")
+            return false
+        }
+    }
+    
+    func fetchCropCategories() async -> [CropCategory] {
+        do {
+            // First fetch the crops using the correct table name
+            let cropsData: [AgriCropDTO] = try await SupabaseManager.shared.client
+                .from("agriCrops")
+                .select("*")
+                .execute()
+                .value
+            
+            // Then fetch equipment categories to be associated with crops
+            let equipmentCategories = await fetchEquipmentCategories()
+            
+            // Create crop categories
+            var cropCategories: [CropCategory] = []
+            
+            for cropDTO in cropsData {
+                // Since you don't have a crop_equipment_mapping table, let's create a mapping directly
+                // using cropEquipmentRecommendations table
+                let cropEquipmentData: [CropEquipmentMappingDTO] = try await SupabaseManager.shared.client
+                    .from("cropEquipmentRecommendations")
+                    .select("*")
+                    .eq("cropID", value: cropDTO.id)
+                    .execute()
+                    .value
+                
+                // Get equipment category IDs for this crop
+                let equipmentIds = cropEquipmentData.map { $0.equipmentCategoryId }
+                
+                // Filter equipment categories that belong to this crop
+                let cropEquipmentCategories = equipmentCategories.filter { category in
+                    equipmentIds.contains(category.id.uuidString)
+                }
+                
+                // Create the crop category
+                let cropCategory = CropCategory(
+                    id: UUID(uuidString: cropDTO.id) ?? UUID(),
+                    cropName: cropDTO.name,
+                    equipmentsForCrops: "Equipments For \(cropDTO.name)",
+                    equipments: cropEquipmentCategories
+                )
+                
+                cropCategories.append(cropCategory)
+            }
+            
+            return cropCategories
+        } catch {
+            print("Error fetching crop categories: \(error)")
+            
+            // FALLBACK DATA: Used only when backend request fails
+            let fallbackCategories: [CropCategory] = [
+                CropCategory(
+                    id: UUID(uuidString: "F621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+                    cropName: "Rice",
+                    equipmentsForCrops: "Equipments For Rice",
+                    equipments: [
+                        EquipmentCategory(
+                            id: UUID(uuidString: "A621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+                            title: "Cultivators",
+                            equipmentList: []
+                        ),
+                        EquipmentCategory(
+                            id: UUID(uuidString: "A622E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+                            title: "Harvesters",
+                            equipmentList: []
+                        )
+                    ]
+                ),
+                CropCategory(
+                    id: UUID(uuidString: "F622E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+                    cropName: "Wheat",
+                    equipmentsForCrops: "Equipments For Wheat",
+                    equipments: [
+                        EquipmentCategory(
+                            id: UUID(uuidString: "A623E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+                            title: "Seeders",
+                            equipmentList: []
+                        ),
+                        EquipmentCategory(
+                            id: UUID(uuidString: "A624E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+                            title: "Harrow",
+                            equipmentList: []
+                        )
+                    ]
+                )
+            ]
+            return fallbackCategories
+        }
     }
 }
+
+// Data Transfer Objects (DTOs) for Supabase
+struct ReviewDataDTO: Codable {
+    let id: String
+    let reviewHeading: String
+    let reviewDescription: String
+    let rating: Double
+    let equipmentID: String?
+    let userID: String?
+    let createdAt: Date?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case reviewHeading
+        case reviewDescription
+        case rating
+        case equipmentID
+        case userID
+        case createdAt
+    }
+}
+
+struct RequestDTO: Codable {
+    let id: UUID
+    let userId: UUID
+    let equipmentId: UUID
+    let requestedDate: Date
+    let status: String
+    let type: String
+    let area: Double
+    let timeSlot: String
+    let timePeriod: String?
+    let location: String
+    let typeOfRequest: String
+    let selectedUsersIds: [String]
+    let joinedFarmers: [UUID]
+}
+
+struct UserDTO: Codable {
+    let id: String
+    let name: String
+    let phone: String
+    let latitude: Double
+    let longitude: Double
+    let address: String?
+    let selectedCrops: [String]
+    let fieldArea: Double
+    let groupId: String?
+}
+
+struct BookingDTO: Codable {
+    let id: UUID
+    let userId: UUID
+    let equipmentId: UUID
+    let type: String
+    let date: Date
+    let fieldArea: Double
+    let status: String
+    let timeSlot: String
+    let source: String
+}
+
+struct AgriCropDTO: Codable {
+    let id: String
+    let name: String
+    let imageName: String
+}
+
+struct EquipmentCategoryDTO: Codable {
+    let id: String
+    let title: String
+}
+
+struct EquipmentAgriDTO: Codable {
+    let id: String
+    let categoryId: String
+    let name: String
+    let imageName: String
+    let purpose: String?
+    let bestFor: String?
+    let averageCost: String?
+    let needs: String?
+    let likedBy: Int
+}
+
+struct FAQDTO: Codable {
+    let id: String
+    let question: String
+    let answer: String
+}
+
+struct CropEquipmentMappingDTO: Codable {
+    let id: String
+    let cropId: String
+    let equipmentCategoryId: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case cropId = "crop_id"
+        case equipmentCategoryId = "equipment_category_id"
+    }
+}
+
 extension Notification.Name {
     static let requestDeleted = Notification.Name("requestDeleted")
 }
@@ -1165,12 +1286,9 @@ extension UIView {
 }
 
 class ReviewDataClass {
+    // Commented out hardcoded reviews to use only backend data
     static var reviews: [ReviewData] = [
-        ReviewData(reviewHeading: "Excellent", reviewDescription: "Rented the Swaraj Combine for my rice field, and it worked like a charm! Great fuel efficiency, easy handling, and the rental process was smooth.", rating: 4),
-        ReviewData(reviewHeading: "Good", reviewDescription: "Rented the Swaraj Combine for my rice field, and it worked like a charm! Great fuel efficiency, easy handling, and the rental process was smooth.", rating: 3),
-        ReviewData(reviewHeading: "Bad", reviewDescription: "The Swaraj Combine was disappointing. It kept breaking down, fuel consumption was high, and I lost valuable time waiting for repairs. Not worth the hassle.", rating: 2),
-        ReviewData(reviewHeading: "Very Bad", reviewDescription: "The Swaraj Combine was disappointing. It kept breaking down, fuel consumption was high, and I lost valuable time waiting for repairs. Not worth the hassle.", rating: 1),
-        
+        // All review items removed/commented out to use only backend data
         ]
     
 }
