@@ -676,13 +676,20 @@ class RequestManager {
                 .value
             
             // Convert DTO to model with the correct field names
-            return reviewsData.map { dto in
+            let reviews = reviewsData.map { dto in
                 return ReviewData(
                     reviewHeading: dto.reviewHeading, 
                     reviewDescription: dto.reviewDescription, 
-                    rating: dto.rating
+                    rating: dto.rating,
+                    equipmentID: dto.equipmentID,
+                    equipmentName: nil // We'll update this later if needed
                 )
             }
+            
+            // Update the static ReviewDataClass with the fetched reviews
+            ReviewDataClass.updateReviews(with: reviews)
+            
+            return reviews
         } catch {
             print("Error fetching reviews: \(error)")
             return [] // Return empty array instead of fallback data to ensure only backend data is used
@@ -1169,7 +1176,7 @@ class RequestManager {
 
 // Data Transfer Objects (DTOs) for Supabase
 struct ReviewDataDTO: Codable {
-    let id: String
+    let id: Int
     let reviewHeading: String
     let reviewDescription: String
     let rating: Double
@@ -1286,10 +1293,12 @@ extension UIView {
 }
 
 class ReviewDataClass {
-    // Commented out hardcoded reviews to use only backend data
-    static var reviews: [ReviewData] = [
-        // All review items removed/commented out to use only backend data
-        ]
+    // Static array to hold reviews
+    static var reviews: [ReviewData] = []
     
+    // Function to update reviews from database
+    static func updateReviews(with newReviews: [ReviewData]) {
+        reviews = newReviews
+    }
 }
 

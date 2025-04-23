@@ -95,12 +95,57 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     private var reviews: [ReviewData] = []
     private var dataController: DataController?
+    private var filteredReviews: [ReviewData] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         if let equipment = equipment {
             configure(with: equipment)
+        }
+        
+        // Initialize dataController if needed
+        dataController = IKisanDataController()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Refresh reviews when view appears
+        if let equipment = equipment {
+            print("Filtering reviews for equipment: \(equipment.name)")
+            
+            // Get all available reviews
+            let allReviews = ReviewDataClass.reviews
+            print("Total reviews available: \(allReviews.count)")
+            
+            // Filter reviews for this equipment (by name since IDs might not match)
+            filteredReviews = allReviews.filter { review in
+                // If we have equipmentID, use that for matching
+                if let reviewEquipmentID = review.equipmentID {
+                    let equipmentID = equipment.equipmentID.uuidString
+                    return reviewEquipmentID == equipmentID
+                }
+                
+                // Otherwise use the equipment name (case insensitive)
+                if let reviewEquipmentName = review.equipmentName {
+                    return reviewEquipmentName.lowercased() == equipment.name.lowercased()
+                }
+                
+                // For now, if name is "Square Balers", show all reviews as a fallback
+                if equipment.name.contains("Square Balers") {
+                    return true
+                }
+                
+                return false
+            }
+            
+            print("Filtered reviews for \(equipment.name): \(filteredReviews.count)")
+            
+            // Reload the collection view to show reviews
+            DispatchQueue.main.async {
+                self.collectionView.reloadData()
+            }
         }
     }
     
@@ -159,16 +204,21 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return ReviewDataClass.reviews.count//EquipmentData.reviews.count
+        // If we have filtered reviews, use those, otherwise fall back to all reviews
+        if !filteredReviews.isEmpty {
+            return filteredReviews.count
+        }
+        return ReviewDataClass.reviews.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardCell", for: indexPath) as! ReviewCardCollectionViewCell
 
-        let review = ReviewDataClass.reviews[indexPath.row]
+        // Use filtered reviews if available, otherwise fall back to all reviews
+        let review = !filteredReviews.isEmpty ? filteredReviews[indexPath.row] : ReviewDataClass.reviews[indexPath.row]
             
-            // Pass the review data to the update function in the cell
-            cell.updateReviewCardData(reviewData: review)
+        // Pass the review data to the update function in the cell
+        cell.updateReviewCardData(reviewData: review)
       
         cell.layer.cornerRadius = 7
         return cell

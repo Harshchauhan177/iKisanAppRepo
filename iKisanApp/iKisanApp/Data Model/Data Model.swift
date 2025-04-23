@@ -134,7 +134,8 @@ struct ReviewData{
     var reviewHeading: String
     var reviewDescription: String
     var rating: Double
-    
+    var equipmentID: String?
+    var equipmentName: String?
 }
 
 struct EquipmentMoreImages: Codable {
