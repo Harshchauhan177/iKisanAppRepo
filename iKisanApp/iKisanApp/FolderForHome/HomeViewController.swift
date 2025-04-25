@@ -67,6 +67,14 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             await loadDataFromBackend()
         }
         
+        // Register for booking added notifications
+        NotificationCenter.default.addObserver(
+            self, 
+            selector: #selector(handleBookingAdded(_:)),
+            name: .bookingAdded,
+            object: nil
+        )
+        
         // Registering Nibs for cells
         let discountsNib = UINib(nibName: "DiscountsCell", bundle: nil)
         let upcomingBookingsNib = UINib(nibName: "UpcomingBookingsCollectionViewCell", bundle: nil)
@@ -541,4 +549,33 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
 //        // Improve shadow performance by setting its path
 //        cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: cell.layer.cornerRadius).cgPath
 //    }
+
+    @objc private func handleBookingAdded(_ notification: Notification) {
+        print("HomeViewController - Received bookingAdded notification")
+        
+        // Refresh data including the new booking
+        Task {
+            // Get fresh upcoming bookings data
+            let freshBookings = await requestManager.fetchBookings().filter { 
+                $0.bookingDate > Date() 
+            }
+            
+            // Update UI on main thread
+            DispatchQueue.main.async {
+                self.upcomingBookings = freshBookings
+                self.hasUpcomingBookings = !freshBookings.isEmpty
+                
+                // Print updated count
+                print("Updated upcoming bookings count: \(self.upcomingBookings.count)")
+                
+                // Reload collection view
+                self.collectionView.reloadData()
+            }
+        }
+    }
+
+    deinit {
+        // Remove notification observer when this view controller is deallocated
+        NotificationCenter.default.removeObserver(self)
+    }
 }

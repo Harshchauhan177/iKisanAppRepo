@@ -794,27 +794,65 @@ class RequestManager {
     
     func fetchBookings() async -> [Booking] {
         do {
-            let data: [BookingDTO] = try await SupabaseManager.shared.client
-                .from("bookings")
-                .select("*")
-                .execute()
-                .value
+            print("Fetching bookings from database...")
             
-            return data.map { dto in
-                Booking(
-                    bookingID: dto.id,
-                    userID: dto.userId,
-                    equipmentID: dto.equipmentId,
-                    bookingType: BookingType(rawValue: dto.type) ?? .onDemand,
-                    bookingDate: dto.date,
-                    fieldArea: dto.fieldArea,
-                    status: BookingStatus(rawValue: dto.status) ?? .pending,
-                    timeSlot: TimeSlot(rawValue: dto.timeSlot) ?? .morning,
-                    source: dto.source == "home" ? .home : .prebooking
-                )
+            // Use Postgres query with explicit column names in camelCase
+            let result = try await SupabaseManager.shared.client
+                .from("bookings")
+                .select("bookingID, userID, equipmentID, bookingType, bookingDate, fieldArea, status, timeSlot, source")
+                .execute()
+            
+            let data = result.value as? [[String: Any]] ?? []
+            print("Received \(data.count) bookings from database")
+            
+            // Manually parse the data to create Booking objects
+            var bookings: [Booking] = []
+            
+            for item in data {
+                if let idString = item["bookingID"] as? String,
+                   let userIdString = item["userID"] as? String,
+                   let equipmentIdString = item["equipmentID"] as? String,
+                   let typeString = item["bookingType"] as? String,
+                   let statusString = item["status"] as? String,
+                   let fieldArea = item["fieldArea"] as? Double,
+                   let timeSlotString = item["timeSlot"] as? String,
+                   let sourceString = item["source"] as? String,
+                   let bookingDateString = item["bookingDate"] as? String {
+                    
+                    // Create a date formatter to parse the date string
+                    let dateFormatter = ISO8601DateFormatter()
+                    let bookingDate = dateFormatter.date(from: bookingDateString) ?? Date()
+                    
+                    // Create UUID objects from the string representations
+                    guard let id = UUID(uuidString: idString),
+                          let userId = UUID(uuidString: userIdString),
+                          let equipmentId = UUID(uuidString: equipmentIdString) else {
+                        continue
+                    }
+                    
+                    let booking = Booking(
+                        bookingID: id,
+                        userID: userId,
+                        equipmentID: equipmentId,
+                        bookingType: BookingType(rawValue: typeString) ?? .onDemand,
+                        bookingDate: bookingDate,
+                        fieldArea: fieldArea,
+                        status: BookingStatus(rawValue: statusString) ?? .pending,
+                        timeSlot: TimeSlot(rawValue: timeSlotString) ?? .morning,
+                        source: sourceString == "home" ? .home : .prebooking
+                    )
+                    
+                    bookings.append(booking)
+                }
             }
+            
+            print("Successfully parsed \(bookings.count) bookings")
+            return bookings
         } catch {
             print("Error fetching bookings: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
             return []
         }
     }
@@ -969,6 +1007,7 @@ class RequestManager {
     
     func createBooking(_ booking: Booking) async -> Bool {
         do {
+            // Use the BookingDTO struct which conforms to Encodable
             let dto = BookingDTO(
                 id: booking.bookingID,
                 userId: booking.userID,
@@ -981,14 +1020,21 @@ class RequestManager {
                 source: booking.source == .home ? "home" : "prebooking"
             )
             
+            print("Attempting to create booking with ID: \(booking.bookingID)")
+            
+            // Use insert with DTO
             try await SupabaseManager.shared.client
                 .from("bookings")
                 .insert(dto)
                 .execute()
             
+            print("Booking successfully created!")
             return true
         } catch {
             print("Error creating booking: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
             return false
         }
     }
@@ -998,12 +1044,15 @@ class RequestManager {
             try await SupabaseManager.shared.client
                 .from("bookings")
                 .update(["status": status.rawValue])
-                .eq("id", value: bookingId.uuidString)
+                .eq("bookingID", value: bookingId.uuidString)
                 .execute()
             
             return true
         } catch {
             print("Error updating booking status: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
             return false
         }
     }
@@ -1209,6 +1258,23 @@ struct RequestDTO: Codable {
     let typeOfRequest: String
     let selectedUsersIds: [String]
     let joinedFarmers: [UUID]
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId
+        case equipmentId
+        case requestedDate
+        case status
+        case type
+        case area
+        case timeSlot
+        case timePeriod
+        case location
+        case typeOfRequest
+        // These aren't explicit columns, so they need special handling
+        case selectedUsersIds
+        case joinedFarmers
+    }
 }
 
 struct UserDTO: Codable {
@@ -1233,6 +1299,18 @@ struct BookingDTO: Codable {
     let status: String
     let timeSlot: String
     let source: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "bookingID"
+        case userId = "userID"
+        case equipmentId = "equipmentID"
+        case type = "bookingType"
+        case date = "bookingDate"
+        case fieldArea
+        case status
+        case timeSlot
+        case source
+    }
 }
 
 struct AgriCropDTO: Codable {
@@ -1278,6 +1356,7 @@ struct CropEquipmentMappingDTO: Codable {
 
 extension Notification.Name {
     static let requestDeleted = Notification.Name("requestDeleted")
+    static let bookingAdded = Notification.Name("bookingAdded")
 }
 
 //

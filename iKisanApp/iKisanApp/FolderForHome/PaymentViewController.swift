@@ -59,16 +59,25 @@ class PaymentViewController: UIViewController {
         // Add the confirmed booking
         var confirmedBooking = booking
         confirmedBooking.status = .confirmed
+        
+        // Add booking to data controller (which saves to local list and backend)
         dataController.addBooking(confirmedBooking)
         
         // Post notification for prebooking
         if booking.bookingType == .prebooking {
             NotificationCenter.default.post(
-                name: .preBookingAdded,
+                name: Notification.Name.preBookingAdded,
                 object: nil,
                 userInfo: ["booking": confirmedBooking]
             )
         }
+        
+        // Also post a notification for regular bookings to refresh HomeViewController
+        NotificationCenter.default.post(
+            name: .bookingAdded,
+            object: nil,
+            userInfo: ["booking": confirmedBooking]
+        )
         
         let alertController = UIAlertController(
             title: "Payment Successful",
@@ -144,21 +153,45 @@ class PaymentViewController: UIViewController {
     @IBAction func confirmPaymentTapped(_ sender: Any) {
         guard let booking = booking else { return }
         
-        // Add the booking to the data controller
+        // Add the booking to the data controller with confirmed status
         if let dataController = (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.dataController {
-            dataController.addBooking(booking)
+            var confirmedBooking = booking
+            confirmedBooking.status = .confirmed
+            
+            // Add to data controller (which saves to local and backend)
+            dataController.addBooking(confirmedBooking)
             
             // Post notification for prebooking if applicable
             if booking.bookingType == .prebooking {
                 NotificationCenter.default.post(
-                    name: .preBookingAdded,
+                    name: Notification.Name.preBookingAdded,
                     object: nil,
-                    userInfo: ["booking": booking]
+                    userInfo: ["booking": confirmedBooking]
                 )
             }
+            
+            // Also post for regular bookings
+            NotificationCenter.default.post(
+                name: .bookingAdded,
+                object: nil,
+                userInfo: ["booking": confirmedBooking]
+            )
+            
+            // Show success alert and navigate to home
+            let alertController = UIAlertController(
+                title: "Payment Successful",
+                message: "Your booking has been confirmed",
+                preferredStyle: .alert
+            )
+            
+            let okAction = UIAlertAction(title: "Done", style: .default) { [weak self] _ in
+                self?.navigateToHome()
+            }
+            okAction.setValue(UIColor.init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
+            alertController.addAction(okAction)
+            
+            present(alertController, animated: true)
         }
-        
-        // ... rest of the payment confirmation code ...
     }
 
 }
