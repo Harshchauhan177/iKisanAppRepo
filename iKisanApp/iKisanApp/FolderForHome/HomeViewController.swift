@@ -47,15 +47,33 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // First check if dataController is initialized
+        guard let dataController = dataController else {
+            print("Error: DataController not initialized")
+            // Show error alert to user
+            let alert = UIAlertController(
+                title: "Error",
+                message: "Unable to initialize app data. Please try again later.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
         collectionView.isHidden = false
         setupSearchController()
         setupTableView()
 
-        //Data from Data Controller
-        guard let dataController = dataController else {
-            print("Error: DataController not initialized")
-            return
-        }
+        // Add profile button to navigation bar
+        let profileButton = UIBarButtonItem(
+            image: UIImage(systemName: "person.circle"),
+            style: .plain,
+            target: self,
+            action: #selector(profileButtonTapped)
+        )
+        navigationItem.rightBarButtonItem = profileButton
         
         // Set the collection view reference in the data controller if it's the right type
         if let ikisanDataController = dataController as? IKisanDataController {
@@ -572,6 +590,11 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                 self.collectionView.reloadData()
             }
         }
+    }
+
+    @objc private func profileButtonTapped() {
+        let profileVC = ProfileViewController()
+        navigationController?.pushViewController(profileVC, animated: true)
     }
 
     deinit {

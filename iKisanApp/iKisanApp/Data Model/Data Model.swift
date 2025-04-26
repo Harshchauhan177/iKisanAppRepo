@@ -149,21 +149,32 @@ struct EquipmentMoreImages: Codable {
 
 //MARK: Model for User
 
-struct User {
+struct User: Codable {
     let userID: UUID
     var name: String
+    var email: String
     var phone: String
     var location: Location
     var selectedCrops: [UUID]
     var fieldArea: Double
     var groupID: UUID?
+    
+    enum CodingKeys: String, CodingKey {
+        case userID
+        case name
+        case email
+        case phone
+        case location
+        case selectedCrops
+        case fieldArea
+        case groupID
+    }
 }
 
-struct Location {
+struct Location: Codable {
     var latitude: Double
     var longitude: Double
     var address: String?
-    
 }
 
 //MARK: Model for Crop
@@ -260,16 +271,16 @@ struct FAQ {
 }
 
 let sampleUsers: [User] = [
-    User(userID: UUID(), name: "Raj Pal", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
-    User(userID: UUID(), name: "Narendra", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+    User(userID: UUID(), name: "Raj Pal", email: "raj@example.com", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+    User(userID: UUID(), name: "Narendra", email: "narendra@example.com", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
 
-    User(userID: UUID(), name: "Ramesh Singh", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
-    User(userID: UUID(), name: "Harsh Kumar", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+    User(userID: UUID(), name: "Ramesh Singh", email: "ramesh@example.com", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+    User(userID: UUID(), name: "Harsh Kumar", email: "harsh@example.com", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
 
     // Add more sample users as needed
 
-    User(userID: UUID(), name: "John Doe", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
-    User(userID: UUID(), name: "Jane Smith", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+    User(userID: UUID(), name: "John Doe", email: "john@example.com", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
+    User(userID: UUID(), name: "Jane Smith", email: "jane@example.com", phone: "0987654321", location: Location(latitude: 28.7041, longitude: 77.1025, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
 
 ]
 //

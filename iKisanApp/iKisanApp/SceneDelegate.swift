@@ -19,42 +19,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         UINavigationBar.appearance().tintColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
         
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-        
-        if !hasCompletedOnboarding {
-            // Load onboarding if not complete
-            guard let onboardingVC = storyboard.instantiateViewController(withIdentifier: "OnboardingViewController") as? OnboardingViewController else { return }
-            window.rootViewController = onboardingVC
-        } else {
-            // Load the main interface with DataController injection
-            guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController,
-                  let viewControllers = tabBarController.viewControllers else { return }
-            
-            // Initialize HomeViewController with saved crop selections
-            for viewController in viewControllers {
-                if let navController = viewController as? UINavigationController {
-                    if let homeVC = navController.viewControllers.first as? HomeViewController {
-                        homeVC.dataController = dataController
-                        // Refresh suggestions immediately based on saved crops
-                        homeVC.loadViewIfNeeded()
-                    } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
-                        agriAssistVC.dataController = dataController
-                    } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
-                        coequipVC.dataController = dataController
-                    }
-                } else if let homeVC = viewController as? HomeViewController {
-                    homeVC.dataController = dataController
-                    // Refresh suggestions immediately based on saved crops
-                    homeVC.loadViewIfNeeded()
-                } else if let agriAssistVC = viewController as? AgriAssistViewController {
-                    agriAssistVC.dataController = dataController
-                } else if let coequipVC = viewController as? CoequipViewController {
-                    coequipVC.dataController = dataController
-                }
-            }
-            window.rootViewController = tabBarController
-        }
+        // Use LaunchHandler to determine initial screen
+        let initialScreen = LaunchHandler.shared.determineInitialScreen(window: window)
+        window.rootViewController = initialScreen
         
         self.window = window
         window.makeKeyAndVisible()
@@ -62,23 +29,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     // Helper method to transition to the main interface after onboarding.
     func switchToMainInterface() {
+        // Now show login screen after onboarding instead of crop selection
+        let loginVC = LoginViewController()
+        let navigationController = UINavigationController(rootViewController: loginVC)
+        
+        guard let window = self.window else { return }
+        window.rootViewController = navigationController
+        
+        // Mark onboarding as completed
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+    }
+    
+    // Helper method to set up the main tab bar interface
+    private func setupMainInterface(in window: UIWindow) {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         
-        // Check if we're coming from onboarding and haven't shown crop selection
-        if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
-            if let selectCropsVC = storyboard.instantiateViewController(withIdentifier: "selectSessionCropsViewController") as? selectSessionCropsViewController {
-                selectCropsVC.datacontroller = self.dataController as! IKisanDataController
-                
-                // Wrap in navigation controller
-                let navigationController = UINavigationController(rootViewController: selectCropsVC)
-                
-                guard let window = self.window else { return }
-                window.rootViewController = navigationController
-                return
-            }
-        }
-        
-        // Otherwise proceed to main interface
         guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController,
               let viewControllers = tabBarController.viewControllers else { return }
         
@@ -100,11 +65,31 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             }
         }
         
-        guard let window = self.window else { return }
         window.rootViewController = tabBarController
+    }
+    
+    // Helper method to transition to login screen
+    func switchToLogin() {
+        let loginVC = LoginViewController()
+        let navController = UINavigationController(rootViewController: loginVC)
         
-        // Optional animated transition.
-       // UIView.transition(with: window, duration: 0.5, options: [.transitionFlipFromRight], animations: nil)
+        guard let window = self.window else { return }
+        window.rootViewController = navController
+    }
+    
+    // Helper method to transition to crop selection
+    func switchToCropSelection() {
+        let selectCropsVC = SelectCropsViewController()
+        let navController = UINavigationController(rootViewController: selectCropsVC)
+        
+        guard let window = self.window else { return }
+        window.rootViewController = navController
+    }
+    
+    // Helper method to transition from login to main interface
+    func switchToMainInterfaceAfterLogin() {
+        guard let window = self.window else { return }
+        setupMainInterface(in: window)
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -134,7 +119,5 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
     }
-
-
 }
 

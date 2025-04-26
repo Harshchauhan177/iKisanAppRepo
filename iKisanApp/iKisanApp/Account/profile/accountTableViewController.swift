@@ -68,7 +68,31 @@ class accountTableViewController: UITableViewController {
     private func showSignOutAlert() {
         let alert = UIAlertController(title: "Sign Out Account", message: "Are you sure you want to sign Out your account?", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: "Sign Out", style: .destructive, handler:nil))
+        alert.addAction(UIAlertAction(title: "Sign Out", style: .destructive, handler: { [weak self] _ in
+            // Use AuthManager to sign out
+            Task {
+                do {
+                    try await AuthManager.shared.logout()
+                    
+                    await MainActor.run {
+                        // Navigate to login screen
+                        if let sceneDelegate = self?.view.window?.windowScene?.delegate as? SceneDelegate {
+                            sceneDelegate.switchToLogin()
+                        }
+                    }
+                } catch {
+                    await MainActor.run {
+                        self?.showLogoutErrorAlert()
+                    }
+                }
+            }
+        }))
+        present(alert, animated: true, completion: nil)
+    }
+
+    private func showLogoutErrorAlert() {
+        let alert = UIAlertController(title: "Error", message: "Failed to sign out. Please try again.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
 

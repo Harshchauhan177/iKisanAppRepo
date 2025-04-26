@@ -746,6 +746,7 @@ class RequestManager {
                 User(
                     userID: UUID(uuidString: dto.id) ?? UUID(),
                     name: dto.name,
+                    email: dto.email,
                     phone: dto.phone,
                     location: Location(
                         latitude: dto.latitude,
@@ -775,6 +776,7 @@ class RequestManager {
                 User(
                     userID: UUID(uuidString: dto.id) ?? UUID(),
                     name: dto.name,
+                    email: dto.email,
                     phone: dto.phone,
                     location: Location(
                         latitude: dto.latitude,
@@ -1280,6 +1282,7 @@ struct RequestDTO: Codable {
 struct UserDTO: Codable {
     let id: String
     let name: String
+    let email: String
     let phone: String
     let latitude: Double
     let longitude: Double
