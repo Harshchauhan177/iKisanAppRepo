@@ -124,15 +124,15 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             Task {
                 await self.loadDataFromBackend(forceRefresh: true)
                 
-                // Force section refresh if we have bookings
+                // Force section refresh if we have bookings, but DO NOT auto-scroll
                 if !self.upcomingBookings.isEmpty {
                     self.hasUpcomingBookings = true
                     self.collectionView.reloadData()
                     
-                    // Update layout without scrolling
+                    // Update layout without scrolling to upcoming bookings section
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         if self.collectionView.numberOfSections > 1 {
-                            // Force layout update but don't scroll
+                            // Force layout update but don't scroll - auto-scrolling removed intentionally
                             self.collectionView.collectionViewLayout.invalidateLayout()
                             self.collectionView.layoutIfNeeded()
                             print("Initial setup - upcoming bookings section refreshed (no auto-scroll)")
