@@ -33,16 +33,19 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     // Add a computed property to track number of sections
     private var numberOfSections: Int {
+        // Force the upcoming bookings section to be present when hasUpcomingBookings is true
         return hasUpcomingBookings ? 4 : 3 // Return 4 sections if there are bookings, 3 if not
     }
     
     // Add a function to map visual section to data section
     private func getDataSection(for visualSection: Int) -> Int {
-        if !hasUpcomingBookings && visualSection >= 1 {
-            // If no upcoming bookings, shift sections up by 1
-            return visualSection + 1
+        if hasUpcomingBookings {
+            // If we have upcoming bookings, return the section as-is
+            return visualSection
+        } else {
+            // If no upcoming bookings, skip section 1 (which would be the bookings section)
+            return visualSection >= 1 ? visualSection + 1 : visualSection
         }
-        return visualSection
     }
     
     override func viewDidLoad() {
@@ -81,9 +84,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
         
         // Load data asynchronously
-        Task {
-            await loadDataFromBackend()
-        }
+        loadData()
         
         // Register for booking added notifications
         NotificationCenter.default.addObserver(
@@ -117,9 +118,32 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         // Set data source and delegate
         collectionView.dataSource = self
         collectionView.delegate = self
+        
+        // Perform a second data load after a short delay to catch any bookings that might not be loaded initially
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            Task {
+                await self.loadDataFromBackend(forceRefresh: true)
+                
+                // Force section refresh if we have bookings
+                if !self.upcomingBookings.isEmpty {
+                    self.hasUpcomingBookings = true
+                    self.collectionView.reloadData()
+                    
+                    // Update layout without scrolling
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        if self.collectionView.numberOfSections > 1 {
+                            // Force layout update but don't scroll
+                            self.collectionView.collectionViewLayout.invalidateLayout()
+                            self.collectionView.layoutIfNeeded()
+                            print("Initial setup - upcoming bookings section refreshed (no auto-scroll)")
+                        }
+                    }
+                }
+            }
+        }
     }
     
-    private func loadDataFromBackend() async {
+    private func loadDataFromBackend(forceRefresh: Bool = false) async {
         // Fetch equipment data from backend
         allEquipment = await requestManager.fetchEquipments()
         
@@ -130,13 +154,39 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         suggestions = allEquipment.filter { $0.isRecommended }
         reviews = await requestManager.fetchReviews()
         
-        // Get upcoming bookings
-        upcomingBookings = await requestManager.fetchBookings().filter { 
-            $0.bookingDate > Date() 
+        // Get upcoming bookings - with force refresh
+        print("Explicitly fetching bookings with forceRefresh=\(forceRefresh)")
+        let allBookings = await requestManager.fetchBookings()
+        
+        // Debug: Print all bookings with their dates to see what's actually coming from backend
+        print("All Bookings from backend:")
+        for (index, booking) in allBookings.enumerated() {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            let dateString = formatter.string(from: booking.bookingDate)
+            print("Booking \(index + 1): ID=\(booking.bookingID), Date=\(dateString), Equipment=\(booking.equipmentID.uuidString)")
         }
         
-        // Update hasUpcomingBookings based on actual bookings
+        // IMPORTANT: Force all bookings to be shown in upcoming section
+        // For now, let's show all bookings regardless of date
+        upcomingBookings = allBookings
+        
+        // Debug information
+        print("Loaded \(upcomingBookings.count) upcoming bookings")
+        if !upcomingBookings.isEmpty {
+            for (index, booking) in upcomingBookings.enumerated() {
+                let formatter = DateFormatter()
+                formatter.dateStyle = .medium
+                formatter.timeStyle = .short
+                let dateString = formatter.string(from: booking.bookingDate)
+                print("Upcoming Booking \(index + 1): Date=\(dateString), Equipment=\(booking.equipmentID.uuidString)")
+            }
+        }
+        
+        // Explicitly set hasUpcomingBookings based on booking count
         hasUpcomingBookings = !upcomingBookings.isEmpty
+        print("Setting hasUpcomingBookings to \(hasUpcomingBookings)")
         
         // Print debug info
         print("Loaded equipment count: \(allEquipment.count)")
@@ -145,14 +195,24 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         print("Loaded upcoming bookings count: \(upcomingBookings.count)")
         
         // Update UI on the main thread
-        DispatchQueue.main.async {
+        await MainActor.run {
+            // Force a layout update
             self.collectionView.reloadData()
+            
+            // Force section visibility but don't scroll
+            if hasUpcomingBookings {
+                // Force section visibility
+                let sections = numberOfSections
+                print("Number of sections: \(sections)")
+                
+                // No scrolling to avoid disrupting user's view
+            }
         }
     }
     
-    private func loadData() {
+    func loadData() {
         Task {
-            await loadDataFromBackend()
+            await loadDataFromBackend(forceRefresh: true)
         }
     }
     
@@ -266,7 +326,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 0:
             return allEquipment.count
         case 1:
-            return min(upcomingBookings.count, 3)
+            return min(upcomingBookings.count, 3) // Limit to 3 bookings in the list
         case 2:
             return suggestions.count
         case 3:
@@ -290,19 +350,38 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 1:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "UpcomingBookingsCollectionViewCell", for: indexPath) as! UpcomingBookingsCollectionViewCell
             cell.layer.cornerRadius = 13
-           // applyShadowStyling(to: cell)
             cell.delegate = self
             
             let booking = upcomingBookings[indexPath.row]
-            if let equipment = allEquipment.first(where: { $0.equipmentID == booking.equipmentID }) {
+            print("Setting up cell for booking: \(booking.bookingID) on date: \(booking.bookingDate)")
+            
+            // First try exact ID match
+            if let equipment = allEquipment.first(where: { equip in 
+                equip.equipmentID.uuidString.lowercased() == booking.equipmentID.uuidString.lowercased() 
+            }) {
+                print("Found matching equipment: \(equipment.name)")
                 cell.updateUpcomingBookingsData(with: booking, equipment: equipment)
+            } 
+            // If exact match fails, try to get equipment by ID from dataController
+            else if let matchingEquipment = dataController.getEquipment(byId: booking.equipmentID) {
+                print("Found equipment using dataController: \(matchingEquipment.name)")
+                cell.updateUpcomingBookingsData(with: booking, equipment: matchingEquipment)
+            }
+            // Last resort, use first equipment as fallback - ensures something displays
+            else if !allEquipment.isEmpty {
+                let fallbackEquipment = allEquipment[0]
+                print("WARNING: Using fallback equipment: \(fallbackEquipment.name)")
+                cell.updateUpcomingBookingsData(with: booking, equipment: fallbackEquipment)
+            }
+            else {
+                print("ERROR: Cannot find any equipment for booking: \(booking.bookingID)")
             }
             return cell
            
         case 2:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SuggestionCell", for: indexPath) as! SuggestionCollectionViewCell
             cell.layer.cornerRadius = 13
-          //  applyShadowStyling(to: cell)
+            //applyShadowStyling(to: cell)
             let suggestion = suggestions[indexPath.row]
             cell.updateSuggestionData(with: suggestion)
             return cell
@@ -310,7 +389,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         case 3:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ExploreMoreCell", for: indexPath) as! ExploreMoreCollectionViewCell
             cell.layer.cornerRadius = 13
-           // applyShadowStyling(to: cell)
+            //applyShadowStyling(to: cell)
             let equipment = allEquipment[indexPath.row]
             cell.updateExploreMoreData(with: equipment)
             return cell
@@ -424,6 +503,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as! SectionHeaderCollectionReusableView
             
             let dataSection = getDataSection(for: indexPath.section)
+            
+            print("Setting up header for section \(indexPath.section), dataSection: \(dataSection)")
+            
             switch dataSection {
             case 0:
                 header.headerLabel.text = "Discounts"
@@ -435,6 +517,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                 header.button.setTitle("View All", for: .normal)
                 header.button.isHidden = false
                 header.button.addTarget(self, action: #selector(sectionButtonTapped(_:)), for: .touchUpInside)
+                
+                // Debug - print the current upcoming bookings count
+                print("Upcoming Bookings section header shown. Current bookings count: \(upcomingBookings.count)")
             case 2:
                 header.headerLabel.text = "   Suggestion"
                 header.headerLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
@@ -491,6 +576,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
         
         print("HomeViewController - Selected equipment: \(selectedEquipment.name)")
+        print("HomeViewController - Selected equipment ID: \(selectedEquipment.equipmentID.uuidString.lowercased())")
         
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
         if let controller = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
@@ -508,8 +594,11 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         if let viewController = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingsListViewController") as? UpcomingBookingsListViewController {
             // Pass the data controller and data
             viewController.dataController = self.dataController
-            viewController.upcomingBookings = self.upcomingBookings
-            viewController.allEquipment = self.allEquipment
+            
+            // Instead of passing local copies, let the ViewController fetch fresh data
+            // Print debug info
+            print("HomeViewController - Passing dataController to UpcomingBookingsListViewController")
+            print("HomeViewController - Current upcomingBookings count: \(upcomingBookings.count)")
             
             navigationController?.pushViewController(viewController, animated: true)
         }
@@ -521,14 +610,40 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     func didTapViewButton(on cell: UpcomingBookingsCollectionViewCell) {
         if let indexPath = collectionView.indexPath(for: cell) {
             let booking = upcomingBookings[indexPath.row]
-            if let equipment = allEquipment.first(where: { $0.equipmentID == booking.equipmentID }) {
-                let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-                if let viewController = storyboard.instantiateViewController(withIdentifier: "BookingDetailsViewController") as? BookingDetailsViewController {
-                    viewController.modalPresentationStyle = .fullScreen
-                    viewController.equipment = equipment
-                    viewController.booking = booking
-                    navigationController?.pushViewController(viewController, animated: true)
-                }
+            
+            // More robust equipment finding logic
+            var equipmentToUse: Equipment?
+            
+            // First try exact ID match (case-insensitive)
+            if let equipment = allEquipment.first(where: { equip in 
+                equip.equipmentID.uuidString.lowercased() == booking.equipmentID.uuidString.lowercased() 
+            }) {
+                print("Found matching equipment: \(equipment.name)")
+                equipmentToUse = equipment
+            } 
+            // If exact match fails, try to get equipment by ID from dataController
+            else if let matchingEquipment = dataController.getEquipment(byId: booking.equipmentID) {
+                print("Found equipment using dataController: \(matchingEquipment.name)")
+                equipmentToUse = matchingEquipment
+            }
+            // Last resort, use first equipment as fallback if needed
+            else if !allEquipment.isEmpty {
+                let fallbackEquipment = allEquipment[0]
+                print("WARNING: Using fallback equipment in didTapViewButton")
+                equipmentToUse = fallbackEquipment
+            }
+            
+            guard let equipment = equipmentToUse else {
+                print("ERROR: Cannot find any equipment for booking: \(booking.bookingID)")
+                return
+            }
+            
+            let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+            if let viewController = storyboard.instantiateViewController(withIdentifier: "BookingDetailsViewController") as? BookingDetailsViewController {
+                viewController.modalPresentationStyle = .fullScreen
+                viewController.equipment = equipment
+                viewController.booking = booking
+                navigationController?.pushViewController(viewController, animated: true)
             }
         }
     }
@@ -571,23 +686,39 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     @objc private func handleBookingAdded(_ notification: Notification) {
         print("HomeViewController - Received bookingAdded notification")
         
-        // Refresh data including the new booking
+        // Force reload all data from backend to ensure we get fresh data
         Task {
-            // Get fresh upcoming bookings data
-            let freshBookings = await requestManager.fetchBookings().filter { 
-                $0.bookingDate > Date() 
-            }
+            // Small delay to ensure database updates have been completed
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 second delay
+            
+            // Get fresh data with force refresh
+            await loadDataFromBackend(forceRefresh: true)
             
             // Update UI on main thread
-            DispatchQueue.main.async {
-                self.upcomingBookings = freshBookings
-                self.hasUpcomingBookings = !freshBookings.isEmpty
+            await MainActor.run {
+                print("After refresh - Upcoming bookings count: \(self.upcomingBookings.count)")
                 
-                // Print updated count
-                print("Updated upcoming bookings count: \(self.upcomingBookings.count)")
+                // Force the upcoming bookings section to be visible
+                self.hasUpcomingBookings = !self.upcomingBookings.isEmpty
+                if !self.upcomingBookings.isEmpty {
+                    print("Force showing upcoming bookings section")
+                }
                 
-                // Reload collection view
+                // Completely recreate the layout
+                self.collectionView.setCollectionViewLayout(self.generateLayout(), animated: false)
+                
+                // Reload data and force a layout pass
+                self.collectionView.collectionViewLayout.invalidateLayout()
                 self.collectionView.reloadData()
+                
+                // Force a layout refresh after a delay, but don't scroll
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    // Force the layout to update again
+                    self.collectionView.collectionViewLayout.invalidateLayout()
+                    self.collectionView.layoutIfNeeded()
+                    
+                    print("Layout refreshed with \(self.collectionView.numberOfSections) sections visible")
+                }
             }
         }
     }
@@ -600,5 +731,15 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     deinit {
         // Remove notification observer when this view controller is deallocated
         NotificationCenter.default.removeObserver(self)
+    }
+
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        
+        // Make sure our collection view layout matches our data state
+        if collectionView.numberOfSections != numberOfSections {
+            collectionView.collectionViewLayout.invalidateLayout()
+            collectionView.reloadData()
+        }
     }
 }

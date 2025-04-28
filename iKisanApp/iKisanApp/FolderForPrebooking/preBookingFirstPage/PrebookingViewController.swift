@@ -131,7 +131,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         collectionView.reloadData()
     }
     
-    private func loadPreBookings() {
+    func loadPreBookings() {
         guard let dataController = dataController else { return }
         
         // Get all bookings and filter prebookings
@@ -142,7 +142,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         
         // Get equipment details for each prebooking
         preBookingEquipments = preBookings.compactMap { booking in
-            dataController.getEquipmentById(booking.equipmentID)
+            dataController.getEquipment(byId: booking.equipmentID)
         }
         
         // Reload the entire collection view to reflect changes

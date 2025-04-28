@@ -52,7 +52,49 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
             UIColor.systemGray
         
         coEquipedOrNotLabel.text = booking.bookingType == .coEquip ? "Co-Equipped" : "Individual"
-        hostedByLabel.text = "Veer Pal" //"Time Slot: \(booking.timeSlot.rawValue)"
+        
+        // Fetch provider name from user ID instead of hardcoding
+        // Initially set a placeholder
+        hostedByLabel.text = "Loading..."
+        
+        // Fetch the provider name asynchronously
+        Task {
+            do {
+                // Try to get the provider name from Supabase using the userID
+                let result = try await SupabaseManager.shared.client
+                    .from("users")
+                    .select("name")
+                    .eq("userID", value: booking.userID.uuidString)
+                    .single()
+                    .execute()
+                
+                // Process the response without assuming data is optional
+                do {
+                    if let dict = try JSONSerialization.jsonObject(with: result.data) as? [String: Any],
+                       let providerName = dict["name"] as? String {
+                        // Update UI on main thread
+                        await MainActor.run {
+                            self.hostedByLabel.text = providerName
+                        }
+                    } else {
+                        await MainActor.run {
+                            self.hostedByLabel.text = "Provider"
+                        }
+                    }
+                } catch {
+                    print("Error parsing provider data: \(error)")
+                    await MainActor.run {
+                        self.hostedByLabel.text = "Provider"
+                    }
+                }
+            } catch {
+                print("Error fetching provider name: \(error)")
+                // Fallback on error
+                await MainActor.run {
+                    self.hostedByLabel.text = "Provider"
+                }
+            }
+        }
     }
     
     @IBAction func viewButtonTapped(_ sender: Any) {

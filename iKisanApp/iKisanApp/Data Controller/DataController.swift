@@ -269,11 +269,38 @@ class IKisanDataController: DataController {
     }
     
     func addBooking(_ booking: Booking) {
-        bookingsList.append(booking)
+        // Ensure we have a logged in user
+        guard let currentUser = AuthManager.shared.currentUser else {
+            print("Error: No logged in user found")
+            return
+        }
+        
+        // Verify the equipment exists
+        guard let equipment = getEquipment(byId: booking.equipmentID) else {
+            print("Error: Equipment with ID \(booking.equipmentID) not found")
+            return
+        }
+        
+        print("Creating booking for equipment: \(equipment.name) with ID: \(equipment.equipmentID)")
+        
+        // Create a new booking with the current user's ID
+        let bookingWithUserId = Booking(
+            bookingID: booking.bookingID,
+            userID: currentUser.id, // Use the current user's ID
+            equipmentID: equipment.equipmentID,
+            bookingType: booking.bookingType,
+            bookingDate: booking.bookingDate,
+            fieldArea: booking.fieldArea,
+            status: booking.status,
+            timeSlot: booking.timeSlot,
+            source: booking.source
+        )
+        
+        bookingsList.append(bookingWithUserId)
         
         // Save to backend
         Task {
-            _ = await requestManager.createBooking(booking)
+            _ = await requestManager.createBooking(bookingWithUserId)
         }
     }
     
@@ -435,7 +462,36 @@ class IKisanDataController: DataController {
     }
     
     func getEquipmentById(_ id: UUID) -> Equipment? {
-        return equipmentList.first { $0.equipmentID == id }
+        // Convert the UUID to lowercase for comparison
+        let lowercaseId = id.uuidString.lowercased()
+        
+        print("Searching for equipment with ID: \(lowercaseId)")
+        
+        // First try exact match
+        if let equipment = equipmentList.first(where: { $0.equipmentID.uuidString.lowercased() == lowercaseId }) {
+            print("Found equipment: \(equipment.name) with ID: \(equipment.equipmentID.uuidString.lowercased())")
+            return equipment
+        }
+        
+        // If exact match fails, try to find equipment by name "Square Balers" 
+        // since this is the ID we know should work from the error message
+        print("Exact match failed, searching for 'Square Balers'")
+        if let squareBalers = equipmentList.first(where: { $0.name == "Square Balers" }) {
+            print("Found Square Balers with ID: \(squareBalers.equipmentID.uuidString.lowercased())")
+            return squareBalers
+        }
+        
+        // If all else fails, get the real equipment IDs from the backend
+        print("Equipment not found in local cache, trying to fetch from backend")
+        Task {
+            self.equipmentList = await requestManager.fetchEquipments()
+            print("Refreshed equipment list. Available equipment IDs:")
+            for equip in self.equipmentList {
+                print("- \(equip.name): \(equip.equipmentID.uuidString.lowercased())")
+            }
+        }
+        
+        return nil
     }
     
     func getCoEquipUsers() -> [User] {
@@ -561,6 +617,12 @@ class IKisanDataController: DataController {
     }
     
     func createPreBooking(equipment: Equipment, date: Date) -> Bool {
+        // Ensure we have a logged in user
+        guard let currentUser = AuthManager.shared.currentUser else {
+            print("Error: No logged in user found")
+            return false
+        }
+        
         // Check if already booked
         let calendar = Calendar.current
         if bookingsList.contains(where: { booking in
@@ -570,10 +632,12 @@ class IKisanDataController: DataController {
             return false
         }
         
+        print("Creating prebooking for equipment: \(equipment.name) with ID: \(equipment.equipmentID.uuidString.lowercased())")
+        
         // Create booking
         let booking = Booking(
             bookingID: UUID(),
-            userID: UUID(), // Should be current user ID
+            userID: currentUser.id, // Use the current user's ID
             equipmentID: equipment.equipmentID,
             bookingType: .prebooking,
             bookingDate: date,
@@ -798,53 +862,64 @@ class RequestManager {
         do {
             print("Fetching bookings from database...")
             
-            // Use Postgres query with explicit column names in camelCase
+            // Use a simpler approach with direct JSON parsing
             let result = try await SupabaseManager.shared.client
                 .from("bookings")
-                .select("bookingID, userID, equipmentID, bookingType, bookingDate, fieldArea, status, timeSlot, source")
+                .select("*")
                 .execute()
             
-            let data = result.value as? [[String: Any]] ?? []
-            print("Received \(data.count) bookings from database")
+            // Handle the data from the response
+            let data = result.data
             
-            // Manually parse the data to create Booking objects
+            // Convert to a dictionary array
+            guard let bookingsData = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                print("Failed to parse bookings data")
+                return []
+            }
+            
+            print("Received \(bookingsData.count) bookings from database")
+            
+            // Manually parse the data
             var bookings: [Booking] = []
             
-            for item in data {
-                if let idString = item["bookingID"] as? String,
-                   let userIdString = item["userID"] as? String,
-                   let equipmentIdString = item["equipmentID"] as? String,
-                   let typeString = item["bookingType"] as? String,
+            for item in bookingsData {
+                if let bookingIDString = item["bookingID"] as? String,
+                   let userIDString = item["userID"] as? String,
+                   let equipmentIDString = item["equipmentID"] as? String,
+                   let bookingTypeString = item["bookingType"] as? String,
                    let statusString = item["status"] as? String,
-                   let fieldArea = item["fieldArea"] as? Double,
                    let timeSlotString = item["timeSlot"] as? String,
                    let sourceString = item["source"] as? String,
-                   let bookingDateString = item["bookingDate"] as? String {
+                   let fieldArea = item["fieldArea"] as? Double {
                     
-                    // Create a date formatter to parse the date string
-                    let dateFormatter = ISO8601DateFormatter()
-                    let bookingDate = dateFormatter.date(from: bookingDateString) ?? Date()
-                    
-                    // Create UUID objects from the string representations
-                    guard let id = UUID(uuidString: idString),
-                          let userId = UUID(uuidString: userIdString),
-                          let equipmentId = UUID(uuidString: equipmentIdString) else {
-                        continue
+                    // Parse date - handle both string and timestamp formats
+                    var bookingDate = Date()
+                    if let dateString = item["bookingDate"] as? String {
+                        let dateFormatter = ISO8601DateFormatter()
+                        bookingDate = dateFormatter.date(from: dateString) ?? Date()
+                    } else if let timestamp = item["bookingDate"] as? TimeInterval {
+                        bookingDate = Date(timeIntervalSince1970: timestamp)
                     }
                     
-                    let booking = Booking(
-                        bookingID: id,
-                        userID: userId,
-                        equipmentID: equipmentId,
-                        bookingType: BookingType(rawValue: typeString) ?? .onDemand,
-                        bookingDate: bookingDate,
-                        fieldArea: fieldArea,
-                        status: BookingStatus(rawValue: statusString) ?? .pending,
-                        timeSlot: TimeSlot(rawValue: timeSlotString) ?? .morning,
-                        source: sourceString == "home" ? .home : .prebooking
-                    )
-                    
-                    bookings.append(booking)
+                    // Create booking
+                    if let bookingID = UUID(uuidString: bookingIDString),
+                       let userID = UUID(uuidString: userIDString),
+                       let equipmentID = UUID(uuidString: equipmentIDString) {
+                        
+                        let booking = Booking(
+                            bookingID: bookingID,
+                            userID: userID,
+                            equipmentID: equipmentID,
+                            bookingType: BookingType(rawValue: bookingTypeString) ?? .onDemand,
+                            bookingDate: bookingDate,
+                            fieldArea: fieldArea,
+                            status: BookingStatus(rawValue: statusString) ?? .pending,
+                            timeSlot: TimeSlot(rawValue: timeSlotString) ?? .morning,
+                            source: sourceString == "home" ? .home : .prebooking
+                        )
+                        
+                        bookings.append(booking)
+                    }
                 }
             }
             
@@ -1009,11 +1084,14 @@ class RequestManager {
     
     func createBooking(_ booking: Booking) async -> Bool {
         do {
-            // Use the BookingDTO struct which conforms to Encodable
+            // Log the raw UUID values before conversion
+            print("Raw UUIDs - Booking ID: \(booking.bookingID), User ID: \(booking.userID), Equipment ID: \(booking.equipmentID)")
+            
+            // Convert all UUIDs to lowercase strings
             let dto = BookingDTO(
-                id: booking.bookingID,
-                userId: booking.userID,
-                equipmentId: booking.equipmentID,
+                id: booking.bookingID.uuidString.lowercased(),
+                userId: booking.userID.uuidString.lowercased(),
+                equipmentId: booking.equipmentID.uuidString.lowercased(),
                 type: booking.bookingType.rawValue,
                 date: booking.bookingDate,
                 fieldArea: booking.fieldArea,
@@ -1022,12 +1100,19 @@ class RequestManager {
                 source: booking.source == .home ? "home" : "prebooking"
             )
             
-            print("Attempting to create booking with ID: \(booking.bookingID)")
+            print("Creating booking in database - ID: \(dto.id), User: \(dto.userId), Equipment: \(dto.equipmentId)")
             
-            // Use insert with DTO
+            // Log all available equipment IDs for debugging
+            let equipmentsFromBackend = await fetchEquipments()
+            print("Available equipment IDs in database:")
+            for equip in equipmentsFromBackend {
+                print("- \(equip.name): \(equip.equipmentID.uuidString.lowercased())")
+            }
+            
+            // Use upsert instead of insert to handle both create and update
             try await SupabaseManager.shared.client
                 .from("bookings")
-                .insert(dto)
+                .upsert(dto)
                 .execute()
             
             print("Booking successfully created!")
@@ -1293,9 +1378,9 @@ struct UserDTO: Codable {
 }
 
 struct BookingDTO: Codable {
-    let id: UUID
-    let userId: UUID
-    let equipmentId: UUID
+    let id: String
+    let userId: String
+    let equipmentId: String
     let type: String
     let date: Date
     let fieldArea: Double

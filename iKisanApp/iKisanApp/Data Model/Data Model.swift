@@ -10,7 +10,7 @@ import Foundation
 //MARK: Model for Equipment
 
 struct Equipment: Codable, Sendable {
-    let equipmentID: UUID = .init()
+    var equipmentID: UUID
     var equipmentImage: String
     var name: String
     var type: String
