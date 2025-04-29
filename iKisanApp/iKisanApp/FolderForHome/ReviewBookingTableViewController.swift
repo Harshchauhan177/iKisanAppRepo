@@ -6,7 +6,7 @@
 //
 
 import UIKit
-
+import StoreKit
 protocol ReviewBookingDelegate: AnyObject {
     func didModifyBooking(_ booking: Booking)
 }
@@ -50,12 +50,15 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     
     @IBOutlet weak var modifyButton: UIButton?
     
+    
+    
+    var products: [Product] = []
+    
+   
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         // Configure UI based on modification mode
         configureUIForModification()
-        
         if let equipment = equipment {
             updateData()
         } else {
@@ -72,10 +75,117 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
                 self.present(alert, animated: true)
             }
         }
-        
         fieldAreaTextField.delegate = self
         setUpMenus()
+      
+        
+        
+        
+        Task {
+            await fetchProducts()
+        }
+        
+        // Listen for transaction updates
+        Task {
+            for await result in Transaction.updates {
+                do {
+                    let transaction = try checkVerified(result)
+                    // Handle the transaction
+                    print("Received verified transaction: \(transaction.productID)")
+                    
+                    // Finish the transaction after handling it
+                    await transaction.finish()
+                } catch {
+                    print("Transaction verification failed: \(error)")
+                }
+            }
+        }
+        
+        
     }
+    
+    
+    
+    // Fetch products
+        func fetchProducts() async {
+            do {
+                let storeProducts = try await Product.products(for: ["com.exampleapp.100coins"])
+                self.products = storeProducts
+            } catch {
+                print("Failed to fetch products: \(error)")
+            }
+        }
+        
+        // Perform Purchase
+        func purchase() async {
+            guard let product = products.first else { return }
+            
+            do {
+                let result = try await product.purchase()
+                
+                switch result {
+                case .success(let verification):
+                    switch verification {
+                    case .verified(let transaction):
+                        print("Purchase Successful!")
+                        await transaction.finish()
+                    case .unverified(_, let error):
+                        print("Unverified transaction: \(error)")
+                    }
+                case .pending:
+                    print("Purchase pending...")
+                case .userCancelled:
+                    print("User cancelled.")
+                @unknown default:
+                    print("Unknown result.")
+                }
+                
+            } catch {
+                print("Failed purchase: \(error)")
+            }
+        }
+    
+    
+    
+    
+    
+    // Helper function to check verification
+    func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+        switch result {
+        case .verified(let safe):
+            return safe
+        case .unverified(_, let error):
+            throw error
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     private func configureUIForModification() {
         // Force unwrap protection for outlets
@@ -167,90 +277,109 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     }
     
     @IBAction func proceedToPayButtonTapped(_ sender: Any) {
-        // Only proceed if not in modification mode
-        guard !isModifying else { return }
-        
-        // Verify equipment
-        guard let equipment = self.equipment else {
-            return
-        }
-        
-        // Verify field area
-        guard let fieldAreaText = fieldAreaTextField.text,
-              !fieldAreaText.isEmpty,
-              let fieldArea = Double(fieldAreaText) else {
-            let alert = UIAlertController(
-                title: "Error",
-                message: "Please enter a valid field area",
-                preferredStyle: .alert
-            )
-//            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            let okAction = UIAlertAction(title: "OK", style: .default)
-
-            okAction.setValue(UIColor.init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
-            alert.addAction(okAction)
-
-            present(alert, animated: true)
-            return
-        }
-        
-        // Verify time slot
-        guard let timeSlot = timeSlotDisplayOutlet.text,
-              !timeSlot.isEmpty,
-              let timeSlotEnum = TimeSlot(rawValue: timeSlot) else {
-            let alert = UIAlertController(
-                title: "Error",
-                message: "Please select a time slot",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            return
-        }
-        
-        // Create booking
-        let newBooking = Booking(
-            bookingID: UUID(),
-            userID: currentUser.shared.user?.userID ?? UUID(),
-            equipmentID: equipment.equipmentID,
-            bookingType: .prebooking,
-            bookingDate: datePicker.date,
-            fieldArea: fieldArea,
-            status: .pending,
-            timeSlot: timeSlotEnum,
-            source: bookingSource
-        )
-        
-        // Present PaymentViewController
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
-            paymentVC.booking = newBooking
-            paymentVC.modalPresentationStyle = .automatic
+//                // Only proceed if not in modification mode
+//                guard !isModifying else { return }
+//        
+//                // Verify equipment
+//                guard let equipment = self.equipment else {
+//                    return
+//                }
+//        
+//                // Verify field area
+//                guard let fieldAreaText = fieldAreaTextField.text,
+//                      !fieldAreaText.isEmpty,
+//                      let fieldArea = Double(fieldAreaText) else {
+//                    let alert = UIAlertController(
+//                        title: "Error",
+//                        message: "Please enter a valid field area",
+//                        preferredStyle: .alert
+//                    )
+//        //            alert.addAction(UIAlertAction(title: "OK", style: .default))
+//                    let okAction = UIAlertAction(title: "OK", style: .default)
+//        
+//                    okAction.setValue(UIColor.init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
+//                    alert.addAction(okAction)
+//        
+//                    present(alert, animated: true)
+//                    return
+//                }
+//        
+//                // Verify time slot
+//                guard let timeSlot = timeSlotDisplayOutlet.text,
+//                      !timeSlot.isEmpty,
+//                      let timeSlotEnum = TimeSlot(rawValue: timeSlot) else {
+//                    let alert = UIAlertController(
+//                        title: "Error",
+//                        message: "Please select a time slot",
+//                        preferredStyle: .alert
+//                    )
+//                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+//                    present(alert, animated: true)
+//                    return
+//                }
+//        
+//                // Create booking
+//                let newBooking = Booking(
+//                    bookingID: UUID(),
+//                    userID: currentUser.shared.user?.userID ?? UUID(),
+//                    equipmentID: equipment.equipmentID,
+//                    bookingType: .prebooking,
+//                    bookingDate: datePicker.date,
+//                    fieldArea: fieldArea,
+//                    status: .pending,
+//                    timeSlot: timeSlotEnum,
+//                    source: bookingSource
+//                )
+//        
+//                // Present PaymentViewController
+//                let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+//                if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
+//                    paymentVC.booking = newBooking
+//                    paymentVC.modalPresentationStyle = .automatic
+//        
+//                    let navController = UINavigationController(rootViewController: paymentVC)
+//                    present(navController, animated: true, completion: nil)
+//                }
+                
+                Task {
+                        await purchase()
+                    }
+                
+                
+                print("something")
+                
+                
+                
+                
+                
+                
+                
+            }
             
-            let navController = UINavigationController(rootViewController: paymentVC)
-            present(navController, animated: true, completion: nil)
-        }
-        
-        
-    }
-    
-//        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-//        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
-//            paymentVC.booking = newBooking
-//            paymentVC.modalPresentationStyle = .fullScreen
-//            navigationController?.pushViewController(paymentVC, animated: true)
-//        }
-//    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+        //        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+        //        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
+        //            paymentVC.booking = newBooking
+        //            paymentVC.modalPresentationStyle = .fullScreen
+        //            navigationController?.pushViewController(paymentVC, animated: true)
+        //        }
+        //    }
+            
+            override func viewDidAppear(_ animated: Bool) {
+                super.viewDidAppear(animated)
 
-        // Apply shadow to the whole table view
-        tableViewR.layer.shadowColor = UIColor.black.cgColor
-        tableViewR.layer.shadowOpacity = 0.2
-        tableViewR.layer.shadowOffset = CGSize(width: 0, height: 3)
-        tableViewR.layer.shadowRadius = 8
-        tableViewR.layer.masksToBounds = false
-        tableViewR.layer.cornerRadius = 13  // Matches your UI style
-    }
-}
+                // Apply shadow to the whole table view
+                tableViewR.layer.shadowColor = UIColor.black.cgColor
+                tableViewR.layer.shadowOpacity = 0.2
+                tableViewR.layer.shadowOffset = CGSize(width: 0, height: 3)
+                tableViewR.layer.shadowRadius = 8
+                tableViewR.layer.masksToBounds = false
+                tableViewR.layer.cornerRadius = 13  // Matches your UI style
+            }
+        }
+
+
+
+
+
+
+

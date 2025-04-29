@@ -1,0 +1,105 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "C1A85ECC",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "100",
+      "familyShareable" : false,
+      "internalID" : "F8CFF622",
+      "localizations" : [
+        {
+          "description" : "Buy Equipment in $ 100",
+          "displayName" : "Equipment Purchase",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.exampleapp.100coins",
+      "referenceName" : "100coins",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "999",
+      "familyShareable" : false,
+      "internalID" : "EA838D37",
+      "localizations" : [
+        {
+          "description" : "Service of tactor",
+          "displayName" : "Tactor",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.exampleapp.tactor",
+      "referenceName" : "tactor",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
