@@ -862,10 +862,17 @@ class RequestManager {
         do {
             print("Fetching bookings from database...")
             
+            // Only fetch bookings for the currently logged-in user
+            guard let currentUser = AuthManager.shared.currentUser else {
+                print("No logged-in user found, returning empty bookings list")
+                return []
+            }
+            
             // Use a simpler approach with direct JSON parsing
             let result = try await SupabaseManager.shared.client
                 .from("bookings")
                 .select("*")
+                .eq("userID", value: currentUser.id.uuidString)
                 .execute()
             
             // Handle the data from the response

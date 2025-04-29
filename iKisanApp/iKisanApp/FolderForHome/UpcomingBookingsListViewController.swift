@@ -39,8 +39,25 @@ class UpcomingBookingsListViewController: UIViewController, UICollectionViewData
         setupUI()
         setupCollectionView()
         
+        // Register for refresh notification
+        NotificationCenter.default.addObserver(self, 
+                                               selector: #selector(refreshBookingsList), 
+                                               name: NSNotification.Name("RefreshBookingsList"), 
+                                               object: nil)
+        
+        // Register for booking cancellation notification
+        NotificationCenter.default.addObserver(self, 
+                                               selector: #selector(refreshBookingsList), 
+                                               name: NSNotification.Name("BookingCancelled"), 
+                                               object: nil)
+        
         // Then fetch data immediately
         loadData()
+    }
+    
+    deinit {
+        // Remove notification observer when view controller is deallocated
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -48,6 +65,11 @@ class UpcomingBookingsListViewController: UIViewController, UICollectionViewData
         print("UpcomingBookingsListViewController - viewWillAppear called")
         
         // Always reload data when view appears
+        loadData()
+    }
+    
+    @objc private func refreshBookingsList() {
+        print("Refreshing bookings list after cancellation")
         loadData()
     }
     
@@ -169,13 +191,10 @@ class UpcomingBookingsListViewController: UIViewController, UICollectionViewData
             return
         }
         
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        if let viewController = storyboard.instantiateViewController(withIdentifier: "BookingDetailsViewController") as? BookingDetailsViewController {
-            viewController.modalPresentationStyle = .fullScreen
-            viewController.equipment = equipment
-            viewController.booking = booking
-            navigationController?.pushViewController(viewController, animated: true)
-        }
+        // Create BookingDetailsViewController programmatically instead of from storyboard
+        let viewController = BookingDetailsViewController(equipment: equipment, booking: booking)
+        viewController.modalPresentationStyle = .fullScreen
+        navigationController?.pushViewController(viewController, animated: true)
     }
     
     // Add a dedicated method for loading data

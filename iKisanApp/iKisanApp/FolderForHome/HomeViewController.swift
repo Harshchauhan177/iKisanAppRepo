@@ -638,13 +638,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                 return
             }
             
-            let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-            if let viewController = storyboard.instantiateViewController(withIdentifier: "BookingDetailsViewController") as? BookingDetailsViewController {
-                viewController.modalPresentationStyle = .fullScreen
-                viewController.equipment = equipment
-                viewController.booking = booking
-                navigationController?.pushViewController(viewController, animated: true)
-            }
+            // Create BookingDetailsViewController programmatically instead of from storyboard
+            let viewController = BookingDetailsViewController(equipment: equipment, booking: booking)
+            viewController.modalPresentationStyle = .fullScreen
+            navigationController?.pushViewController(viewController, animated: true)
         }
     }
     func didTapViewButton(on cell: ExploreMoreCollectionViewCell) {

@@ -16,10 +16,11 @@ class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
     
     @IBOutlet weak var equipmentImageView: UIImageView!
     @IBOutlet weak var dateLabel: UILabel!
-    @IBOutlet weak var timeSlotLabel: UILabel!
+    @IBOutlet weak var hostedByLabel: UILabel!
     @IBOutlet weak var statusLabel: UILabel!
     @IBOutlet var equipmentNameLabel: UILabel!
 
+    @IBOutlet weak var bookingType: UILabel!
     weak var delegate: UpcomingBookingsListCellDelegate?
     
     func updateCellData(with booking: Booking, equipment: Equipment) {
@@ -31,49 +32,56 @@ class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
         let dateString = dateFormatter.string(from: booking.bookingDate)
         dateLabel.text = "\(dateString) \(booking.timeSlot.rawValue)"
         
-        // Set initial placeholder while loading provider name
-        timeSlotLabel.text = "Loading..."
-        
-        // Fetch the provider name asynchronously
-        Task {
-            do {
-                // Try to get the provider name from Supabase using the userID
-                let result = try await SupabaseManager.shared.client
-                    .from("users")
-                    .select("name")
-                    .eq("userID", value: booking.userID.uuidString)
-                    .single()
-                    .execute()
-                
-                // Process the response without assuming data is optional
+        // Use the equipment's providerName if available
+        if let providerName = equipment.providerName, !providerName.isEmpty {
+            hostedByLabel.text = providerName
+        } else {
+            // If providerName is not available in the equipment object,
+            // fetch it from the equipment's providerID
+            hostedByLabel.text = "Loading..."
+            
+            Task {
                 do {
-                    if let dict = try JSONSerialization.jsonObject(with: result.data) as? [String: Any],
-                       let providerName = dict["name"] as? String {
-                        // Update UI on main thread
-                        await MainActor.run {
-                            self.timeSlotLabel.text = providerName
+                    // Try to get the provider name from Supabase using the equipment's providerID
+                    let result = try await SupabaseManager.shared.client
+                        .from("users")
+                        .select("name")
+                        .eq("userID", value: equipment.providerID.uuidString)
+                        .single()
+                        .execute()
+                    
+                    // Process the response
+                    do {
+                        if let dict = try JSONSerialization.jsonObject(with: result.data) as? [String: Any],
+                           let providerName = dict["name"] as? String {
+                            // Update UI on main thread
+                            await MainActor.run {
+                                self.hostedByLabel.text = providerName
+                            }
+                        } else {
+                            await MainActor.run {
+                                self.hostedByLabel.text = "Provider"
+                            }
                         }
-                    } else {
+                    } catch {
+                        print("Error parsing provider data: \(error)")
                         await MainActor.run {
-                            self.timeSlotLabel.text = "Provider"
+                            self.hostedByLabel.text = "Provider"
                         }
                     }
                 } catch {
-                    print("Error parsing provider data: \(error)")
+                    print("Error fetching provider name: \(error)")
+                    // Fallback on error
                     await MainActor.run {
-                        self.timeSlotLabel.text = "Provider"
+                        self.hostedByLabel.text = "Provider"
                     }
-                }
-            } catch {
-                print("Error fetching provider name: \(error)")
-                // Fallback on error
-                await MainActor.run {
-                    self.timeSlotLabel.text = "Provider"
                 }
             }
         }
         
-        statusLabel.text = booking.status.rawValue
+        // Display both booking status and booking type
+        statusLabel.text = "\(booking.status.rawValue)"
+        bookingType.text =  "\(booking.bookingType.rawValue)"
     }
     
     override init(frame : CGRect){

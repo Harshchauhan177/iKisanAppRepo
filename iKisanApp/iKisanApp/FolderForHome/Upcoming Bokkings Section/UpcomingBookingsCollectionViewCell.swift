@@ -51,47 +51,52 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
             UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1) :
             UIColor.systemGray
         
-        coEquipedOrNotLabel.text = booking.bookingType == .coEquip ? "Co-Equipped" : "Individual"
+        // Display the actual booking type from the enum
+        coEquipedOrNotLabel.text = booking.bookingType.rawValue
         
-        // Fetch provider name from user ID instead of hardcoding
-        // Initially set a placeholder
-        hostedByLabel.text = "Loading..."
-        
-        // Fetch the provider name asynchronously
-        Task {
-            do {
-                // Try to get the provider name from Supabase using the userID
-                let result = try await SupabaseManager.shared.client
-                    .from("users")
-                    .select("name")
-                    .eq("userID", value: booking.userID.uuidString)
-                    .single()
-                    .execute()
-                
-                // Process the response without assuming data is optional
+        // Use the equipment's providerName if available
+        if let providerName = equipment.providerName, !providerName.isEmpty {
+            hostedByLabel.text = providerName
+        } else {
+            // If providerName is not available in the equipment object,
+            // fetch it from the equipment's providerID
+            hostedByLabel.text = "Loading..."
+            
+            Task {
                 do {
-                    if let dict = try JSONSerialization.jsonObject(with: result.data) as? [String: Any],
-                       let providerName = dict["name"] as? String {
-                        // Update UI on main thread
-                        await MainActor.run {
-                            self.hostedByLabel.text = providerName
+                    // Try to get the provider name from Supabase using the equipment's providerID
+                    let result = try await SupabaseManager.shared.client
+                        .from("users")
+                        .select("name")
+                        .eq("userID", value: equipment.providerID.uuidString)
+                        .single()
+                        .execute()
+                    
+                    // Process the response
+                    do {
+                        if let dict = try JSONSerialization.jsonObject(with: result.data) as? [String: Any],
+                           let providerName = dict["name"] as? String {
+                            // Update UI on main thread
+                            await MainActor.run {
+                                self.hostedByLabel.text = providerName
+                            }
+                        } else {
+                            await MainActor.run {
+                                self.hostedByLabel.text = "Provider"
+                            }
                         }
-                    } else {
+                    } catch {
+                        print("Error parsing provider data: \(error)")
                         await MainActor.run {
                             self.hostedByLabel.text = "Provider"
                         }
                     }
                 } catch {
-                    print("Error parsing provider data: \(error)")
+                    print("Error fetching provider name: \(error)")
+                    // Fallback on error
                     await MainActor.run {
                         self.hostedByLabel.text = "Provider"
                     }
-                }
-            } catch {
-                print("Error fetching provider name: \(error)")
-                // Fallback on error
-                await MainActor.run {
-                    self.hostedByLabel.text = "Provider"
                 }
             }
         }
