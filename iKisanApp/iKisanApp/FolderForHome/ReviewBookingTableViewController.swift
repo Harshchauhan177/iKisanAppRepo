@@ -117,32 +117,36 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         }
         
         // Perform Purchase
-        func purchase() async {
-            guard let product = products.first else { return }
-            
-            do {
-                let result = try await product.purchase()
-                
-                switch result {
-                case .success(let verification):
-                    switch verification {
-                    case .verified(let transaction):
-                        print("Purchase Successful!")
-                        await transaction.finish()
-                    case .unverified(_, let error):
-                        print("Unverified transaction: \(error)")
+        func purchaseItem(_ product: Product, quantity: Int) async {
+            print("inside quantity :\(quantity)")
+            for i in 1...quantity {
+                print("inside for quantity :\(quantity)")
+                    do {
+                        print("Attempting purchase \(i) for product ID: \(product.id)")
+//                        let result = try await product.purchase()
+                        let result = try await product.purchase(quantity: quantity)
+                        print("result  :\(result)")
+                        switch result {
+                        case .success(let verification):
+                            switch verification {
+                            case .verified(let transaction):
+                                print("Purchase \(i) successful: \(transaction)")
+                                await transaction.finish()
+                            case .unverified(_, let error):
+                                print("Transaction \(i) unverified: \(error.localizedDescription)")
+                            }
+                        case .userCancelled:
+                            print("User cancelled during purchase \(i).")
+                            return // Stop further purchases if user cancels
+                        case .pending:
+                            print("Purchase \(i) is pending approval.")
+                        @unknown default:
+                            break
+                        }
+                    } catch {
+                        print("Purchase \(i) failed: \(error)")
                     }
-                case .pending:
-                    print("Purchase pending...")
-                case .userCancelled:
-                    print("User cancelled.")
-                @unknown default:
-                    print("Unknown result.")
                 }
-                
-            } catch {
-                print("Failed purchase: \(error)")
-            }
         }
     
     
@@ -277,82 +281,30 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     }
     
     @IBAction func proceedToPayButtonTapped(_ sender: Any) {
-//                // Only proceed if not in modification mode
-//                guard !isModifying else { return }
-//        
-//                // Verify equipment
-//                guard let equipment = self.equipment else {
-//                    return
-//                }
-//        
-//                // Verify field area
-//                guard let fieldAreaText = fieldAreaTextField.text,
-//                      !fieldAreaText.isEmpty,
-//                      let fieldArea = Double(fieldAreaText) else {
-//                    let alert = UIAlertController(
-//                        title: "Error",
-//                        message: "Please enter a valid field area",
-//                        preferredStyle: .alert
-//                    )
-//        //            alert.addAction(UIAlertAction(title: "OK", style: .default))
-//                    let okAction = UIAlertAction(title: "OK", style: .default)
-//        
-//                    okAction.setValue(UIColor.init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
-//                    alert.addAction(okAction)
-//        
-//                    present(alert, animated: true)
-//                    return
-//                }
-//        
-//                // Verify time slot
-//                guard let timeSlot = timeSlotDisplayOutlet.text,
-//                      !timeSlot.isEmpty,
-//                      let timeSlotEnum = TimeSlot(rawValue: timeSlot) else {
-//                    let alert = UIAlertController(
-//                        title: "Error",
-//                        message: "Please select a time slot",
-//                        preferredStyle: .alert
-//                    )
-//                    alert.addAction(UIAlertAction(title: "OK", style: .default))
-//                    present(alert, animated: true)
-//                    return
-//                }
-//        
-//                // Create booking
-//                let newBooking = Booking(
-//                    bookingID: UUID(),
-//                    userID: currentUser.shared.user?.userID ?? UUID(),
-//                    equipmentID: equipment.equipmentID,
-//                    bookingType: .prebooking,
-//                    bookingDate: datePicker.date,
-//                    fieldArea: fieldArea,
-//                    status: .pending,
-//                    timeSlot: timeSlotEnum,
-//                    source: bookingSource
-//                )
-//        
-//                // Present PaymentViewController
-//                let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-//                if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
-//                    paymentVC.booking = newBooking
-//                    paymentVC.modalPresentationStyle = .automatic
-//        
-//                    let navController = UINavigationController(rootViewController: paymentVC)
-//                    present(navController, animated: true, completion: nil)
-//                }
-                
+        
+        guard let product = products.first else {
+                print("Product not available.")
+                return
+            }
+
+        guard let fieldAreaText = fieldAreaTextField.text,
+                  let quantity = Int(fieldAreaText), quantity > 0 else {
+                let alert = UIAlertController(title: "Invalid Input",
+                                              message: "Please enter a valid number of hours (quantity).",
+                                              preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(alert, animated: true)
+//            quantity
+            return
+            }
+        print("quantity :\(quantity)")
                 Task {
-                        await purchase()
+                    print("Inside task quantity :\(quantity)")
+                    await purchaseItem(product, quantity: quantity)
                     }
                 
                 
                 print("something")
-                
-                
-                
-                
-                
-                
                 
             }
             
