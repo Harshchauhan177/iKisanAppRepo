@@ -6,17 +6,19 @@
 //
 
 import UIKit
+import Razorpay
 
 protocol ReviewBookingDelegate: AnyObject {
     func didModifyBooking(_ booking: Booking)
 }
 
-class ReviewBookingTableViewController: UITableViewController, UITextFieldDelegate {
-    
+class ReviewBookingTableViewController: UITableViewController, UITextFieldDelegate, RazorpayPaymentCompletionProtocol {
+    var razorpay : RazorpayCheckout!
     var selectedDate: Date?
     var timeSlot = ["Morning","Afternoon","Evening"]
     var locationA: String?
     var pricePerHr: Double = 100
+    var payableAmount: Double = 0
     
     var equipment: Equipment? {
         didSet {
@@ -118,6 +120,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
             if let fieldAreaText = textField.text, let fieldArea = Double(fieldAreaText) {
                 let totalPrice = fieldArea * pricePerHr
                 priceLabel.text = "Total Price: \(totalPrice)"
+                self.payableAmount = totalPrice
             } else {
                 priceLabel.text = "Invalid input"
             }
@@ -222,17 +225,37 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         )
         
         // Present PaymentViewController
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
-            paymentVC.booking = newBooking
-            paymentVC.modalPresentationStyle = .automatic
-            
-            let navController = UINavigationController(rootViewController: paymentVC)
-            present(navController, animated: true, completion: nil)
-        }
+//        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+//        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
+//            paymentVC.booking = newBooking
+//            paymentVC.modalPresentationStyle = .automatic
+//            
+//            let navController = UINavigationController(rootViewController: paymentVC)
+//            present(navController, animated: true, completion: nil)
+//        }
+        
+        let option : [String:Any] = [
+            "amount": String(self.payableAmount * 100),
+            "currency": "INR",
+            "description": "How to user razor pay payment gatway",
+            "image": "https://images.app.goo.gl/ii2mtoFGJhbmkkea7",
+            "name":"harsh Kumar",
+            "prefill": [
+//                "email": "harsh7617rajput@gmail.com"  Your RazorPay EmailId
+                // TODO: Fetch Email and set the field
+            ],
+            "theme": [
+                "color": "#528FF0"
+            ],
+            "notes": [
+                "equipment_id": equipment.equipmentID.uuidString
+            ]
+        ]
+        razorpay.open(option)
         
         
     }
+    
     
 //        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
 //        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
@@ -242,7 +265,26 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
 //        }
 //    }
     
+    func onPaymentError(_ code: Int32, description str: String) {
+        let alert = UIAlertController(title: "Failure", message: str, preferredStyle: .alert)
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alert.addAction(cancel)
+        self.view.window?.rootViewController?.present(alert, animated: true, completion: nil)
+    }
+        
+    func onPaymentSuccess(_ payment_id: String) {
+         let alert = UIAlertController(title: "Sucess", message: "Payment Id \(payment_id)", preferredStyle: .alert)
+         let okay = UIAlertAction(title: "Okay", style: .cancel, handler: nil)
+         alert.addAction(okay)
+        
+        Task {
+            // TODO: INSERT INTO DB WHERE EMAIL = (email) VALUES (payment_id)
+        }
+         self.view.window?.rootViewController?.present(alert, animated: true, completion: nil)
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
+        razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
         super.viewDidAppear(animated)
 
         // Apply shadow to the whole table view
