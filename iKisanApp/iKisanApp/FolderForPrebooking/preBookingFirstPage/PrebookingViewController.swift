@@ -4,7 +4,7 @@
 
 import UIKit
 
-class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICollectionViewDelegate, preBookingEquipmentSectionAddPreBookCollectionViewCellDelegate,PreBookingSection3CellDelegate{
+class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICollectionViewDelegate, preBookingEquipmentSectionAddPreBookCollectionViewCellDelegate,PreBookingSection3CellDelegate {
     
     
     var targetSection: Int? // Store the section we want to scroll to
@@ -18,6 +18,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     private var recommendedEquipments: [Equipment] = []
     private var availableEquipments: [Equipment] = []
     private var faqs: [FAQ] = []
+    internal var expandedFAQIndices: Set<Int> = []
     private var selectedDate: Date?
     private var searchedEquipments: [Equipment] = [] // Changed from single equipment to array
     private var allEquipment: [Equipment] = []
@@ -118,13 +119,21 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             object: nil
         )
         
-        // Refresh prebookings data
-        DispatchQueue.main.async { [weak self] in
-            self?.loadPreBookings()
-            self?.collectionView.reloadData()
-            // Scroll to prebookings section if we have bookings
-            if self?.hasPreBookings == true {
-                self?.scrollToSectionHeader(section: Section.prebookings.rawValue)
+        // Refresh prebookings data and FAQs
+        Task { [weak self] in
+            // Refresh FAQs from Supabase
+            if let dataController = self?.dataController {
+                await dataController.refreshFAQsFromDatabase()
+            }
+            
+            await MainActor.run {
+                self?.loadData() // Reload all data including FAQs
+                self?.loadPreBookings()
+                self?.collectionView.reloadData()
+                // Scroll to prebookings section if we have bookings
+                if self?.hasPreBookings == true {
+                    self?.scrollToSectionHeader(section: Section.prebookings.rawValue)
+                }
             }
         }
     }
@@ -236,7 +245,8 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         return sectionCount
     }
     
-    private func getSectionType(for index: Int) -> Section {
+    // Changed from private to internal to allow access from extensions
+    internal func getSectionType(for index: Int) -> Section {
         var currentIndex = 0
         
         // Recommended section is always first
@@ -269,6 +279,42 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         
         // FAQ section is always last
         return .faq
+    }
+    
+    // Method to get section index from section type
+    internal func getSectionIndex(for section: Section) -> Int {
+        var index = 0
+        
+        // Always include recommended section
+        if section == .recommended {
+            return index
+        }
+        index += 1
+        
+        // Calendar section
+        if section == .calendar {
+            return index
+        }
+        index += 1
+        
+        // Available equipment section (if hasAddPreBook is true)
+        if hasAddPreBook {
+            if section == .available {
+                return index
+            }
+            index += 1
+        }
+        
+        // Prebookings section (if hasPreBookings is true)
+        if hasPreBookings {
+            if section == .prebookings {
+                return index
+            }
+            index += 1
+        }
+        
+        // FAQ section always last
+        return index
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -335,8 +381,13 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         
         case .faq:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Fourth", for: indexPath) as! preBookingFAQSectionCollectionViewCell
-            cell.updatePreBookingSection4Data(with: IndexPath(row: indexPath.row, section: 0))
-            cell.layer.cornerRadius = 10
+            // Configure the cell with the FAQ data from Supabase
+            if indexPath.row < faqs.count {
+                let faq = faqs[indexPath.row]
+                let isExpanded = expandedFAQIndices.contains(indexPath.row)
+                cell.configure(with: faq, index: indexPath.row, isExpanded: isExpanded)
+                cell.delegate = self
+            }
             return cell
         }
     }
@@ -800,16 +851,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         }
     }
     
-    // Helper method to get section index considering dynamic sections
-    private func getSectionIndex(for section: Section) -> Int {
-        var index = 0
-        for s in Section.allCases where s.rawValue <= section.rawValue {
-            if s == .available && !hasAddPreBook { continue }
-            if s == .prebookings && !hasPreBookings { continue }
-            index += 1
-        }
-        return index - 1
-    }
+    // This duplicate method has been removed to fix the 'Invalid redeclaration' error
 }
 
 // MARK: - UISearchResultsUpdating
@@ -1154,22 +1196,24 @@ extension PrebookingViewController {
     }
     
     private func createFAQSection() -> NSCollectionLayoutSection {
+        // Use estimated height for dynamic cell sizing based on content and expanded state
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(60)
+            heightDimension: .estimated(80) // Increased estimated height for expanded cells
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(60)
+            heightDimension: .estimated(80) // Match item height
         )
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
         
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 8
-        section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16)
+        section.interGroupSpacing = 10 // Slightly increased spacing between FAQ items
+        section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 16, bottom: 20, trailing: 16)
         
+        // Add header to the section
         let headerSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
             heightDimension: .estimated(44)

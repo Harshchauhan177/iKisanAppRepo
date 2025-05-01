@@ -75,6 +75,7 @@ protocol DataController {
     func updateBooking(_ booking: Booking)
     func getPreBookings() -> [Booking]
     func getEquipment(byId: UUID) -> Equipment?
+    func refreshFAQsFromDatabase() async
 }
 
 
@@ -108,6 +109,9 @@ enum EquipmentData {
 }
 
 class IKisanDataController: DataController {
+    
+    // Add a property to store FAQs
+    private var faqsList: [FAQ] = []
     
     // Static IDs for all entities
     // Crop IDs
@@ -198,6 +202,7 @@ class IKisanDataController: DataController {
         // Setup initial data
         Task {
             await loadDataFromBackend()
+            await refreshFAQsFromDatabase()
         }
     }
     
@@ -603,7 +608,23 @@ class IKisanDataController: DataController {
         }
     }
     
-    // MARK: - Prebooking Functions
+    // MARK: - Prebooking Methods
+    
+    func getPreBookingFAQs() -> [FAQ] {
+        return faqsList
+    }
+    
+    func refreshFAQsFromDatabase() async {
+        do {
+            let faqs = try await RequestManager.shared.fetchFAQs()
+            await MainActor.run {
+                self.faqsList = faqs
+                print("Loaded \(faqs.count) FAQs from database")
+            }
+        } catch {
+            print("Error refreshing FAQs: \(error)")
+        }
+    }
     
     func getRecommendedEquipments() -> [Equipment] {
         return equipmentList.filter { $0.isRecommended }
@@ -620,18 +641,18 @@ class IKisanDataController: DataController {
         return bookingsList.filter { $0.bookingType == .prebooking }
     }
     
-    func getPreBookingFAQs() -> [FAQ] {
-        var faqs: [FAQ] = []
-        
-        // Fetch from backend if needed
-        if faqs.isEmpty {
-            Task {
-                faqs = await requestManager.fetchFAQs()
-            }
-        }
-        
-        return faqs
-    }
+//    func getPreBookingFAQs() -> [FAQ] {
+//        var faqs: [FAQ] = []
+//        
+//        // Fetch from backend if needed
+//        if faqs.isEmpty {
+//            Task {
+//                faqs = await requestManager.fetchFAQs()
+//            }
+//        }
+//        
+//        return faqs
+//    }
     
     func createPreBooking(equipment: Equipment, date: Date) -> Bool {
         // Ensure we have a logged in user

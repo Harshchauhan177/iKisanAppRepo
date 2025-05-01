@@ -200,6 +200,14 @@ enum BookingSource {
     case prebooking
     case coEquip
 }
+
+//MARK: Model for FAQ
+
+struct FAQ: Codable, Identifiable {
+    let id: UUID
+    let question: String
+    let answer: String
+}
 //
 struct Booking {
     let bookingID: UUID
@@ -265,11 +273,11 @@ struct EquipmentAgri {
     var likedBy: Int
 }
 //
-struct FAQ {
-    let id: UUID
-    let question: String
-    let answer: String
-}
+//struct FAQ {
+//    let id: UUID
+//    let question: String
+//    let answer: String
+//}
 
 let sampleUsers: [User] = [
     User(userID: UUID(), name: "Raj Pal", email: "raj@example.com", phone: "1234567890", location: Location(latitude: 28.6139, longitude: 77.2090, address: "Delhi"), selectedCrops: [], fieldArea: 0.0),
