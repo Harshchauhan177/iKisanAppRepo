@@ -25,6 +25,7 @@ protocol DataController {
     func searchEquipment(query: String) -> [Equipment]
     func getUpcomingBookings() -> [Booking]
     func addBooking(_ booking: Booking)
+    func refreshBookingsFromDatabase() async
     
     // AgriAssist Related Functions
     func getAllCrops() -> [AgriCrop]
@@ -298,9 +299,25 @@ class IKisanDataController: DataController {
         
         bookingsList.append(bookingWithUserId)
         
-        // Save to backend
+        // Save to Supabase
         Task {
-            _ = await requestManager.createBooking(bookingWithUserId)
+            do {
+                let _ = try await RequestManager.shared.createBooking(bookingWithUserId)
+            } catch {
+                print("Error saving booking to database: \(error)")
+            }
+        }
+    }
+    
+    func refreshBookingsFromDatabase() async {
+        // Fetch the latest bookings from the database
+        let latestBookings = await RequestManager.shared.fetchBookings()
+        
+        // Update the local bookings list on the main thread
+        await MainActor.run {
+            // Replace the entire bookings list with the latest data from the database
+            self.bookingsList = latestBookings
+            print("Refreshed bookings from database: \(latestBookings.count) bookings loaded")
         }
     }
     

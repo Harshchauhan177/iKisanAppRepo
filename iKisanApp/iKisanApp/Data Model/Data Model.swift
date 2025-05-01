@@ -198,6 +198,7 @@ enum Season: String {
 enum BookingSource {
     case home
     case prebooking
+    case coEquip
 }
 //
 struct Booking {

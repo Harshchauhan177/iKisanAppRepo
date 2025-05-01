@@ -209,14 +209,25 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         }
         
         // Create booking
+        // Set booking type based on the source
+        let bookingType: BookingType
+        switch bookingSource {
+        case .home:
+            bookingType = .onDemand
+        case .prebooking:
+            bookingType = .prebooking
+        case .coEquip:
+            bookingType = .coEquip
+        }
+        
         let newBooking = Booking(
             bookingID: UUID(),
             userID: currentUser.shared.user?.userID ?? UUID(),
             equipmentID: equipment.equipmentID,
-            bookingType: .prebooking,
+            bookingType: bookingType,
             bookingDate: datePicker.date,
             fieldArea: fieldArea,
-            status: .pending,
+            status: .pending, // Always set status to pending by default
             timeSlot: timeSlotEnum,
             source: bookingSource
         )

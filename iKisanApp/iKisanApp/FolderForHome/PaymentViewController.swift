@@ -56,9 +56,10 @@ class PaymentViewController: UIViewController {
         guard let booking = self.booking,
               let dataController = self.dataController else { return }
         
-        // Add the confirmed booking
+        // Add the booking with pending status
         var confirmedBooking = booking
-        confirmedBooking.status = .confirmed
+        // Keep the status as pending as per requirement
+        // confirmedBooking.status = .confirmed
         
         // Add booking to data controller (which saves to local list and backend)
         dataController.addBooking(confirmedBooking)
@@ -153,10 +154,11 @@ class PaymentViewController: UIViewController {
     @IBAction func confirmPaymentTapped(_ sender: Any) {
         guard let booking = booking else { return }
         
-        // Add the booking to the data controller with confirmed status
+        // Add the booking to the data controller with pending status
         if let dataController = (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.dataController {
             var confirmedBooking = booking
-            confirmedBooking.status = .confirmed
+            // Keep the status as pending as per requirement
+            // confirmedBooking.status = .confirmed
             
             // Add to data controller (which saves to local and backend)
             dataController.addBooking(confirmedBooking)

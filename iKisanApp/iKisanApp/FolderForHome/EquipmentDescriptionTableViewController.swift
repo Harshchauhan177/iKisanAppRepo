@@ -338,15 +338,27 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     
     func navigateToCoEquipBooking() {
+        guard let equipment = self.equipment else {
+            let alert = UIAlertController(
+                title: "Error",
+                message: "No equipment selected. Please select equipment first.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
         
         let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
-        let viewController = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as!
-        InfoTableViewController
-        //viewController.sectionNumber = sender.tag
-       navigationController?.pushViewController(viewController, animated: true)
-//        if let coEquipBookingVC = storyboard?.instantiateViewController(withIdentifier: "InfoTableViewController"){
-//            navigationController?.pushViewController(coEquipBookingVC, animated: true)
-//        }
+        if let viewController = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
+            // Pass the equipment data
+            viewController.cardData = equipment
+            // Set the data controller if needed
+            if let dataController = (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.dataController {
+                viewController.dataController = dataController
+            }
+            navigationController?.pushViewController(viewController, animated: true)
+        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -360,6 +372,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
                 destinationVC.equipment = equipment
                 destinationVC.locationA = equipment.location
                 destinationVC.pricePerHr = equipment.pricePerHour
+                destinationVC.bookingSource = .home // Set source to home since we're coming from the Home tab
             }
         } else if segue.identifier == "MoreImageView" {
             if let destinationVC = segue.destination as? ImageViewCollectionViewController {

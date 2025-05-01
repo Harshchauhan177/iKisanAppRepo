@@ -715,43 +715,75 @@ class BookingDetailsViewController: UIViewController {
             
             // Cancel the booking in the database
             Task {
+                var deletionSuccessful = false
+                var errorMessage = "An unknown error occurred while canceling your booking."
+                
                 do {
                     // Delete the booking record completely as requested
-                    let _ = try await SupabaseManager.shared.client
+                    let response = try await SupabaseManager.shared.client
                         .from("bookings")
                         .delete()
                         .eq("bookingID", value: booking.bookingID.uuidString)
                         .execute()
                     
-                    // We know the booking is actually being deleted even if there's an API error
-                    // So we'll always show success
+                    // Check if the deletion was successful by verifying the response
+                    let data = response.data
+                    if let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+                       !jsonArray.isEmpty {
+                        // If we got a non-empty response, the deletion was successful
+                        deletionSuccessful = true
+                        print("Booking deletion successful with response: \(jsonArray)")
+                    } else {
+                        // Empty response might indicate no records were found/deleted
+                        errorMessage = "Could not find the booking to cancel. It may have already been removed."
+                        print("Booking deletion returned empty response - no records found/deleted")
+                    }
                 } catch {
+                    errorMessage = "Error: \(error.localizedDescription)"
                     print("Error during booking deletion API call: \(error)")
-                    // We'll still show success since we know it works
                 }
                 
-                // Always show success regardless of API response
+                // Show appropriate message based on actual deletion result
                 await MainActor.run {
                     // Dismiss loading alert
                     loadingAlert.dismiss(animated: true) {
-                        // Add success haptic feedback
-                        let successGenerator = UINotificationFeedbackGenerator()
-                        successGenerator.notificationOccurred(.success)
-                        
-                        // Show success message with clear action
-                        let successAlert = UIAlertController(
-                            title: "Booking Cancelled",
-                            message: "Your booking has been successfully cancelled.",
-                            preferredStyle: .alert
-                        )
-                        successAlert.addAction(UIAlertAction(title: "Return to Bookings", style: .default) { _ in
-                            // Post notification to refresh bookings list
-                            NotificationCenter.default.post(name: NSNotification.Name("RefreshBookingsList"), object: nil)
+                        if deletionSuccessful {
+                            // Add success haptic feedback
+                            let successGenerator = UINotificationFeedbackGenerator()
+                            successGenerator.notificationOccurred(.success)
                             
-                            // Return to previous screen
-                            self.navigationController?.popViewController(animated: true)
-                        })
-                        self.present(successAlert, animated: true)
+                            // Show success message with clear action
+                            let successAlert = UIAlertController(
+                                title: "Booking Cancelled",
+                                message: "Your booking has been successfully cancelled.",
+                                preferredStyle: .alert
+                            )
+                            successAlert.addAction(UIAlertAction(title: "Return to Bookings", style: .default) { _ in
+                                // Post notification to refresh bookings list
+                                NotificationCenter.default.post(name: NSNotification.Name("RefreshBookingsList"), object: nil)
+                                
+                                // Return to previous screen
+                                self.navigationController?.popViewController(animated: true)
+                            })
+                            self.present(successAlert, animated: true)
+                        } else {
+                            // Add error haptic feedback
+                            let errorGenerator = UINotificationFeedbackGenerator()
+                            errorGenerator.notificationOccurred(.error)
+                            
+                            // Show error message
+                            let errorAlert = UIAlertController(
+                                title: "Cancellation Failed",
+                                message: errorMessage,
+                                preferredStyle: .alert
+                            )
+                            errorAlert.addAction(UIAlertAction(title: "Try Again", style: .default))
+                            errorAlert.addAction(UIAlertAction(title: "Return to Bookings", style: .default) { _ in
+                                // Return to previous screen
+                                self.navigationController?.popViewController(animated: true)
+                            })
+                            self.present(errorAlert, animated: true)
+                        }
                     }
                 }
             }

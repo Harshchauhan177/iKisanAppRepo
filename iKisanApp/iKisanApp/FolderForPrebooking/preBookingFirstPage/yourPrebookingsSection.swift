@@ -10,6 +10,7 @@ import UIKit
 
 protocol PreBookingSection3CellDelegate: AnyObject {
     func didTapModifyButton(for booking: Booking, equipment: Equipment)
+    func didTapCancelButton(for booking: Booking, equipment: Equipment)
 }
 
 class yourPrebookingsSection: UICollectionViewCell {
@@ -56,6 +57,9 @@ class yourPrebookingsSection: UICollectionViewCell {
     
     
     @IBAction func cancelButtonTapped(_ sender: Any) {
+        guard let booking = currentBooking,
+              let equipment = currentEquipment else { return }
+        delegate?.didTapCancelButton(for: booking, equipment: equipment)
     }
     
    

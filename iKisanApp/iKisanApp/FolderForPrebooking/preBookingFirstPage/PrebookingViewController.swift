@@ -82,7 +82,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         // Scroll to the target section if it's set
         if let section = targetSection {
             DispatchQueue.main.async {
-                self.scrollToSection(section: section)
+                self.scrollToSectionHeader(section: section)
             }
         }
     }
@@ -110,6 +110,14 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             object: nil
         )
         
+        // Add observer for booking list refresh (when bookings are canceled)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refreshPreBookings),
+            name: NSNotification.Name("RefreshBookingsList"),
+            object: nil
+        )
+        
         // Refresh prebookings data
         DispatchQueue.main.async { [weak self] in
             self?.loadPreBookings()
@@ -134,13 +142,30 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     func loadPreBookings() {
         guard let dataController = dataController else { return }
         
-        // Get all bookings and filter prebookings
-        let allBookings = dataController.getUpcomingBookings()
-        preBookings = allBookings.filter {
-            $0.bookingType == .prebooking && $0.source == .prebooking
+        // Force refresh bookings from the database to ensure we have the latest data
+        Task {
+            // Refresh bookings from the database
+            await dataController.refreshBookingsFromDatabase()
+            
+            // Get all bookings and filter prebookings on the main thread
+            await MainActor.run {
+                let allBookings = dataController.getUpcomingBookings()
+                preBookings = allBookings.filter {
+                    $0.bookingType == .prebooking && $0.source == .prebooking
+                }
+                
+                // Get equipment details for each prebooking
+                preBookingEquipments = preBookings.compactMap { booking in
+                    dataController.getEquipment(byId: booking.equipmentID)
+                }
+                
+                // Reload the collection view to reflect changes
+                self.collectionView.reloadData()
+                
+                // Log the current prebookings for debugging
+                print("Current prebookings after refresh: \(self.preBookings.count)")
+            }
         }
-        
-        // Get equipment details for each prebooking
         preBookingEquipments = preBookings.compactMap { booking in
             dataController.getEquipment(byId: booking.equipmentID)
         }
@@ -599,13 +624,6 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         }
     }
     
-   
-
-    func scrollToSection(section: Int) {
-            let indexPath = IndexPath(item: 0, section: section) // Scroll to first item in section
-            collectionView.scrollToItem(at: indexPath, at: .top, animated: true)
-        }
-    
 
     func scrollToSectionHeader(section: Int) {
         guard let collectionView = self.collectionView else { return }
@@ -628,6 +646,14 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         }
     }
 
+    @objc func refreshPreBookings() {
+        // Refresh prebookings data when a booking is canceled
+        DispatchQueue.main.async { [weak self] in
+            self?.loadPreBookings()
+            self?.collectionView.reloadData()
+        }
+    }
+    
     @objc private func handleEquipmentAvailability(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let date = userInfo["date"] as? Date,
