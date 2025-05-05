@@ -20,12 +20,11 @@ class preBookingFAQSectionCollectionViewCell: UICollectionViewCell {
     // UI Elements
     private let containerView = UIView()
     private let questionLabel = UILabel()
-    private let answerLabel = UILabel()
-    private let arrowImageView = UIImageView()
+    private let chevronImageView = UIImageView()
+    private let separatorView = UIView()
     
     // Properties
     private var faqItem: FAQ?
-    private var isExpanded = false
     private var index: Int = 0
     weak var delegate: FAQCellDelegate?
     
@@ -43,16 +42,11 @@ class preBookingFAQSectionCollectionViewCell: UICollectionViewCell {
     
     // MARK: - Configuration
     
-    func configure(with faq: FAQ, index: Int, isExpanded: Bool) {
+    func configure(with faq: FAQ, index: Int) {
         self.faqItem = faq
         self.index = index
-        self.isExpanded = isExpanded
         
         questionLabel.text = faq.question
-        answerLabel.text = faq.answer
-        
-        // Show/hide answer based on expanded state
-        updateExpandedState()
     }
     
     func updatePreBookingSection4Data(with indexPath: IndexPath) {
@@ -62,67 +56,65 @@ class preBookingFAQSectionCollectionViewCell: UICollectionViewCell {
     // MARK: - Setup
     
     private func setupViews() {
-        // Setup container view
-        containerView.backgroundColor = UIColor(white: 0.95, alpha: 1.0)
-        containerView.layer.cornerRadius = 10
+        // Setup container view with grouped style background
+        containerView.backgroundColor = .white
         containerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(containerView)
         
-        // Setup question label
-        questionLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        // Add rounded corners for grouped style
+        contentView.backgroundColor = .systemGroupedBackground
+        containerView.layer.cornerRadius = 0 // Will be set in layoutSubviews
+        containerView.clipsToBounds = true
+        
+        // Setup question label - use standard iOS font
+        questionLabel.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         questionLabel.textColor = .black
-        questionLabel.numberOfLines = 0
+        questionLabel.numberOfLines = 1 // Single line like iOS settings
         questionLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(questionLabel)
         
-        // Setup arrow image
-        arrowImageView.contentMode = .scaleAspectFit
-        arrowImageView.tintColor = .darkGray
-        arrowImageView.translatesAutoresizingMaskIntoConstraints = false
-        // Use system chevron image
-        arrowImageView.image = UIImage(systemName: "chevron.down")
-        containerView.addSubview(arrowImageView)
+        // Setup chevron image - use standard iOS chevron
+        chevronImageView.contentMode = .scaleAspectFit
+        chevronImageView.tintColor = UIColor.systemGray2
+        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
+        chevronImageView.image = UIImage(systemName: "chevron.right")
+        containerView.addSubview(chevronImageView)
         
-        // Setup answer label
-        answerLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-        answerLabel.textColor = .darkGray
-        answerLabel.numberOfLines = 0
-        answerLabel.translatesAutoresizingMaskIntoConstraints = false
-        containerView.addSubview(answerLabel)
+        // Setup separator like iOS settings
+        separatorView.backgroundColor = UIColor.systemGray5
+        separatorView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(separatorView)
         
         // Add tap gesture
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         containerView.addGestureRecognizer(tapGesture)
         containerView.isUserInteractionEnabled = true
         
-        // Setup constraints
+        // Setup constraints to match iOS settings style
         NSLayoutConstraint.activate([
-            // Container view constraints
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -5),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5),
+            // Container view constraints with margins for grouped style
+            containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
-            // Question label constraints
-            questionLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
-            questionLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
-            questionLabel.trailingAnchor.constraint(equalTo: arrowImageView.leadingAnchor, constant: -8),
+            // Question label constraints - centered vertically
+            questionLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            questionLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            questionLabel.trailingAnchor.constraint(equalTo: chevronImageView.leadingAnchor, constant: -12),
             
-            // Arrow image constraints
-            arrowImageView.centerYAnchor.constraint(equalTo: questionLabel.centerYAnchor),
-            arrowImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            arrowImageView.widthAnchor.constraint(equalToConstant: 20),
-            arrowImageView.heightAnchor.constraint(equalToConstant: 20),
+            // Chevron image constraints
+            chevronImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            chevronImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            chevronImageView.widthAnchor.constraint(equalToConstant: 13), // Smaller chevron like in iOS settings
+            chevronImageView.heightAnchor.constraint(equalToConstant: 20),
             
-            // Answer label constraints - will be updated based on expanded state
-            answerLabel.topAnchor.constraint(equalTo: questionLabel.bottomAnchor, constant: 8),
-            answerLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
-            answerLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            answerLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12)
+            // Separator view
+            separatorView.heightAnchor.constraint(equalToConstant: 0.5),
+            separatorView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            separatorView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            separatorView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
-        
-        // Initial state
-        answerLabel.isHidden = true
     }
     
     // MARK: - Actions
@@ -131,14 +123,38 @@ class preBookingFAQSectionCollectionViewCell: UICollectionViewCell {
         delegate?.didTapFAQ(at: index)
     }
     
-    func updateExpandedState() {
-        // Update UI based on expanded state
-        answerLabel.isHidden = !isExpanded
+    override func layoutSubviews() {
+        super.layoutSubviews()
         
-        // Rotate arrow
-        UIView.animate(withDuration: 0.3) {
-            self.arrowImageView.transform = self.isExpanded ? 
-                CGAffineTransform(rotationAngle: .pi) : .identity
+        // Handle corner radius for grouped style
+        // Get the section and row information from the collection view
+        if let collectionView = self.superview as? UICollectionView,
+           let indexPath = collectionView.indexPath(for: self) {
+            
+            // Get the number of items in this section
+            let numberOfItems = collectionView.numberOfItems(inSection: indexPath.section)
+            
+            // Apply corner radius based on position
+            if numberOfItems == 1 {
+                // Single item in section - round all corners
+                containerView.layer.cornerRadius = 10
+                containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+                separatorView.isHidden = true
+            } else if indexPath.row == 0 {
+                // First item in section - round top corners
+                containerView.layer.cornerRadius = 10
+                containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+                separatorView.isHidden = false
+            } else if indexPath.row == numberOfItems - 1 {
+                // Last item in section - round bottom corners
+                containerView.layer.cornerRadius = 10
+                containerView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+                separatorView.isHidden = true
+            } else {
+                // Middle item - no rounded corners
+                containerView.layer.cornerRadius = 0
+                separatorView.isHidden = false
+            }
         }
     }
 }

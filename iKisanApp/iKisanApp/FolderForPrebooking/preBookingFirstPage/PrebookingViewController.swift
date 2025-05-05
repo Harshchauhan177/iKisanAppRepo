@@ -17,8 +17,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     private var dataController: DataController?
     private var recommendedEquipments: [Equipment] = []
     private var availableEquipments: [Equipment] = []
-    private var faqs: [FAQ] = []
-    internal var expandedFAQIndices: Set<Int> = []
+    internal var faqs: [FAQ] = []
     private var selectedDate: Date?
     private var searchedEquipments: [Equipment] = [] // Changed from single equipment to array
     private var allEquipment: [Equipment] = []
@@ -384,10 +383,10 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             // Configure the cell with the FAQ data from Supabase
             if indexPath.row < faqs.count {
                 let faq = faqs[indexPath.row]
-                let isExpanded = expandedFAQIndices.contains(indexPath.row)
-                cell.configure(with: faq, index: indexPath.row, isExpanded: isExpanded)
+                cell.configure(with: faq, index: indexPath.row)
                 cell.delegate = self
             }
+            // No need to set corner radius as it's handled in the cell's layoutSubviews method
             return cell
         }
     }
@@ -1196,27 +1195,27 @@ extension PrebookingViewController {
     }
     
     private func createFAQSection() -> NSCollectionLayoutSection {
-        // Use estimated height for dynamic cell sizing based on content and expanded state
+        // Use fixed height for items like in iOS settings
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(80) // Increased estimated height for expanded cells
+            heightDimension: .absolute(44) // Fixed height for items
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(80) // Match item height
+            heightDimension: .absolute(44)
         )
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
         
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 10 // Slightly increased spacing between FAQ items
-        section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 16, bottom: 20, trailing: 16)
+        section.interGroupSpacing = 0 // No spacing between cells like in iOS settings
+        section.contentInsets = NSDirectionalEdgeInsets(top: 20, leading: 16, bottom: 20, trailing: 16) // Group style insets
         
         // Add header to the section
         let headerSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(44)
+            heightDimension: .absolute(44)
         )
         let header = NSCollectionLayoutBoundarySupplementaryItem(
             layoutSize: headerSize,

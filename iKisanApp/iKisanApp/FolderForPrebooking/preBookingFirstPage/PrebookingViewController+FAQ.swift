@@ -5,15 +5,15 @@ extension PrebookingViewController: FAQCellDelegate {
     
     // Implementation of the delegate method for handling FAQ taps
     func didTapFAQ(at index: Int) {
-        // Toggle the expanded state of the tapped FAQ
-        if expandedFAQIndices.contains(index) {
-            expandedFAQIndices.remove(index)
-        } else {
-            expandedFAQIndices.insert(index)
-        }
+        // Get the FAQ item
+        guard index < faqs.count else { return }
+        let faq = faqs[index]
         
-        // Reload just the FAQ section to update the UI
-        let sectionIndex = getSectionIndex(for: Section.faq)
-        collectionView.reloadSections(IndexSet(integer: sectionIndex))
+        // Create and configure the detail view controller
+        let detailVC = FAQDetailViewController()
+        detailVC.faq = faq
+        
+        // Present the detail view controller
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 }
