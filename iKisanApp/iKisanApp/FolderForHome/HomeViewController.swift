@@ -721,7 +721,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
 
     @objc private func profileButtonTapped() {
-        let profileVC = ProfileViewController()
+        // Use the SwiftUI ProfileView wrapped in a UIHostingController
+        let profileVC = ProfileHostingController()
         navigationController?.pushViewController(profileVC, animated: true)
     }
 
