@@ -95,57 +95,93 @@ class AuthManager {
         }
     }
     
+//    func register(name: String, email: String, password: String, phone: String) async throws -> Bool {
+//        do {
+//            // Sign up the user
+//            let authResponse = try await supabase.client.auth.signUp(
+//                email: email,
+//                password: password
+//            )
+//            
+//            // Get user ID from response
+//            let userId = authResponse.user.id
+//            
+//            // Add a short delay to allow Supabase's trigger to potentially create the user record
+//            try await Task.sleep(nanoseconds: UInt64(0.5 * Double(NSEC_PER_SEC)))
+//            
+//            // Check if the user already exists in the database (created by the trigger)
+//            let checkResult = try await supabase.client
+//                .from("users")
+//                .select()
+//                .eq("userID", value: userId)
+//                .execute()
+//            
+//            // If user doesn't exist yet, create it manually
+//            if (try? checkResult.data.isEmpty) != false {
+//                // Create a proper Encodable object
+//                let newUser = NewUserRequest(
+//                    userID: userId.uuidString,  // Convert UUID to string
+//                    name: name,
+//                    email: email,
+//                    phone: phone,
+//                    latitude: 0.0,
+//                    longitude: 0.0,
+//                    fieldArea: 0.0
+//                )
+//                
+//                // Insert user record with Encodable object
+//                try await supabase.client
+//                    .from("users")
+//                    .insert(newUser)
+//                    .execute()
+//            }
+//            
+//            return true
+//        } catch let error as AuthError where error.localizedDescription.contains("over_email_send_rate_limit") {
+//            // Handle rate limit error specifically
+//            print("Email rate limit exceeded: \(error)")
+//            throw AuthError.rateLimited
+//        } catch {
+//            print("Registration error: \(error)")
+//            throw AuthError.registrationFailed
+//        }
+//    }
     func register(name: String, email: String, password: String, phone: String) async throws -> Bool {
         do {
-            // Sign up the user
+            // 1️⃣ Sign up the user, sending name & phone as auth metadata
             let authResponse = try await supabase.client.auth.signUp(
-                email: email,
-                password: password
+                email:    email,
+                password: password,
+                data: [
+                    "name":  .string(name),
+                    "phone": .string(phone)
+                ]
             )
-            
-            // Get user ID from response
             let userId = authResponse.user.id
-            
-            // Add a short delay to allow Supabase's trigger to potentially create the user record
+
+            // short pause so the DB trigger can fire and create the row
             try await Task.sleep(nanoseconds: UInt64(0.5 * Double(NSEC_PER_SEC)))
-            
-            // Check if the user already exists in the database (created by the trigger)
-            let checkResult = try await supabase.client
+
+            // 2️⃣ Update that users row with the proper name & phone
+            let updateReq = UpdateUserRequest(name: name, phone: phone)
+            _ = try await supabase.client
                 .from("users")
-                .select()
-                .eq("userID", value: userId)
+                .update(updateReq)
+                .eq("userID", value: userId.uuidString)
                 .execute()
-            
-            // If user doesn't exist yet, create it manually
-            if (try? checkResult.data.isEmpty) != false {
-                // Create a proper Encodable object
-                let newUser = NewUserRequest(
-                    userID: userId.uuidString,  // Convert UUID to string
-                    name: name,
-                    email: email,
-                    phone: phone,
-                    latitude: 0.0,
-                    longitude: 0.0,
-                    fieldArea: 0.0
-                )
-                
-                // Insert user record with Encodable object
-                try await supabase.client
-                    .from("users")
-                    .insert(newUser)
-                    .execute()
-            }
-            
+
             return true
+
         } catch let error as AuthError where error.localizedDescription.contains("over_email_send_rate_limit") {
-            // Handle rate limit error specifically
-            print("Email rate limit exceeded: \(error)")
+            // Email rate‑limit hit
             throw AuthError.rateLimited
+
         } catch {
             print("Registration error: \(error)")
             throw AuthError.registrationFailed
         }
     }
+
     
     func verifyOTP(email: String, otp: String) async throws -> AuthUser {
         do {
