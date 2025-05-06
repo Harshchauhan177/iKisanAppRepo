@@ -1,4 +1,5 @@
 import UIKit
+import SwiftUI
 
 class LoginViewController: UIViewController {
     
@@ -208,33 +209,40 @@ class LoginViewController: UIViewController {
         }
     }
     
+//    @objc private func forgotPasswordButtonTapped() {
+//        let alertController = UIAlertController(title: "Reset Password", 
+//                                              message: "Enter your email address to receive a password reset link", 
+//                                              preferredStyle: .alert)
+//        
+//        alertController.addTextField { textField in
+//            textField.placeholder = "Email"
+//            textField.keyboardType = .emailAddress
+//            textField.autocapitalizationType = .none
+//        }
+//        
+//        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+//        let resetAction = UIAlertAction(title: "Reset", style: .default) { [weak self] _ in
+//            guard let email = alertController.textFields?.first?.text, !email.isEmpty else {
+//                self?.showAlert(title: "Error", message: "Please enter your email address")
+//                return
+//            }
+//            
+//            // Send reset password request
+//            self?.resetPassword(email: email)
+//        }
+//        
+//        alertController.addAction(cancelAction)
+//        alertController.addAction(resetAction)
+//        
+//        present(alertController, animated: true)
+//    }
+
     @objc private func forgotPasswordButtonTapped() {
-        let alertController = UIAlertController(title: "Reset Password", 
-                                              message: "Enter your email address to receive a password reset link", 
-                                              preferredStyle: .alert)
-        
-        alertController.addTextField { textField in
-            textField.placeholder = "Email"
-            textField.keyboardType = .emailAddress
-            textField.autocapitalizationType = .none
-        }
-        
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
-        let resetAction = UIAlertAction(title: "Reset", style: .default) { [weak self] _ in
-            guard let email = alertController.textFields?.first?.text, !email.isEmpty else {
-                self?.showAlert(title: "Error", message: "Please enter your email address")
-                return
-            }
-            
-            // Send reset password request
-            self?.resetPassword(email: email)
-        }
-        
-        alertController.addAction(cancelAction)
-        alertController.addAction(resetAction)
-        
-        present(alertController, animated: true)
+        // Push the SwiftUI OTP‐reset flow
+        let forgotVC = UIHostingController(rootView: ForgotPasswordView())
+        navigationController?.pushViewController(forgotVC, animated: true)
     }
+
     
     private func resetPassword(email: String) {
         activityIndicator.startAnimating()

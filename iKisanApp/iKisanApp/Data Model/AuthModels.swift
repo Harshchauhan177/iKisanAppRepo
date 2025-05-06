@@ -232,14 +232,60 @@ class AuthManager {
         }
     }
     
+//    func resetPassword(email: String) async throws {
+//        do {
+//            try await supabase.client.auth.resetPasswordForEmail(email)
+//        } catch {
+//            print("Reset password error: \(error)")
+//            throw AuthError.resetPasswordFailed
+//        }
+//    }
+    /// Send a recovery OTP to the user’s email
     func resetPassword(email: String) async throws {
         do {
+            // call without the `email:` label
             try await supabase.client.auth.resetPasswordForEmail(email)
         } catch {
             print("Reset password error: \(error)")
             throw AuthError.resetPasswordFailed
         }
     }
+
+    /// Confirm the recovery OTP and set the new password
+//    func confirmPasswordReset(otp: String, newPassword: String) async throws {
+//        do {
+//            _ = try await supabase.client.auth.update(
+//                user: UserAttributes(
+//                    password: newPassword,
+//                    nonce:    otp
+//                )
+//            )
+//        } catch {
+//            print("Confirm reset error: \(error)")
+//            throw AuthError.resetPasswordFailed
+//        }
+//    }
+    /// Confirm recovery OTP & set new password
+    func confirmPasswordReset(email: String, otp: String, newPassword: String) async throws {
+        do {
+            // 1️⃣ Verify the recovery OTP (type: .recovery) — this creates a session
+            _ = try await supabase.client.auth.verifyOTP(
+                email: email,
+                token: otp,
+                type: .recovery
+            )
+
+            // 2️⃣ Now that we have a session, update the password
+            _ = try await supabase.client.auth.update(
+                user: UserAttributes(password: newPassword)
+            )
+        } catch {
+            print("Confirm reset error: \(error)")
+            throw AuthError.resetPasswordFailed
+        }
+    }
+
+
     
     func resendOTP(email: String) async throws {
         do {
