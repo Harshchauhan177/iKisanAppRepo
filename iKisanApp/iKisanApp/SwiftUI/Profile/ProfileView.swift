@@ -1,30 +1,41 @@
 import SwiftUI
+import Supabase
+
+// Define notification names
+extension Notification.Name {
+    static let userDidSignOut = Notification.Name("userDidSignOut")
+    static let didEnterEditMode = Notification.Name("didEnterEditMode")
+    static let didExitEditMode = Notification.Name("didExitEditMode")
+}
 
 struct ProfileView: View {
-    @StateObject private var viewModel: ProfileViewModel
-    
-    init() {
-        let user = AuthUser(
-            id: UUID(),
-            email: "farmer@example.com",
-            name: "John Farmer",
-            phone: "+91 9876543210"
-        )
-        
-        _viewModel = StateObject(wrappedValue: ProfileViewModel(user: user))
-    }
+    @StateObject private var viewModel = ProfileViewModel()
+    @State private var navigateToLogin = false
     
     var body: some View {
-        NavigationStack {
-            List {
-                Section {
+        // No NavigationStack here since we're using UIKit navigation controller
+        List {
+            Section {
+                if viewModel.isEditMode {
+                    // Editable profile header
+                    ProfileHeaderView(viewModel: viewModel)
+                } else {
+                    // Regular profile display
                     VStack(alignment: .center, spacing: 12) {
-                        Image(systemName: "person.crop.circle.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 80, height: 80)
-                            .foregroundColor(Color(red: 76/255, green: 175/255, blue: 80/255))
-                            .clipShape(Circle())
+                        if let avatar = viewModel.avatar {
+                            Image(uiImage: avatar)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 80, height: 80)
+                                .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 80, height: 80)
+                                .foregroundColor(viewModel.ikisanGreen)
+                                .clipShape(Circle())
+                        }
                         
                         Text(viewModel.name)
                             .font(.title)
@@ -40,18 +51,28 @@ struct ProfileView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
+                        
+                        if !viewModel.address.isEmpty {
+                            Text(viewModel.address)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                 }
-                
+            }
+            
+            // Hide these sections in edit mode
+            if !viewModel.isEditMode {
                 Section("Actions") {
                     NavigationLink(destination: SelectCropsView()) {
                         Label {
                             Text("Select Crops")
                         } icon: {
                             Image(systemName: "leaf.fill")
-                                .foregroundColor(Color(red: 76/255, green: 175/255, blue: 80/255))
+                                .foregroundColor(viewModel.ikisanGreen)
                         }
                     }
                     
@@ -60,7 +81,7 @@ struct ProfileView: View {
                             Text("Help Center")
                         } icon: {
                             Image(systemName: "questionmark.circle.fill")
-                                .foregroundColor(Color(red: 76/255, green: 175/255, blue: 80/255))
+                                .foregroundColor(viewModel.ikisanGreen)
                         }
                     }
                     
@@ -69,7 +90,27 @@ struct ProfileView: View {
                             Text("Payment")
                         } icon: {
                             Image(systemName: "creditcard.fill")
-                                .foregroundColor(Color(red: 76/255, green: 175/255, blue: 80/255))
+                                .foregroundColor(viewModel.ikisanGreen)
+                        }
+                    }
+                }
+                
+                Section("Settings") {
+                    NavigationLink(destination: ChangePasswordView()) {
+                        Label {
+                            Text("Change Password")
+                        } icon: {
+                            Image(systemName: "lock.fill")
+                                .foregroundColor(viewModel.ikisanGreen)
+                        }
+                    }
+                    
+                    NavigationLink(destination: UpdateAddressView()) {
+                        Label {
+                            Text("Update Address")
+                        } icon: {
+                            Image(systemName: "mappin.and.ellipse")
+                                .foregroundColor(viewModel.ikisanGreen)
                         }
                     }
                 }
@@ -80,7 +121,7 @@ struct ProfileView: View {
                             Text("Terms & Privacy Policy")
                         } icon: {
                             Image(systemName: "doc.text.fill")
-                                .foregroundColor(Color(red: 76/255, green: 175/255, blue: 80/255))
+                                .foregroundColor(viewModel.ikisanGreen)
                         }
                     }
                     
@@ -89,55 +130,115 @@ struct ProfileView: View {
                             Text("App Info")
                         } icon: {
                             Image(systemName: "info.circle.fill")
-                                .foregroundColor(Color(red: 76/255, green: 175/255, blue: 80/255))
+                                .foregroundColor(viewModel.ikisanGreen)
                         }
                     }
                 }
                 
-                Section("Settings") {
-                    NavigationLink(destination: SettingsView()) {
-                        Label {
-                            Text("Settings")
-                        } icon: {
-                            Image(systemName: "gearshape.fill")
-                                .foregroundColor(Color(red: 76/255, green: 175/255, blue: 80/255))
-                        }
-                    }
-                }
-                
+                // Move Sign Out to its own section at the bottom
                 Section {
                     Button(action: {
                         viewModel.showSignOutConfirmation = true
                     }) {
-                        Text("Sign Out")
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity)
-                            .multilineTextAlignment(.center)
+                        Label {
+                            Text("Sign Out")
+                                .foregroundColor(.red)
+                        } icon: {
+                            Image(systemName: "arrow.right.square")
+                                .foregroundColor(.red)
+                        }
                     }
                 }
             }
-            .listStyle(.insetGrouped)
-            .navigationTitle("Profile")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+        }
+        .listStyle(.insetGrouped)
+        .toolbar {
+            if viewModel.isEditMode {
+                // Edit mode toolbar - Cancel button on leading edge
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        viewModel.cancelEdit()
+                        // Notify that we've exited edit mode
+                        NotificationCenter.default.post(name: .didExitEditMode, object: nil)
+                    }
+                }
+                
+                // Save button on trailing edge
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        Task {
+                            await viewModel.saveChanges()
+                            // Notify that we've exited edit mode
+                            NotificationCenter.default.post(name: .didExitEditMode, object: nil)
+                        }
+                    }
+                    .disabled(viewModel.isSaving)
+                }
+            } else {
+                // Normal mode toolbar
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Edit") {
                         viewModel.enterEditMode()
+                        // Notify that we've entered edit mode
+                        NotificationCenter.default.post(name: .didEnterEditMode, object: nil)
                     }
                 }
             }
-            .accentColor(Color(red: 76/255, green: 175/255, blue: 80/255))
-            .confirmationDialog(
-                "Are you sure you want to sign out?",
-                isPresented: $viewModel.showSignOutConfirmation
-            ) {
-                Button("Sign Out", role: .destructive) {
-                    viewModel.signOut()
+        }
+        .disabled(viewModel.isSaving)
+        .overlay(
+            viewModel.isSaving ?
+                ProgressView()
+                .progressViewStyle(CircularProgressViewStyle())
+                .scaleEffect(1.5)
+                .padding()
+                .background(Color.secondary.opacity(0.2).cornerRadius(8))
+                : nil
+        )
+        .accentColor(viewModel.ikisanGreen)
+        .confirmationDialog(
+            "Are you sure you want to sign out?",
+            isPresented: $viewModel.showSignOutConfirmation
+        ) {
+            Button("Sign Out", role: .destructive) {
+                // Call the updated signOut method with completion handler
+                viewModel.signOut { success in
+                    if success {
+                        // Post notification for signout that the hosting controller can observe
+                        NotificationCenter.default.post(name: .userDidSignOut, object: nil)
+                    }
                 }
-                Button("Cancel", role: .cancel) {}
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You will need to sign in again to access your account.")
+        }
+        .alert(item: Binding<AlertItem?>(
+            get: { 
+                viewModel.errorMessage != nil ? AlertItem(message: viewModel.errorMessage!) : nil
+            },
+            set: { newValue in
+                viewModel.errorMessage = newValue?.message
+            }
+        )) { alertItem in
+            Alert(
+                title: Text("Error"),
+                message: Text(alertItem.message),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+        .onAppear {
+            Task {
+                await viewModel.fetchProfile()
             }
         }
     }
+}
+
+// Helper for binding error messages to alerts
+struct AlertItem: Identifiable {
+    let id = UUID()
+    let message: String
 }
 
 // MARK: - Destination Views
@@ -146,6 +247,7 @@ struct SelectCropsView: View {
     var body: some View {
         Text("Select Crops View")
             .navigationTitle("Select Crops")
+            .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -208,6 +310,7 @@ struct PaymentView: View {
     var body: some View {
         Text("Payment View")
             .navigationTitle("Payment")
+            .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -366,63 +469,6 @@ struct AppInfoView: View {
         .listStyle(.insetGrouped)
         .navigationTitle("App Info")
         .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-struct SettingsView: View {
-    private let ikisanGreen = Color(red: 76/255, green: 175/255, blue: 80/255)
-    
-    var body: some View {
-        List {
-            NavigationLink(destination: Text("Change Password View").navigationTitle("Change Password")) {
-                Label {
-                    Text("Change Password")
-                } icon: {
-                    Image(systemName: "lock.fill")
-                        .foregroundColor(ikisanGreen)
-                }
-            }
-            
-            NavigationLink(destination: Text("Address View").navigationTitle("Address")) {
-                Label {
-                    Text("Address")
-                } icon: {
-                    Image(systemName: "mappin.and.ellipse")
-                        .foregroundColor(ikisanGreen)
-                }
-            }
-            
-            NavigationLink(destination: Text("Email View").navigationTitle("Email")) {
-                Label {
-                    Text("Email")
-                } icon: {
-                    Image(systemName: "envelope.fill")
-                        .foregroundColor(ikisanGreen)
-                }
-            }
-            
-            NavigationLink(destination: Text("Notifications View").navigationTitle("Notifications")) {
-                Label {
-                    Text("Notifications")
-                } icon: {
-                    Image(systemName: "bell.fill")
-                        .foregroundColor(ikisanGreen)
-                }
-            }
-            
-            Button(action: {
-                // Delete account action
-            }) {
-                Label {
-                    Text("Delete Account")
-                        .foregroundColor(.red)
-                } icon: {
-                    Image(systemName: "trash.fill")
-                        .foregroundColor(.red)
-                }
-            }
-        }
-        .navigationTitle("Settings")
     }
 }
 
