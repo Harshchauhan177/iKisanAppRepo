@@ -18,7 +18,8 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     var locationA: String?
     var pricePerHr: Double = 100
     var payableAmount: Double = 0
-    
+    var thisBooking: Booking?
+
     var equipment: Equipment? {
         didSet {
             if isViewLoaded {
@@ -30,7 +31,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     @IBOutlet var tableViewR: UITableView!
     
     
-    var bookingSource: BookingSource = .home // Default to home
+    var bookingSource: BookingSource! // Default to home
     
     weak var delegate: ReviewBookingDelegate?
     var isModifying: Bool = false
@@ -57,7 +58,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         // Configure UI based on modification mode
         configureUIForModification()
         
-        if let equipment = equipment {
+        if equipment != nil {
             updateData()
         } else {
             // Show alert and pop back
@@ -220,6 +221,8 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
             bookingType = .prebooking
         case .coEquip:
             bookingType = .coEquip
+        default:
+            bookingType = .prebooking
         }
         
         let newBooking = Booking(
@@ -233,6 +236,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
             timeSlot: timeSlotEnum,
             source: bookingSource
         )
+        thisBooking = newBooking
         
         // Present PaymentViewController
 //        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
@@ -258,12 +262,18 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
                 "color": "#528FF0"
             ],
             "notes": [
-                "equipment_id": equipment.equipmentID.uuidString
+                "bookingId": newBooking.bookingID.uuidString
             ]
         ]
         razorpay.open(option)
+
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let sceneDelegate = windowScene.delegate as? SceneDelegate else {
+            return
+        }
         
-        
+        let dataController = sceneDelegate.dataController
+        dataController.addBooking(newBooking)
     }
     
     func onPaymentError(_ code: Int32, description str: String) {
@@ -274,14 +284,23 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     }
         
     func onPaymentSuccess(_ payment_id: String) {
-         let alert = UIAlertController(title: "Sucess", message: "Payment Id \(payment_id)", preferredStyle: .alert)
-         let okay = UIAlertAction(title: "Okay", style: .cancel, handler: nil)
-         alert.addAction(okay)
-        
-        Task {
-            // TODO: INSERT INTO DB WHERE EMAIL = (email) VALUES (payment_id)
+        struct _TempUpdate: Codable {
+            var status: BookingStatus = .confirmed
         }
-         self.view.window?.rootViewController?.present(alert, animated: true, completion: nil)
+        Task {
+            try! await SupabaseManager.shared.client
+                .from("bookings")
+                .update(_TempUpdate())
+                .eq("bookingID", value: thisBooking?.bookingID)
+                .execute()
+            DispatchQueue.main.async {
+                if let viewControllers = self.navigationController?.viewControllers, viewControllers.count >= 3 {
+                    let targetVC = viewControllers[viewControllers.count - 3]
+                    self.navigationController?.popToViewController(targetVC, animated: false)
+                }
+
+            }
+        }
     }
     
 //        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)

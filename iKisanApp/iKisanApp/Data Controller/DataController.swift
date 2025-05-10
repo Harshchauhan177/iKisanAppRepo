@@ -306,11 +306,7 @@ class IKisanDataController: DataController {
         
         // Save to Supabase
         Task {
-            do {
-                let _ = try await RequestManager.shared.createBooking(bookingWithUserId)
-            } catch {
-                print("Error saving booking to database: \(error)")
-            }
+            await RequestManager.shared.createBooking(bookingWithUserId)
         }
     }
     

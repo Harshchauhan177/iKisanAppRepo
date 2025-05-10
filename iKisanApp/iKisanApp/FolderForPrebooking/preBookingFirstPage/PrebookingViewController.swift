@@ -649,6 +649,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil) // Assuming EquipmentDescriptionTableViewController is in Tab1Home storyboard
             if let controller = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
                 controller.equipment = selectedEquipment
+                controller.bookingSource = .prebooking
                 navigationController?.pushViewController(controller, animated: true)
             }
         } else {
