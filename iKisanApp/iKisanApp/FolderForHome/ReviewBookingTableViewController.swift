@@ -6,18 +6,20 @@
 //
 
 import UIKit
-
+import Razorpay
 protocol ReviewBookingDelegate: AnyObject {
     func didModifyBooking(_ booking: Booking)
 }
 
-class ReviewBookingTableViewController: UITableViewController, UITextFieldDelegate {
-    
+class ReviewBookingTableViewController: UITableViewController, UITextFieldDelegate,RazorpayPaymentCompletionProtocol {
+    var razorpay : RazorpayCheckout!
     var selectedDate: Date?
     var timeSlot = ["Morning","Afternoon","Evening"]
     var locationA: String?
     var pricePerHr: Double = 100
-    
+    var payableAmount: Double = 0
+    var thisBooking: Booking?
+
     var equipment: Equipment? {
         didSet {
             if isViewLoaded {
@@ -29,7 +31,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     @IBOutlet var tableViewR: UITableView!
     
     
-    var bookingSource: BookingSource = .home // Default to home
+    var bookingSource: BookingSource! // Default to home
     
     weak var delegate: ReviewBookingDelegate?
     var isModifying: Bool = false
@@ -56,7 +58,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         // Configure UI based on modification mode
         configureUIForModification()
         
-        if let equipment = equipment {
+        if equipment != nil {
             updateData()
         } else {
             // Show alert and pop back
@@ -118,6 +120,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
             if let fieldAreaText = textField.text, let fieldArea = Double(fieldAreaText) {
                 let totalPrice = fieldArea * pricePerHr
                 priceLabel.text = "Total Price: \(totalPrice)"
+                self.payableAmount = totalPrice
             } else {
                 priceLabel.text = "Invalid input"
             }
@@ -218,6 +221,8 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
             bookingType = .prebooking
         case .coEquip:
             bookingType = .coEquip
+        default:
+            bookingType = .prebooking
         }
         
         let newBooking = Booking(
@@ -231,18 +236,71 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
             timeSlot: timeSlotEnum,
             source: bookingSource
         )
+        thisBooking = newBooking
         
         // Present PaymentViewController
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
-            paymentVC.booking = newBooking
-            paymentVC.modalPresentationStyle = .automatic
-            
-            let navController = UINavigationController(rootViewController: paymentVC)
-            present(navController, animated: true, completion: nil)
+//        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+//        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
+//            paymentVC.booking = newBooking
+//            paymentVC.modalPresentationStyle = .automatic
+//            
+//            let navController = UINavigationController(rootViewController: paymentVC)
+//            present(navController, animated: true, completion: nil)
+//        }
+       
+        let option : [String:Any] = [
+            "amount": String(self.payableAmount * 100),
+            "currency": "INR",
+            "description": "How to user razor pay payment gatway",
+            "image": "https://images.app.goo.gl/ii2mtoFGJhbmkkea7",
+            "name":"harsh Kumar",
+            "prefill": [
+//                "email": "harsh7617rajput@gmail.com"  Your RazorPay EmailId
+                // TODO: Fetch Email and set the field
+            ],
+            "theme": [
+                "color": "#528FF0"
+            ],
+            "notes": [
+                "bookingId": newBooking.bookingID.uuidString
+            ]
+        ]
+        razorpay.open(option)
+
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let sceneDelegate = windowScene.delegate as? SceneDelegate else {
+            return
         }
         
+        let dataController = sceneDelegate.dataController
+        dataController.addBooking(newBooking)
+    }
+    
+    func onPaymentError(_ code: Int32, description str: String) {
+        let alert = UIAlertController(title: "Failure", message: str, preferredStyle: .alert)
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alert.addAction(cancel)
+        self.view.window?.rootViewController?.present(alert, animated: true, completion: nil)
+    }
         
+    func onPaymentSuccess(_ payment_id: String) {
+        struct _TempUpdate: Codable {
+            var status: BookingStatus = .confirmed
+        }
+        Task {
+            try! await SupabaseManager.shared.client
+                .from("bookings")
+                .update(_TempUpdate())
+                .eq("bookingID", value: thisBooking?.bookingID)
+                .execute()
+            DispatchQueue.main.async {
+                if let viewControllers = self.navigationController?.viewControllers, viewControllers.count >= 3 {
+                    let targetVC = viewControllers[viewControllers.count - 3]
+                    self.navigationController?.popToViewController(targetVC, animated: false)
+                }
+
+            }
+        }
     }
     
 //        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
@@ -254,6 +312,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
 //    }
     
     override func viewDidAppear(_ animated: Bool) {
+        razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
         super.viewDidAppear(animated)
 
         // Apply shadow to the whole table view

@@ -11,6 +11,8 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     //MARK: Section1 Equipment Deatils
     
+    var bookingSource: BookingSource!
+    
     var equipment: Equipment? {
         didSet {
             if isViewLoaded, let equipment = equipment {
@@ -368,11 +370,10 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
                 guard let equipment = self.equipment else {
                     return
                 }
-                
+                destinationVC.bookingSource = self.bookingSource
                 destinationVC.equipment = equipment
                 destinationVC.locationA = equipment.location
                 destinationVC.pricePerHr = equipment.pricePerHour
-                destinationVC.bookingSource = .home // Set source to home since we're coming from the Home tab
             }
         } else if segue.identifier == "MoreImageView" {
             if let destinationVC = segue.destination as? ImageViewCollectionViewController {

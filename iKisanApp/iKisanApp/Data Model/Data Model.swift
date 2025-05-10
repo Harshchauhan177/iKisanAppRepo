@@ -195,7 +195,7 @@ enum Season: String {
 
 //MARK: Model for Booking
 //
-enum BookingSource {
+enum BookingSource: Codable {
     case home
     case prebooking
     case coEquip
@@ -209,7 +209,7 @@ struct FAQ: Codable, Identifiable {
     let answer: String
 }
 //
-struct Booking {
+struct Booking: Codable {
     let bookingID: UUID
     let userID: UUID//
     let equipmentID: UUID//
@@ -221,12 +221,12 @@ struct Booking {
     let source: BookingSource//
 }
 
-enum TimeSlot: String {
+enum TimeSlot: String, Codable {
     case morning = "Morning"
     case afternoon = "Afternoon"
     case evening = "Evening"
 }
-enum BookingType: String {
+enum BookingType: String, Codable {
     case onDemand = "On-Demand"
     case prebooking = "Prebooking"
     case coEquip = "Co-Equip"

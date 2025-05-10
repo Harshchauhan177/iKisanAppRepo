@@ -581,6 +581,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
         if let controller = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
             controller.equipment = selectedEquipment
+            controller.bookingSource = .home
             navigationController?.pushViewController(controller, animated: true)
         }
     }
