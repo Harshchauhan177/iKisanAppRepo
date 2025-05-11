@@ -6,12 +6,20 @@
 //
 
 import UIKit
+import CoreLocation
+
+// Forward declaration of location manager to be used across the app
+protocol LocationUpdateDelegate: AnyObject {
+    func locationUpdated(latitude: Double, longitude: Double)
+}
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
     // Your shared DataController instance.
     var dataController: DataController = IKisanDataController()
+    // Location manager for handling permissions
+    private var locationManager: CLLocationManager?
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
@@ -89,7 +97,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // Helper method to transition from login to main interface
     func switchToMainInterfaceAfterLogin() {
         guard let window = self.window else { return }
+        
+        // First set up the main interface
         setupMainInterface(in: window)
+        
+        // The HomeViewController will handle location permissions now
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

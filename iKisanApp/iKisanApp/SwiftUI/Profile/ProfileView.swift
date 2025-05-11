@@ -14,8 +14,8 @@ struct ProfileView: View {
     
     var body: some View {
         // No NavigationStack here since we're using UIKit navigation controller
-        List {
-            Section {
+            List {
+                Section {
                 if viewModel.isEditMode {
                     // Editable profile header
                     ProfileHeaderView(viewModel: viewModel)
@@ -29,12 +29,12 @@ struct ProfileView: View {
                                 .frame(width: 80, height: 80)
                                 .clipShape(Circle())
                         } else {
-                            Image(systemName: "person.crop.circle.fill")
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 80, height: 80)
+                        Image(systemName: "person.crop.circle.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
                                 .foregroundColor(viewModel.ikisanGreen)
-                                .clipShape(Circle())
+                            .clipShape(Circle())
                         }
                         
                         Text(viewModel.name)
@@ -62,8 +62,8 @@ struct ProfileView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                 }
-            }
-            
+                }
+                
             // Hide these sections in edit mode
             if !viewModel.isEditMode {
                 Section("Actions") {
@@ -141,18 +141,18 @@ struct ProfileView: View {
                         viewModel.showSignOutConfirmation = true
                     }) {
                         Label {
-                            Text("Sign Out")
-                                .foregroundColor(.red)
+                        Text("Sign Out")
+                            .foregroundColor(.red)
                         } icon: {
                             Image(systemName: "arrow.right.square")
                                 .foregroundColor(.red)
                         }
                     }
+                    }
                 }
             }
-        }
-        .listStyle(.insetGrouped)
-        .toolbar {
+            .listStyle(.insetGrouped)
+            .toolbar {
             if viewModel.isEditMode {
                 // Edit mode toolbar - Cancel button on leading edge
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -182,9 +182,9 @@ struct ProfileView: View {
                         // Notify that we've entered edit mode
                         NotificationCenter.default.post(name: .didEnterEditMode, object: nil)
                     }
+                    }
                 }
             }
-        }
         .disabled(viewModel.isSaving)
         .overlay(
             viewModel.isSaving ?
@@ -196,11 +196,11 @@ struct ProfileView: View {
                 : nil
         )
         .accentColor(viewModel.ikisanGreen)
-        .confirmationDialog(
-            "Are you sure you want to sign out?",
-            isPresented: $viewModel.showSignOutConfirmation
-        ) {
-            Button("Sign Out", role: .destructive) {
+            .confirmationDialog(
+                "Are you sure you want to sign out?",
+                isPresented: $viewModel.showSignOutConfirmation
+            ) {
+                Button("Sign Out", role: .destructive) {
                 // Call the updated signOut method with completion handler
                 viewModel.signOut { success in
                     if success {
@@ -208,8 +208,8 @@ struct ProfileView: View {
                         NotificationCenter.default.post(name: .userDidSignOut, object: nil)
                     }
                 }
-            }
-            Button("Cancel", role: .cancel) {}
+                }
+                Button("Cancel", role: .cancel) {}
         } message: {
             Text("You will need to sign in again to access your account.")
         }

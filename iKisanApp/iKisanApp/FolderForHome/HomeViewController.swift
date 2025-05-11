@@ -6,8 +6,9 @@
 //
 
 import UIKit
+import CoreLocation
 
-class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UpcomingBookingsCollectionViewCellDelegate, ExploreMoreCollectionViewCellDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource, UISearchResultsUpdating {
+class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UpcomingBookingsCollectionViewCellDelegate, ExploreMoreCollectionViewCellDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource, UISearchResultsUpdating, CLLocationManagerDelegate {
    
     
 //    var dataController: DataController = IKisanDataController()
@@ -17,6 +18,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     private var reviews: [ReviewData] = []
     var upcomingBookings: [Booking] = []
     var selectedSuggestion: String?
+    
+    // Location Manager
+    private var locationManager: CLLocationManager?
+    private let locationPermissionKey = "didRequestLocationPermission"
     
     var searchBar: UISearchBar!
     var tableView: UITableView!
@@ -119,6 +124,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         collectionView.dataSource = self
         collectionView.delegate = self
         
+        // Check for location permissions
+        checkLocationPermissionStatus()
+        
         // Perform a second data load after a short delay to catch any bookings that might not be loaded initially
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             Task {
@@ -139,6 +147,167 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        // Request location permission if we haven't already and user is logged in
+        if !UserDefaults.standard.bool(forKey: locationPermissionKey) && AuthManager.shared.isLoggedIn {
+            showLocationPermissionAlert()
+        }
+    }
+    
+    // MARK: - Location Permission Handling
+    
+    private func checkLocationPermissionStatus() {
+        // Initialize location manager
+        locationManager = CLLocationManager()
+        locationManager?.delegate = self
+        locationManager?.desiredAccuracy = kCLLocationAccuracyBest
+    }
+    
+    private func showLocationPermissionAlert() {
+        let alert = UIAlertController(
+            title: "Improve Your Experience",
+            message: "iKisan works best with your location to find nearby equipment and provide personalized recommendations. Would you like to share your location?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Not Now", style: .cancel) { _ in
+            // Mark that we've asked so we don't keep asking
+            UserDefaults.standard.set(true, forKey: self.locationPermissionKey)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Allow", style: .default) { _ in
+            // Mark that we've asked
+            UserDefaults.standard.set(true, forKey: self.locationPermissionKey)
+            
+            // Request permission
+            self.locationManager?.requestWhenInUseAuthorization()
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    // MARK: - CLLocationManagerDelegate
+    
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        switch manager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            // Permission granted, request location
+            locationManager?.startUpdatingLocation()
+            
+        case .denied, .restricted:
+            // User denied permission, respect their choice
+            print("Location permission denied")
+            
+        default:
+            break
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.first {
+            print("Got location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+            
+            // Update user's location in Supabase
+            updateUserLocation(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
+            
+            // Stop updating location after getting it once
+            locationManager?.stopUpdatingLocation()
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Location manager error: \(error.localizedDescription)")
+    }
+    
+    private func updateUserLocation(latitude: Double, longitude: Double) {
+        guard AuthManager.shared.isLoggedIn,
+              let userId = AuthManager.shared.currentUser?.id.uuidString else {
+            print("Cannot update location: User not logged in")
+            return
+        }
+        
+        // Structure for updating location
+        struct LocationUpdate: Encodable {
+            let address: String
+            let latitude: Double
+            let longitude: Double
+        }
+        
+        // Perform reverse geocoding to get the actual address
+        let geocoder = CLGeocoder()
+        let location = CLLocation(latitude: latitude, longitude: longitude)
+        
+        geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
+            if let error = error {
+                print("Reverse geocoding error: \(error.localizedDescription)")
+                // Use placeholder if geocoding fails
+                self?.updateLocationInSupabase(userId: userId, latitude: latitude, longitude: longitude, address: "Location set automatically")
+                return
+            }
+            
+            guard let placemark = placemarks?.first else {
+                print("No placemarks found")
+                // Use placeholder if no placemarks
+                self?.updateLocationInSupabase(userId: userId, latitude: latitude, longitude: longitude, address: "Location set automatically")
+                return
+            }
+            
+            // Format the address from placemark
+            let street = [placemark.subThoroughfare, placemark.thoroughfare]
+                .compactMap { $0 }
+                .joined(separator: " ")
+            
+            let city = placemark.locality ?? ""
+            let state = placemark.administrativeArea ?? ""
+            let zipCode = placemark.postalCode ?? ""
+            
+            // Create formatted address
+            var addressComponents = [String]()
+            if !street.isEmpty { addressComponents.append(street) }
+            if !city.isEmpty { addressComponents.append(city) }
+            if !state.isEmpty { 
+                if !zipCode.isEmpty {
+                    addressComponents.append("\(state) \(zipCode)")
+                } else {
+                    addressComponents.append(state)
+                }
+            } else if !zipCode.isEmpty {
+                addressComponents.append(zipCode)
+            }
+            
+            let formattedAddress = addressComponents.isEmpty ? 
+                "Location set automatically" : addressComponents.joined(separator: ", ")
+            
+            // Update in Supabase
+            self?.updateLocationInSupabase(userId: userId, latitude: latitude, longitude: longitude, address: formattedAddress)
+        }
+    }
+    
+    private func updateLocationInSupabase(userId: String, latitude: Double, longitude: Double, address: String) {
+        // Update location in Supabase
+        Task {
+            do {
+                let locationUpdate = LocationUpdate(
+                    address: address,
+                    latitude: latitude,
+                    longitude: longitude
+                )
+                
+                _ = try await SupabaseManager.shared.client
+                    .from("users")
+                    .update(locationUpdate)
+                    .eq("userID", value: userId)
+                    .execute()
+                
+                print("Successfully updated user location in Supabase: \(latitude), \(longitude), Address: \(address)")
+            } catch {
+                print("Failed to update location: \(error.localizedDescription)")
             }
         }
     }

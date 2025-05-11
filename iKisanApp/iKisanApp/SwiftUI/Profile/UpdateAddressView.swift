@@ -451,6 +451,13 @@ struct MapLocationPickerWithPermissions: View {
     @State private var showLocationError = false
     @State private var errorMessage = ""
     
+    // Search-related states
+    @State private var searchText = ""
+    @State private var isSearching = false
+    @State private var searchResults: [MKMapItem] = []
+    @State private var showSearchResults = false
+    @State private var searchDebounceTask: DispatchWorkItem?
+    
     // Computed property to simplify the Map view's annotation items
     private var annotationItems: [MapAnnotation] {
         if let location = selectedLocation {
@@ -462,7 +469,7 @@ struct MapLocationPickerWithPermissions: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Simplified Map view without the complex ternary expression
+                // Map view
                 Map(
                     coordinateRegion: $region,
                     interactionModes: .all,
@@ -478,6 +485,8 @@ struct MapLocationPickerWithPermissions: View {
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Cancel") {
+                            // Cancel any pending search task
+                            searchDebounceTask?.cancel()
                             onDismiss()
                         }
                     }
@@ -485,6 +494,19 @@ struct MapLocationPickerWithPermissions: View {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         confirmButton
                     }
+                }
+                
+                // Search bar and results overlay at the top
+                VStack(spacing: 0) {
+                    // Search bar
+                    searchBar
+                    
+                    // Search results list
+                    if showSearchResults && !searchResults.isEmpty {
+                        searchResultsList
+                    }
+                    
+                    Spacer()
                 }
                 
                 // Center indicator
@@ -526,6 +548,172 @@ struct MapLocationPickerWithPermissions: View {
     }
     
     // MARK: - UI Components
+    
+    // Search bar with enhanced UI following Apple's HIG
+    private var searchBar: some View {
+        HStack(spacing: 8) {
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 17, weight: .medium))
+                    .frame(width: 24, height: 24)
+                
+                TextField("Search for a location", text: $searchText)
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .disableAutocorrection(true)
+                    .autocapitalization(.none)
+                    .onChange(of: searchText) { newValue in
+                        // Cancel any previous search task
+                        searchDebounceTask?.cancel()
+                        
+                        // Create a new debounced search task
+                        let task = DispatchWorkItem {
+                            searchForPlaces()
+                        }
+                        searchDebounceTask = task
+                        
+                        // Execute the search after a delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: task)
+                    }
+                    .accessibilityLabel("Search location")
+                
+                if !searchText.isEmpty {
+                    Button(action: {
+                        searchText = ""
+                        searchResults = []
+                        showSearchResults = false
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 17))
+                            .frame(width: 24, height: 24)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    .accessibilityLabel("Clear search")
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 7)
+            .background(Color(.systemBackground))
+            .cornerRadius(10)
+            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+            
+            if isSearching {
+                Button("Cancel") {
+                    searchText = ""
+                    searchResults = []
+                    showSearchResults = false
+                    isSearching = false
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                                  to: nil,
+                                                  from: nil,
+                                                  for: nil)
+                }
+                .foregroundColor(.accentColor)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.2), value: isSearching)
+                .accessibilityLabel("Cancel search")
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .background(Color(.systemBackground).opacity(0.95))
+        .onTapGesture {
+            isSearching = true
+        }
+    }
+    
+    // Search results list with enhanced UI following Apple's HIG
+    private var searchResultsList: some View {
+        ScrollView {
+            LazyVStack(spacing: 0, pinnedViews: []) {
+                if !searchResults.isEmpty {
+                    // Display section header mimicking iOS native search UI
+                    HStack {
+                        Text("Locations")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .background(Color(.systemGroupedBackground).opacity(0.8))
+                    
+                    ForEach(searchResults, id: \.self.hashValue) { item in
+                        Button(action: {
+                            selectSearchResult(item)
+                            hapticFeedback(.light)
+                        }) {
+                            HStack(spacing: 12) {
+                                // Different icon for different place types to improve clarity
+                                Group {
+                                    if item.placemark.thoroughfare != nil && item.placemark.subThoroughfare != nil {
+                                        // Address
+                                        Image(systemName: "mappin.circle.fill")
+                                    } else if item.pointOfInterestCategory != nil {
+                                        // Point of interest
+                                        Image(systemName: "building.2.fill")
+                                    } else if isCurrentLocation(item) {
+                                        // Current location (if applicable)
+                                        Image(systemName: "location.circle.fill")
+                                    } else {
+                                        // Default
+                                        Image(systemName: "mappin.circle.fill")
+                                    }
+                                }
+                                .font(.system(size: 22))
+                                .foregroundColor(.accentColor)
+                                .frame(width: 24)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.name ?? "Unnamed Location")
+                                        .font(.system(size: 17, weight: .regular))
+                                        .foregroundColor(.primary)
+                                        .lineLimit(1)
+                                    
+                                    Text(formatAddress(from: item.placemark))
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 16)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .background(Color(.systemBackground))
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("\(item.name ?? "Location"), \(formatAddress(from: item.placemark))")
+                        .accessibilityAddTraits(.isButton)
+                        
+                        if item.hashValue != searchResults.last?.hashValue {
+                            Divider()
+                                .padding(.leading, 52)
+                        }
+                    }
+                } else if !searchText.isEmpty {
+                    VStack(spacing: 8) {
+                        Text("No results found")
+                            .font(.system(size: 17))
+                            .foregroundColor(.secondary)
+                            .padding(.top, 20)
+                        Text("Try a different search term")
+                            .font(.system(size: 15))
+                            .foregroundColor(.secondary)
+                            .padding(.bottom, 20)
+                    }
+                }
+            }
+        }
+        .frame(maxHeight: 350) // Slightly taller to show more results
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+        .padding(.horizontal)
+    }
     
     // Confirm button
     private var confirmButton: some View {
@@ -652,6 +840,183 @@ struct MapLocationPickerWithPermissions: View {
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
         }
+    }
+    
+    // MARK: - Search Methods
+    
+    private func searchForPlaces() {
+        // Don't search if the text is empty, or just show local suggestions for single characters
+        guard !searchText.isEmpty else {
+            DispatchQueue.main.async {
+                self.searchResults = []
+                self.showSearchResults = false
+            }
+            return
+        }
+        
+        // Create a more expansive search request
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = searchText
+        
+        // Use a larger region for more results if search is short
+        if searchText.count <= 3 {
+            // Use a much larger region for short searches to get more results
+            request.region = MKCoordinateRegion(
+                center: region.center,
+                span: MKCoordinateSpan(latitudeDelta: 15, longitudeDelta: 15)
+            )
+        } else {
+            // For longer searches, we want more focused results
+            request.region = region
+        }
+        
+        // Increase result limit for more comprehensive results
+        request.resultTypes = [.address, .pointOfInterest]
+        
+        // Perform search
+        let search = MKLocalSearch(request: request)
+        search.start { response, error in
+            if let error = error {
+                print("Search error: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.searchResults = []
+                    self.showSearchResults = false
+                }
+                return
+            }
+            
+            guard let response = response else {
+                DispatchQueue.main.async {
+                    self.searchResults = []
+                    self.showSearchResults = false
+                }
+                return
+            }
+            
+            // Update search results on main thread
+            DispatchQueue.main.async {
+                // Filter and sort results to prioritize places that start with the search text
+                let filteredItems = response.mapItems.filter { item in
+                    guard let name = item.name?.lowercased() else { return false }
+                    let searchLower = self.searchText.lowercased()
+                    
+                    // Check if place name or address components start with search text
+                    if name.starts(with: searchLower) {
+                        return true
+                    }
+                    
+                    // Check street name
+                    if let street = item.placemark.thoroughfare?.lowercased(), 
+                       street.starts(with: searchLower) {
+                        return true
+                    }
+                    
+                    // Check city name
+                    if let city = item.placemark.locality?.lowercased(),
+                       city.starts(with: searchLower) {
+                        return true
+                    }
+                    
+                    // Include other results that contain the search text anywhere
+                    return name.contains(searchLower)
+                }
+                
+                // Sort places with names starting with search text first
+                let sortedItems = filteredItems.sorted { item1, item2 in
+                    let name1 = item1.name?.lowercased() ?? ""
+                    let name2 = item2.name?.lowercased() ?? ""
+                    let searchLower = self.searchText.lowercased()
+                    
+                    // Places that start with search text come first
+                    if name1.starts(with: searchLower) && !name2.starts(with: searchLower) {
+                        return true
+                    }
+                    if !name1.starts(with: searchLower) && name2.starts(with: searchLower) {
+                        return false
+                    }
+                    
+                    // Then sort by proximity to current map center
+                    let distance1 = item1.placemark.location?.distance(from: CLLocation(latitude: self.region.center.latitude, longitude: self.region.center.longitude)) ?? Double.infinity
+                    let distance2 = item2.placemark.location?.distance(from: CLLocation(latitude: self.region.center.latitude, longitude: self.region.center.longitude)) ?? Double.infinity
+                    
+                    return distance1 < distance2
+                }
+                
+                // Limit to a reasonable number for UI
+                self.searchResults = Array(sortedItems.prefix(15))
+                self.showSearchResults = !self.searchResults.isEmpty
+            }
+        }
+    }
+    
+    private func selectSearchResult(_ mapItem: MKMapItem) {
+        // Get coordinates from the selected place
+        let coordinate = mapItem.placemark.coordinate
+        
+        // Update the map region to center on the selected location with animation
+        withAnimation(.easeInOut(duration: 0.3)) {
+            region = MKCoordinateRegion(
+                center: coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )
+            
+            // Set the selected location
+            selectedLocation = coordinate
+        }
+        
+        // Hide search results and keyboard
+        withAnimation(.easeOut(duration: 0.2)) {
+            showSearchResults = false
+        }
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+    
+    // Helper function for haptic feedback
+    private func hapticFeedback(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.prepare()
+        generator.impactOccurred()
+    }
+    
+    private func formatAddress(from placemark: MKPlacemark) -> String {
+        var addressComponents: [String] = []
+        
+        // Add street number if available
+        if let subThoroughfare = placemark.subThoroughfare {
+            if let thoroughfare = placemark.thoroughfare {
+                // Complete street address
+                addressComponents.append("\(subThoroughfare) \(thoroughfare)")
+            } else {
+                addressComponents.append(subThoroughfare)
+            }
+        } else if let thoroughfare = placemark.thoroughfare {
+            // Just street name
+            addressComponents.append(thoroughfare)
+        }
+        
+        // Add sublocality (neighborhood/district) if available
+        if let subLocality = placemark.subLocality, addressComponents.isEmpty || !subLocality.contains(placemark.thoroughfare ?? "") {
+            addressComponents.append(subLocality)
+        }
+        
+        // City
+        if let locality = placemark.locality {
+            addressComponents.append(locality)
+        }
+        
+        // State/Province
+        if let administrativeArea = placemark.administrativeArea {
+            // Use abbreviation if available
+            addressComponents.append(administrativeArea)
+        }
+        
+        // Format according to iOS standard
+        return addressComponents.joined(separator: ", ")
+    }
+    
+    // Helper function to determine if a place is a current location marker
+    private func isCurrentLocation(_ mapItem: MKMapItem) -> Bool {
+        return mapItem.name == "Current Location"
     }
 }
 
