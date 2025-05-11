@@ -2,22 +2,41 @@ import Foundation
 import Supabase
 
 struct AuthUser: Codable {
+    // Basic user info
     let id: UUID
     let email: String
     let name: String
     let phone: String
-    var location: Location?
+    
+    // Location properties stored directly at root level
+    var latitude: Double = 0.0
+    var longitude: Double = 0.0
+    var address: String?
+    
+    // Other user data
     var fieldArea: Double?
     var selectedCrops: [UUID]?
+    var groupID: UUID?
+    
+    // Computed property to get location as an object
+    var location: Location? {
+        if latitude != 0.0 || longitude != 0.0 {
+            return Location(latitude: latitude, longitude: longitude, address: address)
+        }
+        return nil
+    }
     
     enum CodingKeys: String, CodingKey {
         case id = "userID"
         case email
         case name
         case phone
-        case location
+        case latitude
+        case longitude
+        case address
         case fieldArea
         case selectedCrops
+        case groupID
     }
 }
 
@@ -307,6 +326,70 @@ class AuthManager {
         }
     }
     
+    // Structure for location update request
+    struct LocationUpdateRequest: Encodable {
+        struct LocationData: Encodable {
+            let latitude: Double
+            let longitude: Double
+            let address: String?
+            
+            // Custom encoding to handle optional address
+            private enum CodingKeys: String, CodingKey {
+                case latitude, longitude, address
+            }
+            
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.container(keyedBy: CodingKeys.self)
+                try container.encode(latitude, forKey: .latitude)
+                try container.encode(longitude, forKey: .longitude)
+                try container.encodeIfPresent(address, forKey: .address)
+            }
+        }
+        
+        let location: LocationData
+    }
+    
+    // Update user location
+    func updateUserLocation(address: String?, latitude: Double, longitude: Double) async throws {
+        guard var user = currentUser else {
+            throw AuthError.notLoggedIn
+        }
+        
+        do {
+            // Create a properly Encodable object
+            let locationData = LocationUpdateRequest.LocationData(
+                latitude: latitude,
+                longitude: longitude,
+                address: address
+            )
+            
+            let updateRequest = LocationUpdateRequest(location: locationData)
+            
+            // Update user location in the database
+            try await supabase.client
+                .from("users")
+                .update(updateRequest)
+                .eq("userID", value: user.id.uuidString)
+                .execute()
+            
+            print("Location update request sent to database")
+            
+            // Update local user object directly with location properties
+            var updatedUser = user
+            updatedUser.latitude = latitude
+            updatedUser.longitude = longitude
+            updatedUser.address = address
+            
+            self.currentUser = updatedUser
+            saveUserToUserDefaults(updatedUser)
+            
+            print("Updated user location successfully: \(address ?? "No address"), \(latitude), \(longitude)")
+        } catch {
+            print("Failed to update user location: \(error)")
+            throw error
+        }
+    }
+    
     func updateUserProfile(name: String? = nil, phone: String? = nil) async throws {
         guard var user = currentUser else {
             throw AuthError.notLoggedIn
@@ -331,9 +414,12 @@ class AuthManager {
                     email: user.email,
                     name: name,
                     phone: phone ?? user.phone,
-                    location: user.location,
+                    latitude: user.latitude,
+                    longitude: user.longitude,
+                    address: user.address,
                     fieldArea: user.fieldArea,
-                    selectedCrops: user.selectedCrops
+                    selectedCrops: user.selectedCrops,
+                    groupID: user.groupID
                 )
             } else if let phone = phone {
                 user = AuthUser(
@@ -341,9 +427,12 @@ class AuthManager {
                     email: user.email,
                     name: user.name,
                     phone: phone,
-                    location: user.location,
+                    latitude: user.latitude,
+                    longitude: user.longitude,
+                    address: user.address,
                     fieldArea: user.fieldArea,
-                    selectedCrops: user.selectedCrops
+                    selectedCrops: user.selectedCrops,
+                    groupID: user.groupID
                 )
             }
             
@@ -356,6 +445,13 @@ class AuthManager {
         if let encoded = try? JSONEncoder().encode(user) {
             UserDefaults.standard.set(encoded, forKey: "currentUser")
         }
+    }
+    
+    // Method to refresh the current user with updated data from database
+    func refreshCurrentUser(with updatedUser: AuthUser) {
+        self.currentUser = updatedUser
+        saveUserToUserDefaults(updatedUser)
+        print("Current user refreshed and saved to UserDefaults")
     }
 }
 

@@ -25,29 +25,205 @@ struct UpdateAddressView: View {
     private let supabase = SupabaseManager.shared
     
     init() {
-        // Load current address if available
-        if let currentUser = AuthManager.shared.currentUser,
-           let location = currentUser.location {
-            
-            // Load coordinates
-            _latitude = State(initialValue: location.latitude)
-            _longitude = State(initialValue: location.longitude)
-            
-            // Initialize map region based on user's location if available
-            if location.latitude != 0 && location.longitude != 0 {
-                _region = State(initialValue: MKCoordinateRegion(
-                    center: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude),
-                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                ))
+        // Setup happens in onAppear
+    }
+    
+    // Direct approach to load address data - uses Supabase directly
+    private func loadSavedAddress() {
+        // Display loading indicator
+        isLoading = true
+        
+        // We'll fetch the data directly from Supabase for the most up-to-date information
+        Task {
+            do {
+                // Get current user ID - break early if not available
+                guard let userId = AuthManager.shared.currentUser?.id.uuidString else {
+                    print("⚠️ No current user ID available")
+                    await MainActor.run { self.isLoading = false }
+                    return
+                }
+                
+                // Convert to lowercase to match the casing in Supabase
+                let userIdLowercase = userId.lowercased()
+                print("🔍 Looking up user data for ID: \(userId)")
+                print("🔍 Using lowercase ID for query: \(userIdLowercase)")
+                
+                // Direct query to user table with lowercase ID
+                let result = try await supabase.client
+                    .from("users")
+                    .select()
+                    .eq("userID", value: userIdLowercase)
+                    .single()
+                    .execute()
+                
+                // First analyze raw JSON before trying to decode
+                do {
+                    // Convert raw data to dictionary to inspect it
+                    if let jsonDict = try JSONSerialization.jsonObject(with: result.data, options: []) as? [String: Any] {
+                        print("📝 Raw user data from Supabase: \(jsonDict)")
+                        
+                        // The actual data structure has latitude, longitude, and address at the root level
+                        // Let's check for those direct fields instead of a nested location object
+                        let directLat = jsonDict["latitude"] as? Double ?? 0.0
+                        let directLong = jsonDict["longitude"] as? Double ?? 0.0
+                        let directAddress = jsonDict["address"] as? String
+                        
+                        print("📍 Direct location values from root JSON: lat=\(directLat), long=\(directLong), address=\(directAddress ?? "none")")
+                        
+                        // Make sure we have valid location data
+                        if directLat != 0.0 && directLong != 0.0 {
+                            print("✅ Found valid location data directly in user object")
+                            
+                            // Create location directly from the JSON data
+                            let directLocation = Location(
+                                latitude: directLat,
+                                longitude: directLong,
+                                address: directAddress
+                            )
+                            
+                            // Now proceed with our direct location data
+                            await MainActor.run {
+                                // Set coordinates
+                                self.latitude = directLocation.latitude
+                                self.longitude = directLocation.longitude
+                                
+                                // Initialize map region
+                                if directLocation.latitude != 0 && directLocation.longitude != 0 {
+                                    self.region = MKCoordinateRegion(
+                                        center: CLLocationCoordinate2D(latitude: directLocation.latitude, longitude: directLocation.longitude),
+                                        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                                    )
+                                }
+                                
+                                // Fill in address fields if address is available
+                                if let address = directLocation.address, !address.isEmpty {
+                                    print("📝 Address found in direct extraction: \(address)")
+                                    
+                                    // Directly set address components
+                                    let components = self.parseAddressComponents(from: address)
+                                    self.street = components.street
+                                    self.city = components.city
+                                    self.state = components.state
+                                    self.zipCode = components.zipCode
+                                    
+                                    print("🏠 Address fields set directly: \(self.street), \(self.city), \(self.state), \(self.zipCode)")
+                                }
+                                
+                                // Hide loading indicator
+                                self.isLoading = false
+                            }
+                            
+                            return // Successfully handled with direct extraction
+                        } else {
+                            print("❌ No valid coordinates found in the JSON response")
+                        }
+                    }
+                } catch {
+                    print("❌ Error analyzing JSON: \(error.localizedDescription)")
+                }
+                
+                // If we reach here, direct extraction failed, try normal decoding as fallback
+                print("🛠️ Falling back to standard decoder...")
+                
+                // Parse the user data including location
+                guard let userData = try? JSONDecoder().decode(AuthUser.self, from: result.data) else {
+                    print("❌ Failed to decode user data")
+                    await MainActor.run { self.isLoading = false }
+                    return
+                }
+                
+                // Get location from the computed property
+                guard let location = userData.location else {
+                    print("⚠️ User has no valid coordinates from decoder")
+                    await MainActor.run { self.isLoading = false }
+                    return
+                }
+                
+                print("✅ Created location from user data: lat=\(location.latitude), long=\(location.longitude), address=\(location.address ?? "none")")
+                
+                print("✅ Successfully loaded location data directly from Supabase")
+                print("📍 Address: \(location.address ?? "None"), Coordinates: \(location.latitude), \(location.longitude)")
+                
+                // Ensure we run UI updates on the main thread
+                await MainActor.run {
+                    // Set coordinates
+                    self.latitude = location.latitude
+                    self.longitude = location.longitude
+                    
+                    // Initialize map region
+                    if location.latitude != 0 && location.longitude != 0 {
+                        self.region = MKCoordinateRegion(
+                            center: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude),
+                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                        )
+                    }
+                    
+                    // Fill in address fields if address is available
+                    if let address = location.address, !address.isEmpty {
+                        print("📝 Address found: \(address)")
+                        
+                        // Directly set address components
+                        let components = self.parseAddressComponents(from: address)
+                        self.street = components.street
+                        self.city = components.city
+                        self.state = components.state
+                        self.zipCode = components.zipCode
+                        
+                        print("🏠 Address fields set: \(self.street), \(self.city), \(self.state), \(self.zipCode)")
+                        
+                        // Also update the currentUser in AuthManager to ensure consistency
+                        AuthManager.shared.refreshCurrentUser(with: userData)
+                    } else {
+                        print("⚠️ No address string available in the user's location data")
+                        // Try reverse geocoding to get address from coordinates
+                        self.lookupAddress(for: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude))
+                    }
+                    
+                    // Hide loading indicator
+                    self.isLoading = false
+                }
+            } catch {
+                print("❌ Error loading address data: \(error.localizedDescription)")
+                await MainActor.run { self.isLoading = false }
             }
-            
-            if let address = location.address {
-                let components = parseAddressComponents(from: address)
-                _street = State(initialValue: components.street)
-                _city = State(initialValue: components.city)
-                _state = State(initialValue: components.state)
-                _zipCode = State(initialValue: components.zipCode)
-            }
+        }
+    }
+    
+    // Helper function to refresh user data
+    private func refreshUserData() async throws {
+        // Force refresh user profile from the database
+        let supabase = SupabaseManager.shared
+        
+        // Only proceed if we have a current user
+        guard let currentUserId = AuthManager.shared.currentUser?.id.uuidString else {
+            print("⚠️ No current user found")
+            return
+        }
+        
+        // Convert to lowercase to match database
+        let userIdLowercase = currentUserId.lowercased()
+        print("🔄 Refreshing user data for ID: \(userIdLowercase)")
+        
+        // Fetch fresh user data from Supabase
+        let result = try await supabase.client
+            .from("users")
+            .select()
+            .eq("userID", value: userIdLowercase)
+            .single()
+            .execute()
+        
+        // Decode user from response
+        let userData = result.data
+        let user = try JSONDecoder().decode(AuthUser.self, from: userData)
+        
+        // Update the current user in AuthManager
+        AuthManager.shared.refreshCurrentUser(with: user)
+        
+        // Log the location data for debugging
+        if let location = user.location {
+            print("✅ User data refreshed successfully with location: lat=\(location.latitude), long=\(location.longitude), address=\(location.address ?? "none")")
+        } else {
+            print("✅ User data refreshed successfully but no valid location data")
         }
     }
     
@@ -158,6 +334,10 @@ struct UpdateAddressView: View {
         } message: {
             Text("Your address has been successfully updated.")
         }
+        .onAppear {
+            // Load saved address data when view appears
+            loadSavedAddress()
+        }
         .sheet(isPresented: $showMapPicker) {
             MapLocationPickerWithPermissions(
                 region: $region,
@@ -186,11 +366,6 @@ struct UpdateAddressView: View {
             return
         }
         
-        guard let userId = AuthManager.shared.currentUser?.id.uuidString else {
-            errorMessage = "User not logged in"
-            return
-        }
-        
         isLoading = true
         errorMessage = nil
         
@@ -199,31 +374,15 @@ struct UpdateAddressView: View {
         
         Task {
             do {
-                // Serialize with JSONEncoder if needed
-                let locationUpdate = LocationUpdate(
+                // Use the new AuthManager method to update location
+                try await AuthManager.shared.updateUserLocation(
                     address: formattedAddress,
                     latitude: latitude,
                     longitude: longitude
                 )
                 
-                // Update address and coordinates in Supabase
-                _ = try await supabase.client
-                    .from("users")
-                    .update(locationUpdate)
-                    .eq("userID", value: userId)
-                    .execute()
-                
-                // Update user locally if needed
-                if let currentUser = AuthManager.shared.currentUser {
-                    let location = Location(
-                        latitude: latitude,
-                        longitude: longitude,
-                        address: formattedAddress
-                    )
-                    
-                    // This would need a proper method in AuthManager to update the address
-                    // For now, we just show success
-                }
+                print("Address updated successfully: \(formattedAddress)")
+                print("Coordinates updated: \(latitude), \(longitude)")
                 
                 await MainActor.run {
                     isLoading = false
@@ -246,27 +405,68 @@ struct UpdateAddressView: View {
         var state = ""
         var zipCode = ""
         
-        // Example format: "123 Main St, Anytown, CA 12345"
-        let components = address.components(separatedBy: ", ")
+        // Handle different address formats
+        // Format examples:
+        // "123 Main St, Anytown, CA 12345"
+        // "123 Main St, Anytown CA 12345"
+        // "123 Main St, Anytown CA"
+        // "123 Main St Anytown CA 12345"
+        
+        // First try comma-separated format
+        var components = address.components(separatedBy: ", ")
         
         if components.count >= 1 {
-            street = components[0]
+            street = components[0].trimmingCharacters(in: .whitespacesAndNewlines)
         }
         
         if components.count >= 2 {
-            city = components[1]
+            // Second component might have city, or city+state+zip
+            let part = components[1].trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            if components.count == 2 {
+                // If we only have 2 components, the second might contain city, state, zip
+                let parts = part.components(separatedBy: " ").filter { !$0.isEmpty }
+                
+                if parts.count >= 1 {
+                    // First part is likely city
+                    city = parts[0]
+                    
+                    if parts.count >= 2 {
+                        // Second part is likely state
+                        state = parts[1]
+                        
+                        if parts.count >= 3 {
+                            // Third part is likely zip code
+                            zipCode = parts[2]
+                        }
+                    }
+                }
+            } else {
+                // If we have more components, the second is likely just city
+                city = part
+            }
         }
         
         if components.count >= 3 {
-            // The last component might contain state and zip code
-            let stateZip = components[2].components(separatedBy: " ")
-            if stateZip.count >= 1 {
-                state = stateZip[0]
-            }
-            if stateZip.count >= 2 {
-                zipCode = stateZip[1]
+            // Third component might have state and zip code
+            let part = components[2].trimmingCharacters(in: .whitespacesAndNewlines)
+            let parts = part.components(separatedBy: " ").filter { !$0.isEmpty }
+            
+            if parts.count >= 1 {
+                state = parts[0]
+                
+                if parts.count >= 2 {
+                    zipCode = parts[1]
+                }
             }
         }
+        
+        // If we have a fourth component it might be the zip code alone
+        if components.count >= 4 {
+            zipCode = components[3].trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        print("Parsed address components - Street: \(street), City: \(city), State: \(state), Zip: \(zipCode)")
         
         return (street, city, state, zipCode)
     }
@@ -282,24 +482,42 @@ struct UpdateAddressView: View {
                 return
             }
             
-            guard let placemark = placemarks?.first else {
-                print("No placemarks found")
-                return
-            }
+            guard let placemark = placemarks?.first else { return }
             
-            // Update address fields based on the placemark
             DispatchQueue.main.async {
-                street = [placemark.subThoroughfare, placemark.thoroughfare]
-                    .compactMap { $0 }
-                    .joined(separator: " ")
+                print("Geocoded address: \(placemark)")
                 
-                city = placemark.locality ?? ""
-                state = placemark.administrativeArea ?? ""
-                zipCode = placemark.postalCode ?? ""
+                // Street: combine subThoroughfare (e.g., house number) and thoroughfare (street name)
+                let streetComponents = [placemark.subThoroughfare, placemark.thoroughfare]
+                    .compactMap { $0 }
+                
+                if !streetComponents.isEmpty {
+                    self.street = streetComponents.joined(separator: " ")
+                }
+                
+                // City (locality)
+                if let locality = placemark.locality, !locality.isEmpty {
+                    self.city = locality
+                } else if let subLocality = placemark.subLocality, !subLocality.isEmpty {
+                    self.city = subLocality
+                } else if let administrativeArea = placemark.administrativeArea, !administrativeArea.isEmpty {
+                    self.city = administrativeArea
+                }
+                
+                // State/Province
+                if let administrativeArea = placemark.administrativeArea, !administrativeArea.isEmpty {
+                    self.state = administrativeArea
+                }
+                
+                // Zip/Postal Code
+                if let postalCode = placemark.postalCode, !postalCode.isEmpty {
+                    self.zipCode = postalCode
+                }
+                
+                print("Updated address fields - Street: \(self.street), City: \(self.city), State: \(self.state), Zip: \(self.zipCode)")
             }
         }
     }
-}
 
 // MARK: - Data Models
 
@@ -1018,6 +1236,9 @@ struct MapLocationPickerWithPermissions: View {
     private func isCurrentLocation(_ mapItem: MKMapItem) -> Bool {
         return mapItem.name == "Current Location"
     }
+}
+
+// MARK: - MapLocationPickerWithPermissions struct end
 }
 
 #Preview {

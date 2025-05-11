@@ -147,13 +147,12 @@ class ProfileViewModel: ObservableObject {
                     email: currentUser.email,
                     name: editName,
                     phone: editPhone,
-                    location: Location(
-                        latitude: currentUser.location?.latitude ?? 0.0,
-                        longitude: currentUser.location?.longitude ?? 0.0,
-                        address: editAddress
-                    ),
+                    latitude: currentUser.latitude,
+                    longitude: currentUser.longitude,
+                    address: editAddress,
                     fieldArea: currentUser.fieldArea,
-                    selectedCrops: currentUser.selectedCrops
+                    selectedCrops: currentUser.selectedCrops,
+                    groupID: currentUser.groupID
                 )
                 
                 try await AuthManager.shared.updateUserProfile(name: editName, phone: editPhone)

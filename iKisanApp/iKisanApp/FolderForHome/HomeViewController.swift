@@ -225,18 +225,18 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         print("Location manager error: \(error.localizedDescription)")
     }
     
+    // Structure for updating location
+    private struct LocationUpdate: Encodable {
+        let address: String
+        let latitude: Double
+        let longitude: Double
+    }
+    
     private func updateUserLocation(latitude: Double, longitude: Double) {
         guard AuthManager.shared.isLoggedIn,
               let userId = AuthManager.shared.currentUser?.id.uuidString else {
             print("Cannot update location: User not logged in")
             return
-        }
-        
-        // Structure for updating location
-        struct LocationUpdate: Encodable {
-            let address: String
-            let latitude: Double
-            let longitude: Double
         }
         
         // Perform reverse geocoding to get the actual address
