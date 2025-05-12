@@ -45,7 +45,7 @@ class SelectCropsViewController: UIViewController, UITableViewDataSource, UITabl
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setTitle("Continue to App", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
-        button.backgroundColor = UIColor(red: 76/255, green: 175/255, blue: 80/255, alpha: 1.0)
+        button.backgroundColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1.0)
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 10
         return button

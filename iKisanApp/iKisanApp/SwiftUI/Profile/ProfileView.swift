@@ -286,7 +286,7 @@ struct HelpCenterView: View {
                         Text("Email Support")
                     } icon: {
                         Image(systemName: "envelope.fill")
-                            .foregroundColor(Color(red: 76/255, green: 175/255, blue: 80/255))
+                            .foregroundColor(Color(red: 0.298, green: 0.498, blue: 0.345))
                     }
                 }
                 
@@ -295,7 +295,7 @@ struct HelpCenterView: View {
                         Text("Call Support")
                     } icon: {
                         Image(systemName: "phone.fill")
-                            .foregroundColor(Color(red: 76/255, green: 175/255, blue: 80/255))
+                            .foregroundColor(Color(red: 0.298, green: 0.498, blue: 0.345))
                     }
                 }
             }
@@ -400,7 +400,7 @@ struct TermsPrivacyView: View {
 }
 
 struct AppInfoView: View {
-    private let ikisanGreen = Color(red: 76/255, green: 175/255, blue: 80/255)
+    private let ikisanGreen = Color(red: 0.298, green: 0.498, blue: 0.345)
     
     var body: some View {
         List {

@@ -47,7 +47,7 @@ class OTPVerificationViewController: UIViewController {
     private let verifyButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Verify", for: .normal)
-        button.backgroundColor = UIColor(red: 76/255, green: 175/255, blue: 80/255, alpha: 1.0)
+        button.backgroundColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1.0)
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
@@ -296,7 +296,7 @@ extension OTPVerificationViewController: UITextFieldDelegate {
     }
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        textField.layer.borderColor = UIColor(red: 76/255, green: 175/255, blue: 80/255, alpha: 1.0).cgColor
+        textField.layer.borderColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1.0).cgColor
         textField.layer.borderWidth = 2
     }
     

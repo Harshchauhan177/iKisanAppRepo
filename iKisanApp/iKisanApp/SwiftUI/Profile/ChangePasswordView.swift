@@ -11,7 +11,7 @@ struct ChangePasswordView: View {
     @State private var showSuccess = false
     
     // Green color used throughout the app
-    private let ikisanGreen = Color(red: 76/255, green: 175/255, blue: 80/255)
+    private let ikisanGreen = Color(red: 0.298, green: 0.498, blue: 0.345)
     private let supabase = SupabaseManager.shared
     
     var body: some View {

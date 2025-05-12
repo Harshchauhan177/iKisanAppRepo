@@ -326,27 +326,11 @@ class AuthManager {
         }
     }
     
-    // Structure for location update request
+    // Structure for location update request - directly mapping to database columns
     struct LocationUpdateRequest: Encodable {
-        struct LocationData: Encodable {
-            let latitude: Double
-            let longitude: Double
-            let address: String?
-            
-            // Custom encoding to handle optional address
-            private enum CodingKeys: String, CodingKey {
-                case latitude, longitude, address
-            }
-            
-            func encode(to encoder: Encoder) throws {
-                var container = encoder.container(keyedBy: CodingKeys.self)
-                try container.encode(latitude, forKey: .latitude)
-                try container.encode(longitude, forKey: .longitude)
-                try container.encodeIfPresent(address, forKey: .address)
-            }
-        }
-        
-        let location: LocationData
+        let latitude: Double
+        let longitude: Double
+        let address: String?
     }
     
     // Update user location
@@ -356,20 +340,18 @@ class AuthManager {
         }
         
         do {
-            // Create a properly Encodable object
-            let locationData = LocationUpdateRequest.LocationData(
+            // Create a direct update object that matches the database schema
+            let updateRequest = LocationUpdateRequest(
                 latitude: latitude,
                 longitude: longitude,
                 address: address
             )
             
-            let updateRequest = LocationUpdateRequest(location: locationData)
-            
-            // Update user location in the database
+            // Update user location in the database with direct properties
             try await supabase.client
                 .from("users")
                 .update(updateRequest)
-                .eq("userID", value: user.id.uuidString)
+                .eq("userID", value: user.id.uuidString.lowercased()) // Use lowercase for consistency
                 .execute()
             
             print("Location update request sent to database")
