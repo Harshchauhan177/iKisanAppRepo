@@ -50,7 +50,8 @@ struct ResetPasswordView: View {
                 || newPassword != confirmPassword
             )
             .frame(maxWidth: .infinity, minHeight: 50)
-            .background(Color.green)
+            //.background(Color.green)
+            .background(Color(red: 0.298, green: 0.498, blue: 0.345, opacity: 1))
             .foregroundColor(.white)
             .cornerRadius(8)
 
