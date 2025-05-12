@@ -242,10 +242,10 @@ enum BookingStatus: String, Codable {
 
 //MARK: Model for AgriAssist
 
-struct AgriCrop {
-    let id: UUID
-    let name: String
-    let imageName: String
+struct AgriCrop: Codable, Sendable {
+    var id: UUID = .init()
+    var name: String
+    var imageName: String
 }
 
 struct CropCategory {
@@ -293,3 +293,13 @@ let sampleUsers: [User] = [
 
 ]
 //
+
+func getSampleUsers() {
+    Task {
+        let crops: [AgriCrop] = try! await SupabaseManager.shared.client
+            .from("agriCrops")
+            .select("*")
+            .execute()
+            .value
+    }
+}

@@ -38,6 +38,18 @@ class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableV
             tableView.dataSource = self
             cropSearchBar.delegate = self
             
+            Task {
+                self.crops = try! await SupabaseManager.shared.client
+                    .from("agriCrops")
+                    .select("*")
+                    .execute()
+                    .value
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+            }
+            
+            
             // Load data if dataController is already set
             if dataController != nil {
                 loadData()
