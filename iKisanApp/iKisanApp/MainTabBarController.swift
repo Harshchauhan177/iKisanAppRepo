@@ -9,7 +9,8 @@ import UIKit
 
 class MainTabBarController: UITabBarController {
 
-    var dataController: DataController!
+    // Making dataController public to allow access from child view controllers
+    public var dataController: DataController!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,22 +29,39 @@ class MainTabBarController: UITabBarController {
             return
         }
         
-        setupTabs()
+        // We're using view controllers from storyboard, so no need to set them up programmatically
+        // We just need to pass dataController to them
+        setupViewControllers()
         setupNotificationObservers()
     }
     
-    private func setupTabs() {
-        // Home Tab
-        let homeVC = HomeViewController()
-        homeVC.dataController = dataController
-        let homeNav = UINavigationController(rootViewController: homeVC)
-        homeNav.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house.fill"), tag: 0)
+    private func setupViewControllers() {
+        // The tabs are already set up in the storyboard
+        // We just need to pass the dataController to each view controller
         
-        // Add other tabs as needed (AgriAssist, Coequip, etc.)
-        // ...
+        guard let viewControllers = self.viewControllers else {
+            print("Error: No view controllers found in MainTabBarController")
+            return
+        }
         
-        // Set view controllers (add your other tabs in the array as needed)
-        self.viewControllers = [homeNav]
+        // Iterate through all tab bar view controllers and assign dataController
+        for (index, viewController) in viewControllers.enumerated() {
+            if let navController = viewController as? UINavigationController {
+                if let homeVC = navController.viewControllers.first as? HomeViewController {
+                    print("Setting up HomeViewController at index \(index)")
+                    homeVC.dataController = dataController
+                } else if let prebookingVC = navController.viewControllers.first as? PrebookingViewController {
+                    print("Setting up PrebookingViewController at index \(index)")
+                    prebookingVC.dataController = dataController
+                } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
+                    print("Setting up AgriAssistViewController at index \(index)")
+                    agriAssistVC.dataController = dataController
+                } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
+                    print("Setting up CoequipViewController at index \(index)")
+                    coequipVC.dataController = dataController
+                }
+            }
+        }
     }
     
     private func setupNotificationObservers() {
@@ -78,12 +96,31 @@ class MainTabBarController: UITabBarController {
     @objc private func handlePreBookingAdded(_ notification: Notification) {
         print("MainTabBarController - Received preBookingAdded notification")
         
-        // If we have a prebooking tab as the second tab, update it
-        if viewControllers?.count ?? 0 > 1,
-           let navController = viewControllers?[1] as? UINavigationController,
+        // Find the index of the Prebooking tab
+        var prebookingTabIndex: Int? = nil
+        
+        if let viewControllers = self.viewControllers {
+            for (index, viewController) in viewControllers.enumerated() {
+                if let navController = viewController as? UINavigationController,
+                   navController.viewControllers.first is PrebookingViewController {
+                    prebookingTabIndex = index
+                    break
+                }
+            }
+        }
+        
+        // If we found the prebooking tab, switch to it and refresh it
+        if let index = prebookingTabIndex,
+           let navController = viewControllers?[index] as? UINavigationController,
            let prebookingVC = navController.viewControllers.first as? PrebookingViewController {
             // Force refresh prebookings data
             prebookingVC.loadPreBookings()
+            
+            // Switch to the prebooking tab
+            self.selectedIndex = index
+            print("Switching to Prebooking tab at index \(index)")
+        } else {
+            print("Error: Could not find Prebooking tab")
         }
     }
     

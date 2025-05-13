@@ -57,8 +57,10 @@ class DiscountsCollectionViewCell: UICollectionViewCell {
     
     func updateDiscountsData(with equipment: Equipment) {
         // Safely unwrap all IBOutlet properties with optional binding
+        // This prevents crashes when interface elements aren't properly connected
+        
+        // Handle equipment image
         if let imgView = equipmentImage {
-            // Check if the equipmentImage is a URL or a local asset name
             if equipment.equipmentImage.hasPrefix("http") {
                 // It's a URL, use our ImageCache utility to load it
                 imgView.loadImage(from: equipment.equipmentImage)
@@ -68,16 +70,24 @@ class DiscountsCollectionViewCell: UICollectionViewCell {
             }
         }
         
+        // Handle equipment name
         if let nameLabel = equipmentNameLabel {
             nameLabel.text = equipment.name
         }
         
+        // Handle price display
         if let priceLabel = discountedPrice {
             priceLabel.text = "₹\(equipment.pricePerHour)"
         }
         
+        // Handle rating display
         if let ratingLabel = rating {
             ratingLabel.text = "⭐️\(equipment.rating)"
+        }
+        
+        // Handle fader view (if needed)
+        if let fader = faderView {
+            fader.backgroundColor = UIColor(white: 0, alpha: 0.3) // Semi-transparent overlay
         }
         
 //        let price = "\(equipment.realPricePerHour)"

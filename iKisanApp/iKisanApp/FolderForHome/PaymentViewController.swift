@@ -103,35 +103,40 @@ class PaymentViewController: UIViewController {
         }
         
         // Check if the booking is from prebooking
-        if let booking = booking, booking.source == .prebooking {
-            // Navigate to Prebooking tab
-            tabBarController.selectedIndex = 1 // Index 1 is the Prebooking tab
+        if let booking = booking, booking.bookingType == .prebooking {
+            // Navigate to Prebooking tab (index 1)
+            tabBarController.selectedIndex = 1
             
-            if let navController = tabBarController.selectedViewController as? UINavigationController,
-               let prebookingVC = navController.viewControllers.first as? PrebookingViewController {
+            // Check if the selected view controller is a navigation controller with a PrebookingViewController
+            if let navController = tabBarController.selectedViewController as? UINavigationController {
                 // Pop to root of prebooking tab
                 navController.popToRootViewController(animated: false)
                 
-                // Update prebooking view controller and trigger a reload
-                DispatchQueue.main.async {
-                    // Get fresh data
-                    let preBookings = sceneDelegate.dataController.getPreBookings()
-                    let preBookingEquipments = preBookings.compactMap { booking in
-                        sceneDelegate.dataController.getEquipment(byId: booking.equipmentID)
+                // Get the PrebookingViewController
+                if let prebookingVC = navController.viewControllers.first as? PrebookingViewController {
+                    // Update prebooking view controller and trigger a reload
+                    DispatchQueue.main.async {
+                        // Get fresh data
+                        let preBookings = sceneDelegate.dataController.getPreBookings()
+                        let preBookingEquipments = preBookings.compactMap { booking in
+                            sceneDelegate.dataController.getEquipment(byId: booking.equipmentID)
+                        }
+                        
+                        // Update the view controller
+                        prebookingVC.preBookings = preBookings
+                        prebookingVC.preBookingEquipments = preBookingEquipments
+                        
+                        // Reload collection view
+                        prebookingVC.collectionView.reloadData()
+                        
+                        // Auto-scrolling removed as requested
+                        // No longer automatically scrolling to prebookings section
                     }
-                    
-                    // Update the view controller
-                    prebookingVC.preBookings = preBookings
-                    prebookingVC.preBookingEquipments = preBookingEquipments
-                    
-                    // Reload collection view
-                    prebookingVC.collectionView.reloadData()
-                    
-                    // Scroll to prebookings section after a short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        prebookingVC.scrollToSectionHeader(section: PrebookingViewController.Section.prebookings.rawValue)
-                    }
+                } else {
+                    print("Error: PrebookingViewController not found in navigation stack")
                 }
+            } else {
+                print("Error: The selected tab is not a navigation controller")
             }
         } else {
             // Original home tab navigation for non-prebooking bookings

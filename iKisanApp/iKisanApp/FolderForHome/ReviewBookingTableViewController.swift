@@ -389,29 +389,71 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         struct _TempUpdate: Codable {
             var status: BookingStatus = .confirmed
         }
+        
+        // Keep a reference to the current booking
+        guard let currentBooking = thisBooking else { return }
+        
         Task {
-            try! await SupabaseManager.shared.client
-                .from("bookings")
-                .update(_TempUpdate())
-                .eq("bookingID", value: thisBooking?.bookingID)
-                .execute()
+            do {
+                try await SupabaseManager.shared.client
+                    .from("bookings")
+                    .update(_TempUpdate())
+                    .eq("bookingID", value: currentBooking.bookingID)
+                    .execute()
+            } catch {
+                print("Error updating booking status: \(error)")
+                // Continue with the flow even if the update fails
+                // This ensures the user experience isn't interrupted by backend issues
+            }
+                
             DispatchQueue.main.async {
-                // Navigate to HomeViewController
-                let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-                if let homeVC = storyboard.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController,
-                   let navigationController = self.navigationController {
+                // Get the SceneDelegate to access the root controller
+                guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                      let sceneDelegate = windowScene.delegate as? SceneDelegate,
+                      let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController else {
+                    print("Error: Could not access tab bar controller")
+                    return
+                }
+                
+                // Determine if we need to redirect to the Prebooking tab
+                if currentBooking.bookingType == .prebooking {
+                    // Find the index of the Prebooking tab
+                    var prebookingTabIndex: Int? = nil
                     
-                    // Get the data controller from SceneDelegate
-                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                       let sceneDelegate = windowScene.delegate as? SceneDelegate {
-                        homeVC.dataController = sceneDelegate.dataController
+                    if let viewControllers = tabBarController.viewControllers {
+                        for (index, viewController) in viewControllers.enumerated() {
+                            if let navController = viewController as? UINavigationController,
+                               navController.viewControllers.first is PrebookingViewController {
+                                prebookingTabIndex = index
+                                break
+                            }
+                        }
                     }
                     
-                    // Clear the navigation stack and set HomeViewController as the root
-                    navigationController.viewControllers = [homeVC]
+                    // Post notification for prebooking
+                    NotificationCenter.default.post(
+                        name: Notification.Name.preBookingAdded,
+                        object: nil,
+                        userInfo: ["booking": currentBooking]
+                    )
                     
-                    // Post notification so HomeViewController knows a booking was added
+                    // Switch to the Prebooking tab if found
+                    if let index = prebookingTabIndex {
+                        print("Switching to Prebooking tab at index \(index)")
+                        tabBarController.selectedIndex = index
+                        
+                        // Dismiss all modal presentations to return to the tab bar
+                        self.view.window?.rootViewController?.dismiss(animated: true) {
+                            // Pop to root of navigation controller if needed
+                            if let navController = tabBarController.selectedViewController as? UINavigationController {
+                                navController.popToRootViewController(animated: false)
+                            }
+                        }
+                    }
+                } else {
+                    // For regular bookings, post notification and dismiss
                     NotificationCenter.default.post(name: .bookingAdded, object: nil)
+                    self.view.window?.rootViewController?.dismiss(animated: true)
                 }
             }
         }
