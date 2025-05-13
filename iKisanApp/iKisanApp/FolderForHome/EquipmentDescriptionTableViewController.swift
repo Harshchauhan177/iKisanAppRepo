@@ -28,6 +28,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     var coEquipDetail: String?
     var location: String? = "Atta"
     var rating: String?
+    var providerName: String? = nil
     var bigImage : String?
     var smallImage1: String?
     var smallImage2: String?
@@ -268,6 +269,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         self.coEquipDetail = "\(equipment.coEquipDetail) For CoEquip"
         self.location = equipment.location
         self.rating = "\(equipment.rating)"
+        self.providerName = equipment.providerName ?? "Provider information unavailable"
         self.bigImage = equipment.equipmentImage
         self.smallImage1 = equipment.equipmentImage
         self.smallImage2 = equipment.equipmentImage
@@ -350,6 +352,9 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         locationLabel.text = location
         ratingLabel.text = rating
         
+        // Set the provider name
+        hostedByLabel.text = "Hosted by: \(providerName ?? "Provider information unavailable")"
+        
         // Safely handle image names with support for URLs
         if let bigImageName = bigImage, let imageView = bigImageView {
             // Check if image name is a URL
@@ -405,7 +410,14 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     
     @IBAction func bookButtonTapped(_ sender: UIButton) {
-        showBookingOptions()
+        // Check the booking source to determine the flow
+        if bookingSource == .prebooking {
+            // If coming from Prebooking tab, go directly to ReviewBooking with prebooking flow
+            navigateToReviewBooking()
+        } else {
+            // For other sources (like Home tab), show the booking options
+            showBookingOptions()
+        }
     }
     
     func showBookingOptions() {

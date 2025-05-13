@@ -451,9 +451,20 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
                         }
                     }
                 } else {
-                    // For regular bookings, post notification and dismiss
+                    // For regular bookings, navigate back to the Home tab (index 0)
+                    // Post notification first
                     NotificationCenter.default.post(name: .bookingAdded, object: nil)
-                    self.view.window?.rootViewController?.dismiss(animated: true)
+                    
+                    // Switch to Home tab
+                    tabBarController.selectedIndex = 0
+                    
+                    // Dismiss any modals and pop to root
+                    self.view.window?.rootViewController?.dismiss(animated: true) {
+                        // Pop to root of navigation controller
+                        if let navController = tabBarController.selectedViewController as? UINavigationController {
+                            navController.popToRootViewController(animated: false)
+                        }
+                    }
                 }
             }
         }
