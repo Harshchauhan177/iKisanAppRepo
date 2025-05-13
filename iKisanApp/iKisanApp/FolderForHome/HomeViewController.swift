@@ -437,6 +437,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             if let existingVC = navController.viewControllers.first(where: { $0 is CreateRequestViewController }) as? CreateRequestViewController {
                 existingVC.selectedSuggestion = selectedSuggestion
                 existingVC.dataController = self.dataController
+                existingVC.isFromHomeViewController = true
                 existingVC.applySearchFilter()
                 navController.popToViewController(existingVC, animated: true)
                 return
@@ -447,6 +448,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             if let createRequestVC = storyboard.instantiateViewController(withIdentifier: "CreateRequestViewController") as? CreateRequestViewController {
                 createRequestVC.dataController = self.dataController
                 createRequestVC.selectedSuggestion = self.selectedSuggestion
+                createRequestVC.isFromHomeViewController = true
                 navigationController?.pushViewController(createRequestVC, animated: true)
             }
         }

@@ -106,11 +106,39 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     func updateData() {
         guard let equipment = equipment else { return }
         
-        locationLabel.text = equipment.location
-        datePicker.date = selectedDate ?? Date()
+        // Safely unwrap IBOutlets to prevent crashes
+        if let locationLabel = locationLabel {
+            locationLabel.text = equipment.location
+        }
+        
+        if let datePicker = datePicker {
+            datePicker.date = selectedDate ?? Date()
+        }
+        
         pricePerHr = equipment.pricePerHour
         
-        // Update any other UI elements with equipment data
+        // Update price label if available
+        if let priceLabel = priceLabel {
+            priceLabel.text = "Price per hour: ₹\(pricePerHr)"
+        }
+    }
+    
+    // Configure the view controller with equipment data when coming from CreateRequestViewController
+    func configure(with equipment: Equipment, dataController: DataController, date: Date) {
+        self.equipment = equipment
+        self.selectedDate = date
+        self.bookingSource = .home // Set source to home when coming from HomeViewController search
+        
+        // Don't call updateData() here - it will be called when the view is loaded
+        // via the didSet observer on equipment, or in viewDidLoad if view is already loaded
+        if isViewLoaded {
+            updateData()
+        }
+        
+        // Initialize Razorpay if needed
+        if razorpay == nil {
+            razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
+        }
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -294,11 +322,23 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
                 .eq("bookingID", value: thisBooking?.bookingID)
                 .execute()
             DispatchQueue.main.async {
-                if let viewControllers = self.navigationController?.viewControllers, viewControllers.count >= 3 {
-                    let targetVC = viewControllers[viewControllers.count - 3]
-                    self.navigationController?.popToViewController(targetVC, animated: false)
+                // Navigate to HomeViewController
+                let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+                if let homeVC = storyboard.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController,
+                   let navigationController = self.navigationController {
+                    
+                    // Get the data controller from SceneDelegate
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let sceneDelegate = windowScene.delegate as? SceneDelegate {
+                        homeVC.dataController = sceneDelegate.dataController
+                    }
+                    
+                    // Clear the navigation stack and set HomeViewController as the root
+                    navigationController.viewControllers = [homeVC]
+                    
+                    // Post notification so HomeViewController knows a booking was added
+                    NotificationCenter.default.post(name: .bookingAdded, object: nil)
                 }
-
             }
         }
     }

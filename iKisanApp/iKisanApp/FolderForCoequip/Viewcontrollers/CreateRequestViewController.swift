@@ -14,6 +14,7 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
     @IBOutlet weak var searchBar: UISearchBar!
     
     var categories = ["Combine","Rice","Wheat","Soyabean","Irrigation","Other"]
+    var isFromHomeViewController = false
     var card:[Equipment]=[]
     var filteredCard: [Equipment] = []
     var numberOfColumns: CGFloat = 2
@@ -282,12 +283,28 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
                 showAlert(message: "System error: Please try again")
                 return
             }
-            let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
-            if let infoTableVC = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
-                infoTableVC.configure(with: selectedCard, 
-                                    dataController: dataController,
-                                    date: selectedDate ?? Date())
-                navigationController?.pushViewController(infoTableVC, animated: true)
+            
+            if isFromHomeViewController {
+                // Navigate to ReviewBookingTableViewController if search was started from HomeViewController
+                let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+                if let reviewBookingVC = storyboard.instantiateViewController(withIdentifier: "ReviewBookingTableViewController") as? ReviewBookingTableViewController {
+                    // Set required properties first, before configuring
+                    reviewBookingVC.equipment = selectedCard
+                    reviewBookingVC.selectedDate = selectedDate ?? Date()
+                    reviewBookingVC.bookingSource = .home
+                    
+                    // Then push the view controller and let it handle its own initialization
+                    navigationController?.pushViewController(reviewBookingVC, animated: true)
+                }
+            } else {
+                // Original flow - navigate to InfoTableViewController
+                let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
+                if let infoTableVC = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
+                    infoTableVC.configure(with: selectedCard, 
+                                        dataController: dataController,
+                                        date: selectedDate ?? Date())
+                    navigationController?.pushViewController(infoTableVC, animated: true)
+                }
             }
         }
     }
