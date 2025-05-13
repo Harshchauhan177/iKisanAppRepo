@@ -24,7 +24,15 @@ class UpcomingBookingsListCollectionViewCell: UICollectionViewCell {
     weak var delegate: UpcomingBookingsListCellDelegate?
     
     func updateCellData(with booking: Booking, equipment: Equipment) {
-        equipmentImageView.image = UIImage(named: equipment.equipmentImage)
+        // Check if the equipmentImage is a URL or a local asset name
+        if equipment.equipmentImage.hasPrefix("http") {
+            // It's a URL, use our ImageCache utility to load it
+            equipmentImageView.loadImage(from: equipment.equipmentImage)
+        } else {
+            // Fallback to local asset loading for backward compatibility
+            equipmentImageView.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
+        }
+        
         equipmentNameLabel.text = equipment.name
         equipmentImageView.layer.cornerRadius = 7
         let dateFormatter = DateFormatter()

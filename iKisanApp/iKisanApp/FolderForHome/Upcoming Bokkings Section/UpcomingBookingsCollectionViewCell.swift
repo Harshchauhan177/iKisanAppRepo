@@ -68,7 +68,14 @@ class UpcomingBookingsCollectionViewCell: UICollectionViewCell {
     func updateUpcomingBookingsData(with booking: Booking, equipment: Equipment) {
         // Safely unwrap IBOutlets to prevent crashes
         if let imgView = imageView {
-            imgView.image = UIImage(named: equipment.equipmentImage)
+            // Check if the equipmentImage is a URL or a local asset name
+            if equipment.equipmentImage.hasPrefix("http") {
+                // It's a URL, use our ImageCache utility to load it
+                imgView.loadImage(from: equipment.equipmentImage)
+            } else {
+                // Fallback to local asset loading for backward compatibility
+                imgView.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
+            }
             imgView.layer.cornerRadius = 7
         }
         

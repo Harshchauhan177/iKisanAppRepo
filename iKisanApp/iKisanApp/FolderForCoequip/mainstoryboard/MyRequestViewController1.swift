@@ -25,7 +25,14 @@ class MyRequestViewController1: UIViewController {
         super.viewDidLoad()
         if let request = request,
            let equipment = dataController?.getEquipmentById(request.equipmentId) {
-            equipmentImageLabel.image = UIImage(named: equipment.equipmentImage)
+            // Check if the equipmentImage is a URL or a local asset name
+            if equipment.equipmentImage.hasPrefix("http") {
+                // It's a URL, use our ImageCache utility to load it
+                equipmentImageLabel.loadImage(from: equipment.equipmentImage)
+            } else {
+                // Fallback to local asset loading for backward compatibility
+                equipmentImageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
+            }
             equipmentTitleLabel.text = equipment.name
             hostNameLabel.text = "Ram Pal"//equipment.providerID.uuidString
             currentAreaLabel.text = "\(request.area) acres"

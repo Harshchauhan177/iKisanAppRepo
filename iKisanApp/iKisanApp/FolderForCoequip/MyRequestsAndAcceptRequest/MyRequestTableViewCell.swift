@@ -22,9 +22,15 @@ class MyRequestTableViewCell: UITableViewCell {
     }
 
     func configure(with equipment: Equipment, request: Request) {
-        if let image = UIImage(named: equipment.equipmentImage) {
-            EquipmentImageLabel.image = image
-        } 
+        // Check if the equipmentImage is a URL or a local asset name
+        if equipment.equipmentImage.hasPrefix("http") {
+            // It's a URL, use our ImageCache utility to load it
+            EquipmentImageLabel.loadImage(from: equipment.equipmentImage)
+        } else {
+            // Fallback to local asset loading for backward compatibility
+            EquipmentImageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
+        }
+        
         EquipmentTitleLabel.text = equipment.name
         LocationLabel.text = equipment.location
         let dateFormatter = DateFormatter()

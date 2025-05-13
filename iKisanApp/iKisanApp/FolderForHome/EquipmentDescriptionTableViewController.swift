@@ -350,18 +350,49 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         locationLabel.text = location
         ratingLabel.text = rating
         
-        // Safely handle image names
-        if let bigImageName = bigImage {
-            bigImageView.image = UIImage(named: bigImageName)
+        // Safely handle image names with support for URLs
+        if let bigImageName = bigImage, let imageView = bigImageView {
+            // Check if image name is a URL
+            if bigImageName.hasPrefix("http") {
+                // It's a URL, use our ImageCache utility to load it
+                imageView.loadImage(from: bigImageName)
+            } else {
+                // Local asset
+                imageView.image = UIImage(named: bigImageName) ?? UIImage(named: "placeholder_image")
+            }
         }
-        if let smallImage1Name = smallImage1 {
-            smallImageView1.image = UIImage(named: smallImage1Name)
+        
+        if let smallImage1Name = smallImage1, let imageView = smallImageView1 {
+            // Check if image name is a URL
+            if smallImage1Name.hasPrefix("http") {
+                // It's a URL, use our ImageCache utility to load it
+                imageView.loadImage(from: smallImage1Name)
+            } else {
+                // Local asset
+                imageView.image = UIImage(named: smallImage1Name) ?? UIImage(named: "placeholder_image")
+            }
         }
-        if let smallImage2Name = smallImage2 {
-            smallImageView2.image = UIImage(named: smallImage2Name)
+        
+        if let smallImage2Name = smallImage2, let imageView = smallImageView2 {
+            // Check if image name is a URL
+            if smallImage2Name.hasPrefix("http") {
+                // It's a URL, use our ImageCache utility to load it
+                imageView.loadImage(from: smallImage2Name)
+            } else {
+                // Local asset
+                imageView.image = UIImage(named: smallImage2Name) ?? UIImage(named: "placeholder_image")
+            }
         }
-        if let smallImage3Name = smallImage3 {
-            smallImageView3.image = UIImage(named: smallImage3Name)
+        
+        if let smallImage3Name = smallImage3, let imageView = smallImageView3 {
+            // Check if image name is a URL
+            if smallImage3Name.hasPrefix("http") {
+                // It's a URL, use our ImageCache utility to load it
+                imageView.loadImage(from: smallImage3Name)
+            } else {
+                // Local asset
+                imageView.image = UIImage(named: smallImage3Name) ?? UIImage(named: "placeholder_image")
+            }
         }
         
         moreLabel.text = "+ \(more)"

@@ -70,7 +70,14 @@ class preBookingEquipmentSectionAddPreBookCollectionViewCell: UICollectionViewCe
     func configure(with equipment: Equipment) {
         // Safely unwrap IBOutlets to prevent crashes
         if let imageView = equipmentImageView {
-            imageView.image = UIImage(named: equipment.equipmentImage)
+            // Check if the equipmentImage is a URL or a local asset name
+            if equipment.equipmentImage.hasPrefix("http") {
+                // It's a URL, use our ImageCache utility to load it
+                imageView.loadImage(from: equipment.equipmentImage)
+            } else {
+                // Fallback to local asset loading for backward compatibility
+                imageView.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
+            }
             imageView.layer.cornerRadius = 8
             imageView.clipsToBounds = true
         }

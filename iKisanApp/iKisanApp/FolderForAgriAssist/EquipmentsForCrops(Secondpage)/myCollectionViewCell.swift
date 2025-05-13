@@ -26,11 +26,19 @@ class myCollectionViewCell: UICollectionViewCell {
     
     func configure(with equipment: EquipmentAgri) {
         myEquipmentsName.text = equipment.name
-        if let image = UIImage(named: equipment.imageName) {
-            myEquipmentImage.image = image
+        
+        // Check if imageName is a URL or a local asset name
+        if equipment.imageName.hasPrefix("http") {
+            // It's a URL, use our ImageCache utility to load it
+            myEquipmentImage.loadImage(from: equipment.imageName)
         } else {
-            print("Warning: Image not found for \(equipment.imageName)")
-            myEquipmentImage.image = UIImage(named: "placeholder_image") // Use a placeholder
+            // Fallback to local asset loading for backward compatibility
+            if let image = UIImage(named: equipment.imageName) {
+                myEquipmentImage.image = image
+            } else {
+                print("Warning: Image not found for \(equipment.imageName)")
+                myEquipmentImage.image = UIImage(named: "placeholder_image") // Use a placeholder
+            }
         }
     }
 }
