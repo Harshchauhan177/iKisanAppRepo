@@ -55,6 +55,9 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Setup Dynamic Text support
+        setupDynamicTextSupport()
+        
         // Configure UI based on modification mode
         configureUIForModification()
         
@@ -77,6 +80,56 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         
         fieldAreaTextField.delegate = self
         setUpMenus()
+    }
+    
+    private func setupDynamicTextSupport() {
+        // Register for content size category changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contentSizeCategoryDidChange),
+            name: UIContentSizeCategory.didChangeNotification,
+            object: nil
+        )
+        
+        // Apply dynamic text settings to all labels
+        applyDynamicTextStyles()
+    }
+    
+    private func applyDynamicTextStyles() {
+        // Map of labels to their base font sizes and styles
+        let labelConfigs: [(UILabel?, CGFloat, UIFont.Weight, UIFont.TextStyle)] = [
+            // Labels with their size, weight, and text style
+            (locationLabel, 16, .regular, .body),
+            (timeSlotDisplayOutlet, 16, .regular, .body),
+            (priceLabel, 16, .semibold, .headline)
+        ]
+        
+        // Apply settings to each label
+        for (label, size, weight, style) in labelConfigs {
+            if let lbl = label {
+                // Enable dynamic type adjustment
+                lbl.adjustsFontForContentSizeCategory = true
+                
+                // Create a base font of appropriate size and weight
+                let baseFont = UIFont.systemFont(ofSize: size, weight: weight)
+                
+                // Use UIFontMetrics to get a properly scaled version
+                lbl.font = UIFontMetrics(forTextStyle: style).scaledFont(for: baseFont)
+            }
+        }
+        
+        // Configure text field with dynamic type
+        if let textField = fieldAreaTextField {
+            textField.adjustsFontForContentSizeCategory = true
+            let baseFont = UIFont.systemFont(ofSize: 16, weight: .regular)
+            textField.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
+        }
+    }
+    
+    @objc private func contentSizeCategoryDidChange() {
+        // When text size changes, reapply the styles and reload
+        applyDynamicTextStyles()
+        tableView.reloadData() // Reload the table to adjust cell heights
     }
     
     private func configureUIForModification() {
@@ -106,7 +159,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     func updateData() {
         guard let equipment = equipment else { return }
         
-        // Safely unwrap IBOutlets to prevent crashes
+        // Safely unwrap all IBOutlets to prevent crashes
         if let locationLabel = locationLabel {
             locationLabel.text = equipment.location
         }
@@ -120,6 +173,27 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         // Update price label if available
         if let priceLabel = priceLabel {
             priceLabel.text = "Price per hour: ₹\(pricePerHr)"
+        }
+        
+        // Safely update time slot display if available
+        if let timeSlotDisplay = timeSlotDisplayOutlet {
+            // Set default time slot if not already set
+            if timeSlotDisplay.text?.isEmpty ?? true {
+                timeSlotDisplay.text = timeSlot.first ?? "Morning"
+            }
+        }
+        
+        // Safely configure buttons
+        if let proceedButton = proceedToPay {
+            proceedButton.titleLabel?.adjustsFontForContentSizeCategory = true
+            let buttonFont = UIFont.systemFont(ofSize: 17, weight: .semibold)
+            proceedButton.titleLabel?.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: buttonFont)
+        }
+        
+        if let modifyButton = modifyButton {
+            modifyButton.titleLabel?.adjustsFontForContentSizeCategory = true
+            let buttonFont = UIFont.systemFont(ofSize: 17, weight: .semibold)
+            modifyButton.titleLabel?.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: buttonFont)
         }
     }
     
@@ -356,11 +430,18 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         super.viewDidAppear(animated)
 
         // Apply shadow to the whole table view
-        tableViewR.layer.shadowColor = UIColor.black.cgColor
-        tableViewR.layer.shadowOpacity = 0.2
-        tableViewR.layer.shadowOffset = CGSize(width: 0, height: 3)
-        tableViewR.layer.shadowRadius = 8
-        tableViewR.layer.masksToBounds = false
-        tableViewR.layer.cornerRadius = 13  // Matches your UI style
+        if let tableViewR = tableViewR {
+            tableViewR.layer.shadowColor = UIColor.black.cgColor
+            tableViewR.layer.shadowOpacity = 0.2
+            tableViewR.layer.shadowOffset = CGSize(width: 0, height: 3)
+            tableViewR.layer.shadowRadius = 8
+            tableViewR.layer.masksToBounds = false
+            tableViewR.layer.cornerRadius = 13  // Matches your UI style
+        }
+    }
+    
+    deinit {
+        // Remove notification observer when view controller is deallocated
+        NotificationCenter.default.removeObserver(self)
     }
 }

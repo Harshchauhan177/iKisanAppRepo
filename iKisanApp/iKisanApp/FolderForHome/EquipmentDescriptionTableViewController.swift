@@ -152,28 +152,109 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     }
     
     private func setupUI() {
-        bigView.layer.cornerRadius = 10
-        bigView.applyCardShadow()
-        ratingView.layer.cornerRadius = 17
-        //ratingView.applyCardShadow()
-        bigImageView.layer.cornerRadius = 10
-        smallImageView1.layer.cornerRadius = 7
-        smallImageView2.layer.cornerRadius = 7
-        smallImageView3.layer.cornerRadius = 7
-        moreView.layer.cornerRadius = 7
-       // moreView.applyCardShadow()
+        // Safe unwrapping of UIView components to apply styling
+        if let bView = bigView {
+            bView.layer.cornerRadius = 10
+            bView.applyCardShadow()
+        }
         
-        collectionView.delegate = self
-        collectionView.dataSource = self
+        if let rView = ratingView {
+            rView.layer.cornerRadius = 17
+            //ratingView.applyCardShadow()
+        }
         
-        //  collection view layout
-        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
-            layout.minimumLineSpacing = 20
+        // Safe unwrapping of UIImageViews to set corner radius
+        if let bigImg = bigImageView {
+            bigImg.layer.cornerRadius = 10
+        }
+        
+        if let smallImg1 = smallImageView1 {
+            smallImg1.layer.cornerRadius = 10
+        }
+        
+        if let smallImg2 = smallImageView2 {
+            smallImg2.layer.cornerRadius = 10
+        }
+        
+        if let smallImg3 = smallImageView3 {
+            smallImg3.layer.cornerRadius = 10
+        }
+        
+        if let mView = moreView {
+            mView.layer.cornerRadius = 10
+        }
+        
+        // Configure Dynamic Text for all labels
+        configureForDynamicType()
+        
+        // Configure collection view
+        if let collectionView = collectionView {
+            collectionView.delegate = self
+            collectionView.dataSource = self
+            // Create a layout for horizontal scrolling
+            let layout = UICollectionViewFlowLayout()
             layout.scrollDirection = .horizontal
             layout.minimumInteritemSpacing = 0
             layout.sectionInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 16)
             collectionView.isPagingEnabled = true
         }
+    }
+    
+    // Configure Dynamic Text support for all labels
+    private func configureForDynamicType() {
+        // Register for content size category changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contentSizeCategoryDidChange),
+            name: UIContentSizeCategory.didChangeNotification,
+            object: nil
+        )
+        
+        // Apply dynamic text settings to all labels
+        setDynamicTextStyles()
+    }
+    
+    private func setDynamicTextStyles() {
+        // Map of labels to their base font sizes and styles
+        // Using a dictionary to store label configurations
+        let labelConfigs: [(UILabel?, CGFloat, UIFont.Weight, UIFont.TextStyle)] = [
+            // Main equipment information - (label, size, weight, style)
+            (equipmentNameLabel, 17, .bold, .headline),
+            (discountedPriceHrLabel, 16, .semibold, .headline),
+            (realPriceHrLabel, 14, .regular, .subheadline),
+            (discountedPriceAcLabel, 16, .semibold, .headline),
+            (realPriceAcLabel, 14, .regular, .subheadline),
+            (coEquipDetailLabel, 14, .regular, .body),
+            (locationLabel, 14, .regular, .body),
+            (ratingLabel, 14, .regular, .body),
+            (moreLabel, 12, .regular, .caption1),
+            (ratingOutOf5Label, 16, .bold, .headline),
+            (equipmentLocationDetailedLabel, 14, .regular, .body),
+            (modelLabel, 14, .regular, .body),
+            (capacityLabel, 14, .regular, .body),
+            (mileageLabel, 14, .regular, .body),
+            (hostedByLabel, 14, .regular, .body)
+        ]
+        
+        // Apply settings to each label
+        for (label, size, weight, style) in labelConfigs {
+            if let lbl = label {
+                // Enable dynamic type adjustment
+                lbl.adjustsFontForContentSizeCategory = true
+                
+                // Create a base font of appropriate size and weight
+                let baseFont = UIFont.systemFont(ofSize: size, weight: weight)
+                
+                // Use UIFontMetrics to get a properly scaled version
+                lbl.font = UIFontMetrics(forTextStyle: style).scaledFont(for: baseFont)
+            }
+        }
+    }
+    
+    @objc private func contentSizeCategoryDidChange() {
+        // When text size changes, just reapply the styles and reload
+        setDynamicTextStyles()
+        tableView.reloadData() // Reload the table to adjust cell heights
     }
     
     func configure(with equipment: Equipment) {
@@ -387,4 +468,8 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         performSegue(withIdentifier: "MoreImageView", sender: self)
     }
     
+    deinit {
+        // Remove notification observer when view controller is deallocated
+        NotificationCenter.default.removeObserver(self)
+    }
 }
