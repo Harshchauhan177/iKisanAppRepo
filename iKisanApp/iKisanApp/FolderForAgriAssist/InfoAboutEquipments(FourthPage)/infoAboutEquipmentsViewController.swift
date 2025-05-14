@@ -27,6 +27,34 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
         setupNavigationBar()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            loadData()
+            
+            Task {
+                self.equipmentTypeDetails = try! await SupabaseManager.shared.client
+                    .from("equipmentAgri")
+                    .select("*")
+                    .eq("id", value: selectedEquipmentId)
+                    .execute()
+                    .value
+                if self.equipmentTypeDetails.count > 0 {
+                    let categoryId = self.equipmentTypeDetails[0].categoryId
+                    
+                    self.relatedEquipment = try! await SupabaseManager.shared.client
+                        .from("equipmentAgri")
+                        .select()
+                        .eq("categoryId", value: categoryId)
+                        .neq("id", value: selectedEquipmentId)
+                        .execute()
+                        .value
+                }
+                
+                DispatchQueue.main.async {
+                    self.collectionView.reloadData()
+                }
+            }
+        }
    
     
     private func setupNavigationBar() {
