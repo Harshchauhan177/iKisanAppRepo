@@ -17,6 +17,7 @@ class SameTypeAllEquipmentsViewController: UIViewController,UICollectionViewDele
     var selectedCategoryId: UUID!
     var equipments: [EquipmentAgri] = []
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         

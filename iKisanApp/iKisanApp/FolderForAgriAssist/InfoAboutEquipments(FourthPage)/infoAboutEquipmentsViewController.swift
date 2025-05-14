@@ -16,10 +16,9 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
     private var sectionHeaders: [String] = []
     private var equipmentTypeDetails: [EquipmentAgri] = []
     private var relatedEquipment: [EquipmentAgri] = []
-
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+         
         print("InfoAboutEquipments - viewDidLoad")
         print("DataController: \(dataController != nil ? "exists" : "nil")")
         print("SelectedEquipmentId: \(selectedEquipmentId?.uuidString ?? "nil")")
@@ -28,10 +27,7 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
         setupNavigationBar()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        loadData()
-    }
+   
     
     private func setupNavigationBar() {
         navigationItem.leftBarButtonItem = UIBarButtonItem(

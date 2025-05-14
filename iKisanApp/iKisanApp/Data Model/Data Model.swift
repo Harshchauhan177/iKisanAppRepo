@@ -255,13 +255,18 @@ struct CropCategory {
     var equipments: [EquipmentCategory]
 }
 
-struct EquipmentCategory {
+struct EquipmentCategory: Codable, Sendable {
     let id: UUID
     var title: String
-    var equipmentList: [EquipmentAgri]
+    var equipmentList: [EquipmentAgri] = []
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+    }
 }
 
-struct EquipmentAgri {
+struct EquipmentAgri: Codable, Sendable {
     let id: UUID
     let categoryId: UUID
     var name: String

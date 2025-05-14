@@ -16,6 +16,7 @@ class EquipmentsForCropsViewController: UIViewController,UITableViewDelegate,UIT
     var selectedCropId: UUID!
     private var equipmentCategories: [EquipmentCategory] = []
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
