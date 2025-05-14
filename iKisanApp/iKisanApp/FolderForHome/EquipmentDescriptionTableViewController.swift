@@ -13,10 +13,22 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     var bookingSource: BookingSource!
     
+    // Add property to store selected date
+    var selectedDate: Date?
+    
+    var dataController: DataController? {
+        didSet {
+            if isViewLoaded {
+                refreshReviews()
+            }
+        }
+    }
+    
     var equipment: Equipment? {
         didSet {
             if isViewLoaded, let equipment = equipment {
                 configure(with: equipment)
+                refreshReviews()
             }
         }
     }
@@ -96,7 +108,6 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     @IBOutlet var mileageLabel: UILabel!
     
     private var reviews: [ReviewData] = []
-    private var dataController: DataController?
     private var filteredReviews: [ReviewData] = []
     
     override func viewDidLoad() {
@@ -106,49 +117,17 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
             configure(with: equipment)
         }
         
-        // Initialize dataController if needed
-        dataController = IKisanDataController()
+        // Initialize dataController only if it hasn't been injected
+        if dataController == nil {
+            dataController = IKisanDataController()
+        }
+        
+        refreshReviews()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        // Refresh reviews when view appears
-        if let equipment = equipment {
-            print("Filtering reviews for equipment: \(equipment.name)")
-            
-            // Get all available reviews
-            let allReviews = ReviewDataClass.reviews
-            print("Total reviews available: \(allReviews.count)")
-            
-            // Filter reviews for this equipment (by name since IDs might not match)
-            filteredReviews = allReviews.filter { review in
-                // If we have equipmentID, use that for matching
-                if let reviewEquipmentID = review.equipmentID {
-                    let equipmentID = equipment.equipmentID.uuidString
-                    return reviewEquipmentID == equipmentID
-                }
-                
-                // Otherwise use the equipment name (case insensitive)
-                if let reviewEquipmentName = review.equipmentName {
-                    return reviewEquipmentName.lowercased() == equipment.name.lowercased()
-                }
-                
-                // For now, if name is "Square Balers", show all reviews as a fallback
-                if equipment.name.contains("Square Balers") {
-                    return true
-                }
-                
-                return false
-            }
-            
-            print("Filtered reviews for \(equipment.name): \(filteredReviews.count)")
-            
-            // Reload the collection view to show reviews
-            DispatchQueue.main.async {
-                self.collectionView.reloadData()
-            }
-        }
+        refreshReviews()
     }
     
     private func setupUI() {
@@ -355,10 +334,23 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         if let viewController = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
             // Pass the equipment data
             viewController.cardData = equipment
+            
+            // CRITICAL: Pass the selected date if available
+            if let date = selectedDate {
+                print("📅 Passing selected date from EquipmentDescVC to InfoTableVC: \(date)")
+                viewController.setDate(date)
+            } else {
+                print("⚠️ No selected date in EquipmentDescVC, using current date")
+            }
+            
             // Set the data controller if needed
             if let dataController = (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.dataController {
                 viewController.dataController = dataController
             }
+            
+            // Configure after setting up all properties
+            viewController.configure(with: equipment, dataController: viewController.dataController ?? dataController!, date: selectedDate ?? Date())
+            
             navigationController?.pushViewController(viewController, animated: true)
         }
     }
@@ -387,4 +379,47 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         performSegue(withIdentifier: "MoreImageView", sender: self)
     }
     
+    private func refreshReviews() {
+        guard let equipment = equipment else { return }
+        
+        print("Filtering reviews for equipment: \(equipment.name)")
+        
+        // Get all available reviews from dataController if possible
+        var allReviews: [ReviewData] = []
+        if let dataController = dataController {
+            allReviews = dataController.getAllReviews()
+        } else {
+            allReviews = ReviewDataClass.reviews
+        }
+        
+        print("Total reviews available: \(allReviews.count)")
+        
+        // Filter reviews for this equipment (by name since IDs might not match)
+        filteredReviews = allReviews.filter { review in
+            // If we have equipmentID, use that for matching
+            if let reviewEquipmentID = review.equipmentID {
+                let equipmentID = equipment.equipmentID.uuidString
+                return reviewEquipmentID == equipmentID
+            }
+            
+            // Otherwise use the equipment name (case insensitive)
+            if let reviewEquipmentName = review.equipmentName {
+                return reviewEquipmentName.lowercased() == equipment.name.lowercased()
+            }
+            
+            // For now, if name is "Square Balers", show all reviews as a fallback
+            if equipment.name.contains("Square Balers") {
+                return true
+            }
+            
+            return false
+        }
+        
+        print("Filtered reviews for \(equipment.name): \(filteredReviews.count)")
+        
+        // Reload the collection view to show reviews
+        DispatchQueue.main.async {
+            self.collectionView.reloadData()
+        }
+    }
 }

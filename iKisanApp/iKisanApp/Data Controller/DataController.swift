@@ -10,7 +10,33 @@ class SupabaseManager {
     public private(set) var client: SupabaseClient
     
     private init() {
+        print("🔌 Initializing SupabaseManager...")
+        print("🌐 URL: \(url)")
+        print("🔑 Key length: \(key.count) characters")
+        
         self.client = SupabaseClient(supabaseURL: URL(string: url)!, supabaseKey: key)
+        print("✅ SupabaseClient initialized")
+        
+        // Verify connection immediately
+        Task {
+            do {
+                print("🔄 Verifying database connection...")
+                let _: [UserDTO] = try await client
+                    .from("users")
+                    .select("*")
+                    .limit(1)
+                    .execute()
+                    .value
+                print("✅ Database connection verified successfully")
+            } catch {
+                print("❌ Database connection test failed: \(error)")
+                if let postgrestError = error as? PostgrestError {
+                    print("🔍 Connection error details:")
+                    print("  - Code: \(postgrestError.code ?? "nil")")
+                    print("  - Message: \(postgrestError.message ?? "nil")")
+                }
+            }
+        }
     }
 }
 
@@ -112,6 +138,9 @@ class IKisanDataController: DataController {
     
     // Add a property to store FAQs
     private var faqsList: [FAQ] = []
+    
+    // Add a property to store cached users
+    private var cachedUsers: [User] = []
     
     // Static IDs for all entities
     // Crop IDs
@@ -435,13 +464,31 @@ class IKisanDataController: DataController {
     }
     
     func addNewCoEquipRequest(_ request: Request) {
+        print("🔄 Starting to add new request...")
+        print("📝 Request details:")
+        print("  - ID: \(request.id)")
+        print("  - User ID: \(request.userId)")
+        print("  - Equipment ID: \(request.equipmentId)")
+        print("  - Date: \(request.requestedDate)")
+        print("  - Area: \(request.area)")
+        print("  - Location: \(request.location)")
+        
         if !coEquipRequests.contains(where: { $0.id == request.id }) {
             coEquipRequests.append(request)
+            print("✅ Request added to local array")
             
             // Save to backend
             Task {
-                _ = await requestManager.createRequest(request)
+                print("📤 Saving request to Supabase...")
+                let success = await requestManager.createRequest(request)
+                if success {
+                    print("✅ Request successfully saved to Supabase")
+                } else {
+                    print("❌ Failed to save request to Supabase")
+                }
             }
+        } else {
+            print("⚠️ Request with ID \(request.id) already exists")
         }
     }
     
@@ -513,26 +560,30 @@ class IKisanDataController: DataController {
     }
     
     func getCoEquipUsers() -> [User] {
-        var users: [User] = []
+        // If we have cached users, return them immediately
+        if !cachedUsers.isEmpty {
+            return cachedUsers
+        }
         
-        // Load users from backend if needed
-        if users.isEmpty {
-            Task {
-                users = await requestManager.fetchAllUsers()
+        // Otherwise, fetch users asynchronously and return an empty array for now
+        Task {
+            let fetchedUsers = await requestManager.fetchAllUsers()
+            // Update cached users on the main thread
+            await MainActor.run {
+                self.cachedUsers = fetchedUsers
+                print("Loaded \(fetchedUsers.count) users from database")
+                // Notify any listeners that users have been loaded
+                NotificationCenter.default.post(name: .usersLoaded, object: nil)
             }
         }
         
-        return users
+        return []
     }
     
     func getEquipmentSuggestions() -> [String] {
-        return [
-            "Harvester", "Rice Harvester", "Wheat Harvester",
-            "Sugarcane Harvester", "Tractor", "Mini Tractor",
-            "Farm Tractor", "Plough", "Rotavator", "Cultivator",
-            "Sprayer", "Seeder", "Thresher", "Potato Harvester",
-            "Cotton Picker"
-        ]
+        // Get unique equipment names from the equipmentList
+        let suggestions = Set(equipmentList.map { $0.name })
+        return Array(suggestions).sorted()
     }
     
     func filterEquipment(by query: String) -> [Equipment] {
@@ -864,14 +915,37 @@ class RequestManager {
     
     func fetchAllUsers() async -> [User] {
         do {
-            let data: [UserDTO] = try await SupabaseManager.shared.client
+            print("🔄 Starting fetchAllUsers from Supabase...")
+            
+            // Verify auth state
+            if let session = try? await SupabaseManager.shared.client.auth.session {
+                print("✅ User is authenticated with ID: \(session.user.id)")
+            } else {
+                print("⚠️ No active session found")
+                return []
+            }
+            
+            print("📝 Querying 'users' table with select *")
+            
+            // Use PostgrestResponse to get typed response
+            let response: PostgrestResponse<[UserDTO]> = try await SupabaseManager.shared.client
                 .from("users")
                 .select("*")
                 .execute()
-                .value
             
-            return data.map { dto in
-                User(
+            // Debug the raw response
+            print("📊 Raw response type: \(type(of: response.data))")
+            
+            guard let users = try? response.value else {
+                print("❌ Failed to get users from response")
+                return []
+            }
+            
+            print("📊 Received \(users.count) users")
+            
+            // Convert DTOs to User models
+            let mappedUsers = users.map { dto in
+                let user = User(
                     userID: UUID(uuidString: dto.id) ?? UUID(),
                     name: dto.name,
                     email: dto.email,
@@ -883,11 +957,30 @@ class RequestManager {
                     ),
                     selectedCrops: dto.selectedCrops.compactMap { UUID(uuidString: $0) },
                     fieldArea: dto.fieldArea,
-                    groupID: dto.groupId != nil ? UUID(uuidString: dto.groupId!) : nil
+                    groupID: dto.groupId.flatMap { UUID(uuidString: $0) }
                 )
+                print("👤 Mapped user: \(user.name) (ID: \(user.userID))")
+                return user
             }
+            
+            print("✅ Successfully mapped \(mappedUsers.count) users")
+            return mappedUsers
+            
         } catch {
-            print("Error fetching all users: \(error)")
+            print("❌ Error fetching users: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("🔍 PostgrestError details:")
+                print("  - Code: \(postgrestError.code ?? "nil")")
+                print("  - Message: \(postgrestError.message ?? "nil")")
+                print("  - Hint: \(postgrestError.hint ?? "nil")")
+                print("  - Details: \(postgrestError.detail ?? "nil")")
+                
+                // Check if this is an auth error
+                if postgrestError.code == "PGRST301" || 
+                    (postgrestError.message.contains("JWT") ?? false) {
+                    print("🔐 Authentication error detected. User may need to re-login.")
+                }
+            }
             return []
         }
     }
@@ -1187,6 +1280,9 @@ class RequestManager {
     
     func createRequest(_ request: Request) async -> Bool {
         do {
+            print("🔄 Creating request in Supabase...")
+            print("📝 Converting to DTO...")
+            
             let dto = RequestDTO(
                 id: request.id,
                 userId: request.userId,
@@ -1203,14 +1299,21 @@ class RequestManager {
                 joinedFarmers: request.joinedFarmers
             )
             
-            try await SupabaseManager.shared.client
+            print("📤 Sending to Supabase...")
+            print("Table: requests")
+            print("Data: \(dto)")
+            
+            let response = try await SupabaseManager.shared.client
                 .from("requests")
                 .insert(dto)
                 .execute()
             
+            print("✅ Request successfully created in Supabase")
+            print("📊 Response: \(response)")
             return true
         } catch {
-            print("Error creating request: \(error)")
+            print("❌ Error creating request in Supabase: \(error)")
+            print("Error details: \(error.localizedDescription)")
             return false
         }
     }
@@ -1413,9 +1516,42 @@ struct UserDTO: Codable {
     let latitude: Double
     let longitude: Double
     let address: String?
-    let selectedCrops: [String]
     let fieldArea: Double
     let groupId: String?
+    let selectedCrops: [String]
+    let created_at: Date?
+    let updated_at: Date?
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "userID"  // Match the exact column name in Supabase
+        case name
+        case email
+        case phone
+        case latitude
+        case longitude
+        case address
+        case fieldArea = "fieldArea"  // Match the exact case in Supabase
+        case groupId = "groupID"  // Match the exact case in Supabase
+        case selectedCrops = "selectedCrops"  // Match the exact case in Supabase
+        case created_at
+        case updated_at
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        email = try container.decode(String.self, forKey: .email)
+        phone = try container.decode(String.self, forKey: .phone)
+        latitude = try container.decode(Double.self, forKey: .latitude)
+        longitude = try container.decode(Double.self, forKey: .longitude)
+        address = try container.decodeIfPresent(String.self, forKey: .address)
+        fieldArea = try container.decode(Double.self, forKey: .fieldArea)
+        groupId = try container.decodeIfPresent(String.self, forKey: .groupId)
+        selectedCrops = try container.decodeIfPresent([String].self, forKey: .selectedCrops) ?? []
+        created_at = try container.decodeIfPresent(Date.self, forKey: .created_at)
+        updated_at = try container.decodeIfPresent(Date.self, forKey: .updated_at)
+    }
 }
 
 struct BookingDTO: Codable {
@@ -1486,6 +1622,7 @@ struct CropEquipmentMappingDTO: Codable {
 extension Notification.Name {
     static let requestDeleted = Notification.Name("requestDeleted")
     static let bookingAdded = Notification.Name("bookingAdded")
+    static let usersLoaded = Notification.Name("usersLoaded")
 }
 
 //
