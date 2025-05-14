@@ -28,6 +28,28 @@ class ExploreMoreCollectionViewCell: UICollectionViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         configureForDynamicType()
+        
+        // Ensure button is properly set up for interaction and positioned above any overlays
+        fixButtonAccessibility()
+    }
+    
+    private func fixButtonAccessibility() {
+        // If there's a fader view, ensure it doesn't block the button
+        if let faderView = self.faderView {
+            // Make sure the fader view doesn't block user interaction
+            faderView.isUserInteractionEnabled = false
+            
+            // Find the Book Now button in the hierarchy by looking for views with action handlers
+            for subview in self.contentView.subviews where subview is UIButton {
+                if let button = subview as? UIButton {
+                    // Bring the button to the front of the view hierarchy
+                    contentView.bringSubviewToFront(button)
+                    // Ensure it's enabled and user-interactive
+                    button.isEnabled = true
+                    button.isUserInteractionEnabled = true
+                }
+            }
+        }
     }
     
     private func configureForDynamicType() {
@@ -103,6 +125,10 @@ class ExploreMoreCollectionViewCell: UICollectionViewCell {
         if let rating = ratingLabel {
             rating.text = "⭐️\(equipment.rating)"
         }
+        
+        // Apply the button accessibility fix again after data update
+        // This ensures any dynamic UI changes don't affect button accessibility
+        fixButtonAccessibility()
     }
 
    
