@@ -200,13 +200,24 @@ class preBookingCalanderCollectionViewCell: UICollectionViewCell {
     
     // Update availability check for multiple equipment
     private func areAllEquipmentsAvailable(on date: Date) -> Bool {
+        // If no equipment has been explicitly searched for, don't show any availability
         guard !availableEquipments.isEmpty else { return false }
+        
+        // If we have default/initial equipment (not from search), don't show availability
+        if availableEquipments.count == 1 && availableEquipments[0].name == "Equipment Name" {
+            return false
+        }
         
         // Get start of day for better comparison
         let startOfDay = Calendar.current.startOfDay(for: date)
         
-        // Check if any of the equipment is available on this date 
+        // Check if any of the equipment is available on this date
         return availableEquipments.contains { equipment in
+            // Skip placeholder/default equipment to prevent showing green dots for them
+            if equipment.name == "Equipment Name" || equipment.equipmentImage == "placeholder_image" {
+                return false
+            }
+            
             // Use the equipment's availability dates from Supabase
             let isAvailable = equipment.isAvailable(on: startOfDay)
             
@@ -244,14 +255,30 @@ extension preBookingCalanderCollectionViewCell: UICalendarViewDelegate {
         // Only return nil (no decoration) for past dates
         if date < today { return nil }
         
+        // Skip decorations entirely if we have no properly searched equipment
+        // This prevents showing decorations when no equipment has been searched for
+        guard !availableEquipments.isEmpty,
+              !(availableEquipments.count == 1 && availableEquipments[0].name == "Equipment Name") else {
+            return nil
+        }
+        
         // Check equipment availability for this date
         let hasPreBooking = prebookingDates.contains(startOfDay)
         let isEquipmentAvailable = areAllEquipmentsAvailable(on: date)
         
         // Ensure date is visible (not faded) by overriding appearance
-        // Force font weight and opacity for dates with equipment availability
-        // This will ensure they never appear faded, regardless of calendar's default behavior
         calendarView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        
+        // Only show decorations when we have valid equipment data
+        // and at least one real, non-placeholder equipment
+        let hasRealEquipment = availableEquipments.contains { equipment in 
+            return equipment.name != "Equipment Name" && equipment.equipmentImage != "placeholder_image"
+        }
+        
+        // Only proceed with decorations if we have real equipment data
+        if !hasRealEquipment {
+            return nil
+        }
         
         if hasPreBooking && isEquipmentAvailable {
             return UICalendarView.Decoration.default(

@@ -59,8 +59,8 @@ class SelectCropsViewController: UIViewController, UITableViewDataSource, UITabl
         loadData()
         
         // Set the title with large appearance
-        self.title = "Choose crops you sow (Optional)"
-        self.navigationItem.title = "Choose crops you sow (Optional)"
+        self.title = "Choose crops you sow"
+        self.navigationItem.title = "Choose crops you sow"
         
         // Configure large title display
         self.navigationController?.navigationBar.prefersLargeTitles = true

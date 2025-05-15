@@ -339,8 +339,17 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             // Get all prebooking dates
             let prebookingDates = preBookings.map { $0.bookingDate }
             
+            // Only pass equipment that has been explicitly searched for
+            // This prevents green dots from showing when no search is performed
+            let equipmentToShow = !searchedEquipments.isEmpty ? searchedEquipments : []
+            
+            // Update search bar with equipment name if available
+            if let firstEquipment = searchedEquipments.first, !searchController.isActive {
+                searchController.searchBar.text = firstEquipment.name
+            }
+            
             cell.configure(
-                with: searchedEquipments.isEmpty ? recommendedEquipments : searchedEquipments,
+                with: equipmentToShow,
                 dataController: dataController,
                 prebookingDates: prebookingDates
             )
@@ -698,21 +707,30 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     @objc private func handleEquipmentAvailability(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let date = userInfo["date"] as? Date,
-              let isAvailable = userInfo["isAvailable"] as? Bool else {
+              let equipment = userInfo["equipment"] as? Equipment else {
             return
         }
         
-        let today = Calendar.current.startOfDay(for: Date())
-        let selectedDay = Calendar.current.startOfDay(for: date)
+        let isAvailable = userInfo["isAvailable"] as? Bool ?? false
         
-        if isAvailable && selectedDay >= today {
+        // Only show "Add Pre-Book" if equipment is available on selected date
+        if isAvailable {
             hasAddPreBook = true
+            availableEquipments = [equipment] // Store the selected equipment
             selectedDate = date
             
-            // Use searched equipments if available, filtered by availability
-            availableEquipments = searchedEquipments.filter { equipment in
-                equipment.isAvailable(on: date) &&
-                Calendar.current.startOfDay(for: date) >= today
+            // Make sure the equipment name appears in the navigation bar search field
+            // This ensures when green dots appear, the search bar shows the equipment name
+            if let firstEquipment = searchedEquipments.first {
+                searchController.searchBar.text = firstEquipment.name
+            }
+            
+            // Scroll to the available equipment section
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                let section = Section.available.rawValue
+                let adjustedSection = self.adjustSectionIndex(section)
+                self.scrollToSectionHeader(section: adjustedSection)
             }
         } else {
             hasAddPreBook = false
@@ -959,6 +977,10 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
         
         // Update calendar with selected equipment
         if let calendarCell = collectionView.cellForItem(at: IndexPath(item: 0, section: Section.calendar.rawValue)) as? preBookingCalanderCollectionViewCell {
+            // Always make sure the selected equipment name shows in the search bar at the top
+            searchController.searchBar.text = selectedEquipment.name
+            
+            // Configure calendar with selected equipment
             calendarCell.configure(with: searchedEquipments, dataController: dataController)
         }
         
