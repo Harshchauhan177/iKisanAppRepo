@@ -29,8 +29,9 @@ class ExploreMoreCollectionViewCell: UICollectionViewCell {
         super.awakeFromNib()
         configureForDynamicType()
         
-        // Ensure button is properly set up for interaction and positioned above any overlays
+        // Fix layout issues and ensure button is properly set up for interaction
         fixButtonAccessibility()
+        fixConstraintConflicts()
     }
     
     private func fixButtonAccessibility() {
@@ -48,6 +49,24 @@ class ExploreMoreCollectionViewCell: UICollectionViewCell {
                     button.isEnabled = true
                     button.isUserInteractionEnabled = true
                 }
+            }
+        }
+    }
+    
+    // Fix constraint conflicts that are causing layout warnings
+    private func fixConstraintConflicts() {
+        // Find all buttons in the cell's view hierarchy
+        for case let button as UIButton in contentView.subviews.flatMap({ $0.subviews }) {
+            // Remove any fixed width constraints on the button
+            for constraint in button.constraints where constraint.firstAttribute == .width {
+                button.removeConstraint(constraint)
+            }
+            
+            // Remove fixed button width setting that's causing layout conflicts
+            // Allow button to size dynamically based on container width
+            if button.constraints.isEmpty {
+                button.translatesAutoresizingMaskIntoConstraints = true
+                button.autoresizingMask = [.flexibleWidth, .flexibleLeftMargin, .flexibleRightMargin]
             }
         }
     }

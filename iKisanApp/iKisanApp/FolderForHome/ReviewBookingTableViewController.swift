@@ -31,7 +31,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     @IBOutlet var tableViewR: UITableView!
     
     
-    var bookingSource: BookingSource! // Default to home
+    var bookingSource: BookingSource? // Changed from implicitly unwrapped optional to regular optional
     
     weak var delegate: ReviewBookingDelegate?
     var isModifying: Bool = false
@@ -324,7 +324,8 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         case .coEquip:
             bookingType = .coEquip
         default:
-            bookingType = .prebooking
+            // Default to onDemand for Home tab bookings when source is nil
+            bookingType = .onDemand
         }
         
         let newBooking = Booking(
@@ -336,7 +337,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
             fieldArea: fieldArea,
             status: .pending, // Always set status to pending by default
             timeSlot: timeSlotEnum,
-            source: bookingSource
+            source: bookingSource ?? .home // Provide a default .home value if bookingSource is nil
         )
         thisBooking = newBooking
         
@@ -415,55 +416,57 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
                     return
                 }
                 
-                // Determine if we need to redirect to the Prebooking tab
-                if currentBooking.bookingType == .prebooking {
-                    // Find the index of the Prebooking tab
-                    var prebookingTabIndex: Int? = nil
+                // First determine which tab to redirect to based on booking source
+                var targetTabIndex = 0 // Default to Home tab (index 0)
+                
+                // Check the source of the booking to determine where to redirect
+                switch currentBooking.source {
+                case .home:
+                    // If booking was initiated from Home tab, always return to Home tab
+                    targetTabIndex = 0
+                    // Post notification for regular booking
+                    NotificationCenter.default.post(name: .bookingAdded, object: nil)
+                    print("Redirecting to Home tab after booking from Home")
                     
+                case .prebooking:
+                    // If initiated from Prebooking tab, find and use that tab's index
                     if let viewControllers = tabBarController.viewControllers {
                         for (index, viewController) in viewControllers.enumerated() {
                             if let navController = viewController as? UINavigationController,
                                navController.viewControllers.first is PrebookingViewController {
-                                prebookingTabIndex = index
+                                targetTabIndex = index
                                 break
                             }
                         }
                     }
-                    
                     // Post notification for prebooking
                     NotificationCenter.default.post(
                         name: Notification.Name.preBookingAdded,
                         object: nil,
                         userInfo: ["booking": currentBooking]
                     )
+                    print("Redirecting to Prebooking tab after booking from Prebooking")
                     
-                    // Switch to the Prebooking tab if found
-                    if let index = prebookingTabIndex {
-                        print("Switching to Prebooking tab at index \(index)")
-                        tabBarController.selectedIndex = index
-                        
-                        // Dismiss all modal presentations to return to the tab bar
-                        self.view.window?.rootViewController?.dismiss(animated: true) {
-                            // Pop to root of navigation controller if needed
-                            if let navController = tabBarController.selectedViewController as? UINavigationController {
-                                navController.popToRootViewController(animated: false)
-                            }
-                        }
-                    }
-                } else {
-                    // For regular bookings, navigate back to the Home tab (index 0)
-                    // Post notification first
+                case .coEquip:
+                    // For coEquip, find the appropriate tab (or default to Home)
+                    // Post appropriate notification
                     NotificationCenter.default.post(name: .bookingAdded, object: nil)
+                    print("Redirecting to Home tab after coEquip booking")
                     
-                    // Switch to Home tab
-                    tabBarController.selectedIndex = 0
-                    
-                    // Dismiss any modals and pop to root
-                    self.view.window?.rootViewController?.dismiss(animated: true) {
-                        // Pop to root of navigation controller
-                        if let navController = tabBarController.selectedViewController as? UINavigationController {
-                            navController.popToRootViewController(animated: false)
-                        }
+                default:
+                    // For any other source, default to Home tab
+                    NotificationCenter.default.post(name: .bookingAdded, object: nil)
+                    print("Redirecting to Home tab (default case)")
+                }
+                
+                // Switch to the target tab
+                tabBarController.selectedIndex = targetTabIndex
+                
+                // Dismiss all modal presentations to return to the tab bar
+                self.view.window?.rootViewController?.dismiss(animated: true) {
+                    // Pop to root of navigation controller if needed
+                    if let navController = tabBarController.selectedViewController as? UINavigationController {
+                        navController.popToRootViewController(animated: false)
                     }
                 }
             }

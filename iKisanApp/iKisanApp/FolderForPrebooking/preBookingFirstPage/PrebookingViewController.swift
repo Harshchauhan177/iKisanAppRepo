@@ -777,9 +777,52 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         
         searchTableView.isHidden = true
         
-        // Load all equipment for search
+        // Load all equipment for search from backend
+        loadAllEquipmentForSearch()
+    }
+    
+    private func loadAllEquipmentForSearch() {
+        // First try to load from data controller
         if let dataController = dataController {
-            allEquipments = dataController.getAllEquipment()
+            let localEquipments = dataController.getAllEquipment()
+            
+            // If we already have equipment locally, use it immediately
+            if !localEquipments.isEmpty {
+                self.allEquipments = localEquipments
+                return // Skip network request if we have local data
+            }
+        }
+        
+        // Network request throttling - use a timestamp to prevent excessive calls
+        let lastRequestKey = "lastEquipmentFetchTime"
+        let minTimeBetweenRequests = 30.0 // seconds
+        
+        let now = Date()
+        if let lastRequestTime = UserDefaults.standard.object(forKey: lastRequestKey) as? Date,
+           now.timeIntervalSince(lastRequestTime) < minTimeBetweenRequests {
+            print("Skipping equipment fetch - too soon since last request")
+            return
+        }
+        
+        // Then fetch from backend only if needed
+        Task {
+            do {
+                // Save request timestamp
+                UserDefaults.standard.set(now, forKey: lastRequestKey)
+                
+                // Fetch equipment from backend
+                let requestManager = RequestManager.shared
+                let equipments = await requestManager.fetchEquipments()
+                
+                // Update on main thread
+                await MainActor.run {
+                    if !equipments.isEmpty {
+                        self.allEquipments = equipments
+                    }
+                }
+            } catch {
+                print("Error fetching equipment for search: \(error)")
+            }
         }
     }
     
@@ -855,6 +898,11 @@ extension PrebookingViewController: UISearchResultsUpdating {
             return
         }
         
+        // If we have few equipment items, refresh from backend
+        if allEquipments.count < 5 {
+            loadAllEquipmentForSearch()
+        }
+        
         // Comprehensive search across all equipment fields
         searchSuggestions = allEquipments.filter { equipment in
             equipment.name.lowercased().contains(searchText) ||
@@ -863,11 +911,11 @@ extension PrebookingViewController: UISearchResultsUpdating {
             equipment.location.lowercased().contains(searchText)
         }
         
-        searchTableView.isHidden = searchSuggestions.isEmpty
+        // Always show search results, even if empty
+        searchTableView.isHidden = false
         searchTableView.reloadData()
         
         searchTableView.backgroundColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)
-
     }
 }
 

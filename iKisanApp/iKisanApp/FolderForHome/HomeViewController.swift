@@ -838,8 +838,14 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         if let viewController = storyboard.instantiateViewController(withIdentifier: "ReviewBookingTableViewController") as? ReviewBookingTableViewController {
             // Pass the equipment data to the ReviewBookingTableViewController
             viewController.equipment = equipment
+            
+            // Set the booking source to .home so it redirects back to Home tab after booking
+            viewController.bookingSource = .home
+            
             viewController.modalPresentationStyle = .fullScreen
             navigationController?.pushViewController(viewController, animated: true)
+            
+            print("Navigating to ReviewBookingTableViewController with source=home")
         }
     }
     
