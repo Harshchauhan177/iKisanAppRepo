@@ -339,8 +339,12 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             // Get all prebooking dates
             let prebookingDates = preBookings.map { $0.bookingDate }
             
+            // Only pass equipment that has been explicitly searched for
+            // This prevents green dots from showing when no search is performed
+            let equipmentToShow = !searchedEquipments.isEmpty ? searchedEquipments : []
+            
             cell.configure(
-                with: searchedEquipments.isEmpty ? recommendedEquipments : searchedEquipments,
+                with: equipmentToShow,
                 dataController: dataController,
                 prebookingDates: prebookingDates
             )
