@@ -24,11 +24,18 @@ class RelatedEquipmentCollectionViewCell: UICollectionViewCell {
         
         equipmentNameLabel?.text = equipment.name
         
-        if let image = UIImage(named: equipment.imageName) {
-            equipmentImageView?.image = image
+        // Check if the imageName is a URL or a local asset name
+        if equipment.imageName.hasPrefix("http") {
+            // It's a URL, use our ImageCache utility to load it
+            equipmentImageView?.loadImage(from: equipment.imageName)
         } else {
-            print("Warning: Image not found for \(equipment.imageName)")
-            equipmentImageView?.image = UIImage(named: "placeholder_image")
+            // Fallback to local asset loading for backward compatibility
+            if let image = UIImage(named: equipment.imageName) {
+                equipmentImageView?.image = image
+            } else {
+                print("Warning: Image not found for \(equipment.imageName)")
+                equipmentImageView?.image = UIImage(named: "placeholder_image")
+            }
         }
         
         // Configure other labels as needed

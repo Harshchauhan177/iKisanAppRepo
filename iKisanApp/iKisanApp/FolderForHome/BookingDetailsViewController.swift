@@ -462,13 +462,32 @@ class BookingDetailsViewController: UIViewController {
         }
         
         // Set equipment image with smooth transition
-        if let image = UIImage(named: equipment.equipmentImage) {
+        if equipment.equipmentImage.hasPrefix("http") {
+            // It's a URL, use our ImageCache utility to load it
+            programmaticImageView.image = UIImage(named: "placeholder_equipment") // Start with placeholder
+            
+            // Load the image asynchronously
+            ImageCache.shared.loadImage(from: equipment.equipmentImage) { [weak self] image in
+                guard let self = self, let downloadedImage = image else { return }
+                
+                // Apply smooth transition when image is loaded
+                DispatchQueue.main.async {
+                    UIView.transition(with: self.programmaticImageView,
+                                  duration: 0.3,
+                                  options: .transitionCrossDissolve,
+                                  animations: { self.programmaticImageView.image = downloadedImage },
+                                  completion: nil)
+                }
+            }
+        } else if let image = UIImage(named: equipment.equipmentImage) {
+            // Local asset image
             UIView.transition(with: programmaticImageView,
                               duration: 0.3,
                               options: .transitionCrossDissolve,
                               animations: { self.programmaticImageView.image = image },
                               completion: nil)
         } else {
+            // Use placeholder image if the specified image isn't found
             programmaticImageView.image = UIImage(named: "placeholder_equipment")
             print("Warning: Equipment image \(equipment.equipmentImage) not found")
         }

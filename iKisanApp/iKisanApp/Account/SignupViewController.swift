@@ -1,4 +1,5 @@
 import UIKit
+import SwiftUICore
 
 class SignupViewController: UIViewController {
     
@@ -18,8 +19,10 @@ class SignupViewController: UIViewController {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Create Account"
-        label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        label.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+        label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
+        label.accessibilityTraits = .header
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -27,8 +30,9 @@ class SignupViewController: UIViewController {
     private let subtitleLabel: UILabel = {
         let label = UILabel()
         label.text = "Join iKisan to access all features"
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .gray
+        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .secondaryLabel
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -38,8 +42,11 @@ class SignupViewController: UIViewController {
         let textField = UITextField()
         textField.placeholder = "Full Name"
         textField.borderStyle = .roundedRect
+        textField.font = UIFont.preferredFont(forTextStyle: .body)
+        textField.adjustsFontForContentSizeCategory = true
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.returnKeyType = .next
+        textField.accessibilityLabel = "Full Name"
         return textField
     }()
     
@@ -50,8 +57,11 @@ class SignupViewController: UIViewController {
         textField.keyboardType = .emailAddress
         textField.autocapitalizationType = .none
         textField.autocorrectionType = .no
+        textField.font = UIFont.preferredFont(forTextStyle: .body)
+        textField.adjustsFontForContentSizeCategory = true
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.returnKeyType = .next
+        textField.accessibilityLabel = "Email Address"
         return textField
     }()
     
@@ -60,8 +70,11 @@ class SignupViewController: UIViewController {
         textField.placeholder = "Phone Number"
         textField.borderStyle = .roundedRect
         textField.keyboardType = .phonePad
+        textField.font = UIFont.preferredFont(forTextStyle: .body)
+        textField.adjustsFontForContentSizeCategory = true
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.returnKeyType = .next
+        textField.accessibilityLabel = "Phone Number"
         return textField
     }()
     
@@ -70,8 +83,11 @@ class SignupViewController: UIViewController {
         textField.placeholder = "Password"
         textField.borderStyle = .roundedRect
         textField.isSecureTextEntry = true
+        textField.font = UIFont.preferredFont(forTextStyle: .body)
+        textField.adjustsFontForContentSizeCategory = true
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.returnKeyType = .next
+        textField.accessibilityLabel = "Password"
         return textField
     }()
     
@@ -80,34 +96,44 @@ class SignupViewController: UIViewController {
         textField.placeholder = "Confirm Password"
         textField.borderStyle = .roundedRect
         textField.isSecureTextEntry = true
+        textField.font = UIFont.preferredFont(forTextStyle: .body)
+        textField.adjustsFontForContentSizeCategory = true
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.returnKeyType = .done
+        textField.accessibilityLabel = "Confirm Password"
         return textField
     }()
     
     private let signupButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Create Account", for: .normal)
-        button.backgroundColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1.0)
+        button.backgroundColor = .init(Color(red: 0.298, green: 0.498, blue: 0.345, opacity: 1))//.systemGreen
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityLabel = "Create a new account"
         return button
     }()
     
     private let loginButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Already have an account? Login", for: .normal)
+        button.setTitleColor(.systemBlue, for: .normal)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityLabel = "Return to login screen"
         return button
     }()
     
     private let activityIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .large)
-        indicator.color = .gray
+        indicator.color = .secondaryLabel
         indicator.hidesWhenStopped = true
         indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.accessibilityLabel = "Loading"
         return indicator
     }()
     
@@ -121,7 +147,7 @@ class SignupViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         
         // Add subviews
         view.addSubview(scrollView)

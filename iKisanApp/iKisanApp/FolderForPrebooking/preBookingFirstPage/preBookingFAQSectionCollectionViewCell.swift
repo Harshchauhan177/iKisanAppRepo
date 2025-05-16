@@ -66,12 +66,22 @@ class preBookingFAQSectionCollectionViewCell: UICollectionViewCell {
         containerView.layer.cornerRadius = 0 // Will be set in layoutSubviews
         containerView.clipsToBounds = true
         
-        // Setup question label - use standard iOS font
-        questionLabel.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        // Setup question label with dynamic type support
+        questionLabel.adjustsFontForContentSizeCategory = true
+        let baseFont = UIFont.systemFont(ofSize: 17, weight: .regular)
+        questionLabel.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
         questionLabel.textColor = .black
         questionLabel.numberOfLines = 1 // Single line like iOS settings
         questionLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(questionLabel)
+        
+        // Register for content size category changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contentSizeCategoryDidChange),
+            name: UIContentSizeCategory.didChangeNotification,
+            object: nil
+        )
         
         // Setup chevron image - use standard iOS chevron
         chevronImageView.contentMode = .scaleAspectFit
@@ -121,6 +131,18 @@ class preBookingFAQSectionCollectionViewCell: UICollectionViewCell {
     
     @objc private func handleTap() {
         delegate?.didTapFAQ(at: index)
+    }
+    
+    @objc private func contentSizeCategoryDidChange() {
+        // Refresh font when text size settings change
+        let baseFont = UIFont.systemFont(ofSize: 17, weight: .regular)
+        questionLabel.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
+        setNeedsLayout()
+    }
+    
+    deinit {
+        // Remove notification observer when cell is deallocated
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func layoutSubviews() {

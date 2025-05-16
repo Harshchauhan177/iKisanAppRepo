@@ -63,11 +63,18 @@ extension InfoAboutEquipmentDetailsCollectionViewCell {
         equipmentTypeNameLabel.text = equipment.name
         equipmentTypeLikedByLabel.text = "\(equipment.likedBy)"
         
-        if let image = UIImage(named: equipment.imageName) {
-            equipmentTypeImageView.image = image
+        // Check if the imageName is a URL or a local asset name
+        if equipment.imageName.hasPrefix("http") {
+            // It's a URL, use our ImageCache utility to load it
+            equipmentTypeImageView.loadImage(from: equipment.imageName)
         } else {
-            print("Warning: Image not found for \(equipment.imageName)")
-            equipmentTypeImageView.image = UIImage(named: "placeholder_image")
+            // Fallback to local asset loading for backward compatibility
+            if let image = UIImage(named: equipment.imageName) {
+                equipmentTypeImageView.image = image
+            } else {
+                print("Warning: Image not found for \(equipment.imageName)")
+                equipmentTypeImageView.image = UIImage(named: "placeholder_image")
+            }
         }
         
         equipmentTypePurposeLabel.text = equipment.purpose ?? "N/A"

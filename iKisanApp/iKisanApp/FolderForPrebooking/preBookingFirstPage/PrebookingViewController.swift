@@ -14,7 +14,8 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     var selectedIndexPath: IndexPath?
     @IBOutlet weak var collectionView: UICollectionView!
     
-    private var dataController: DataController?
+    // Making dataController public so it can be set from MainTabBarController
+    public var dataController: DataController?
     private var recommendedEquipments: [Equipment] = []
     private var availableEquipments: [Equipment] = []
     internal var faqs: [FAQ] = []
@@ -79,11 +80,10 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         // Load initial data
         loadPreBookings()
         
-        // Scroll to the target section if it's set
-        if let section = targetSection {
-            DispatchQueue.main.async {
-                self.scrollToSectionHeader(section: section)
-            }
+        // Previously scrolled to target section, but auto-scrolling has been disabled
+        // Keeping targetSection for reference in case needed in future
+        if targetSection != nil {
+            // No auto-scrolling - removed as requested
         }
     }
     
@@ -129,10 +129,6 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
                 self?.loadData() // Reload all data including FAQs
                 self?.loadPreBookings()
                 self?.collectionView.reloadData()
-                // Scroll to prebookings section if we have bookings
-                if self?.hasPreBookings == true {
-                    self?.scrollToSectionHeader(section: Section.prebookings.rawValue)
-                }
             }
         }
     }
@@ -208,14 +204,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         if let matchingBookingIndex = preBookings.firstIndex(where: { booking in
             Calendar.current.isDate(booking.bookingDate, inSameDayAs: selectedDate)
         }) {
-            // Scroll to the prebookings section
-            DispatchQueue.main.async {
-                self.scrollToSectionHeader(section: Section.prebookings.rawValue)
-                
-                // Optionally highlight the matching booking
-                let indexPath = IndexPath(item: matchingBookingIndex, section: self.getSectionIndex(for: .prebookings))
-                self.collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: true)
-            }
+            // No auto-scrolling
         }
     }
     
@@ -688,12 +677,13 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout
         let headerSize = layout?.headerReferenceSize.height ?? 0
         
+        // Get the section header layout info
         let indexPath = IndexPath(item: 0, section: adjustedSection)
-        if let attributes = collectionView.layoutAttributesForSupplementaryElement(
-            ofKind: UICollectionView.elementKindSectionHeader, at: indexPath) {
+        if let attributes = collectionView.layoutAttributesForSupplementaryElement(ofKind: UICollectionView.elementKindSectionHeader, at: indexPath) {
             
             let headerY = attributes.frame.origin.y - collectionView.contentInset.top
-            collectionView.setContentOffset(CGPoint(x: 0, y: headerY - headerSize), animated: true)
+            // NOTE: Auto-scrolling has been disabled
+            // collectionView.setContentOffset(CGPoint(x: 0, y: headerY - headerSize), animated: true)
         }
     }
 

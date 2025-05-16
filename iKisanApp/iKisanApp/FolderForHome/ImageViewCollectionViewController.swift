@@ -26,15 +26,28 @@ class ImageViewCollectionViewController: UICollectionViewController {
                collectionView.isPagingEnabled = true
        }
 
-       override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-           return imageNames.count
-       }
+    override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return imageNames.count
+    }
 
-       override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-           let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! ImageViewCollectionViewCell
-           
-           cell.imageView.image = UIImage(named: imageNames[indexPath.row])
-           return cell
-       }
+    override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! ImageViewCollectionViewCell
+        
+        // Safely unwrap the imageView outlet to prevent crashes
+        if let imageView = cell.imageView {
+            let imageName = imageNames[indexPath.row]
+            
+            // Check if image name is a URL
+            if imageName.hasPrefix("http") {
+                // It's a URL, use our ImageCache utility to load it
+                imageView.loadImage(from: imageName)
+            } else {
+                // Local asset
+                imageView.image = UIImage(named: imageName) ?? UIImage(named: "placeholder_image")
+            }
+        }
+        
+        return cell
+    }
 
 }

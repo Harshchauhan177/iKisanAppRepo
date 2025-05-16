@@ -4,18 +4,31 @@ import SwiftUI
 class LoginViewController: UIViewController {
     
     // MARK: - UI Components
+    private let containerStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.spacing = 16
+        stackView.alignment = .center
+        stackView.distribution = .fill
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+    
     private let logoImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
         imageView.image = UIImage(named: "iKisan")
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.accessibilityLabel = "iKisan Logo"
+        imageView.isAccessibilityElement = true
         return imageView
     }()
     
     private let welcomeLabel: UILabel = {
         let label = UILabel()
         label.text = "Welcome to iKisan"
-        label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        label.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+        label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -24,11 +37,22 @@ class LoginViewController: UIViewController {
     private let subtitleLabel: UILabel = {
         let label = UILabel()
         label.text = "Sign in to continue"
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .gray
+        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .secondaryLabel
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+    
+    private let formStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.spacing = 16
+        stackView.alignment = .fill
+        stackView.distribution = .fill
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
     }()
     
     private let emailTextField: UITextField = {
@@ -38,8 +62,11 @@ class LoginViewController: UIViewController {
         textField.keyboardType = .emailAddress
         textField.autocapitalizationType = .none
         textField.autocorrectionType = .no
+        textField.font = UIFont.preferredFont(forTextStyle: .body)
+        textField.adjustsFontForContentSizeCategory = true
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.returnKeyType = .next
+        textField.accessibilityLabel = "Email Address"
         return textField
     }()
     
@@ -48,39 +75,76 @@ class LoginViewController: UIViewController {
         textField.placeholder = "Password"
         textField.borderStyle = .roundedRect
         textField.isSecureTextEntry = true
+        textField.font = UIFont.preferredFont(forTextStyle: .body)
+        textField.adjustsFontForContentSizeCategory = true
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.returnKeyType = .done
+        textField.accessibilityLabel = "Password"
         return textField
     }()
     
     private let loginButton: UIButton = {
         let button = UIButton(type: .system)
+        var configuration = UIButton.Configuration.filled()
+        configuration.title = "Login"
+        configuration.baseBackgroundColor = .init(Color(red: 0.298, green: 0.498, blue: 0.345, opacity: 1))//.systemGreen
+        configuration.baseForegroundColor = .white
+        configuration.cornerStyle = .medium
+        configuration.buttonSize = .large
+        
+        // For iOS 13/14 support when UIButton.Configuration isn't available
         button.setTitle("Login", for: .normal)
-        button.backgroundColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1.0)
+        button.backgroundColor = .systemGreen
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        
+        if #available(iOS 15.0, *) {
+            button.configuration = configuration
+        }
+        
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "LoginButton"
+        button.accessibilityLabel = "Log in to your account"
         return button
+    }()
+    
+    private let buttonsStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.spacing = 12
+        stackView.alignment = .center
+        stackView.distribution = .fill
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
     }()
     
     private let forgotPasswordButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Forgot Password?", for: .normal)
+        button.setTitleColor(.systemBlue, for: .normal)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityLabel = "Forgot Password? Tap to reset"
         return button
     }()
     
     private let createAccountButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("New user? Create Account", for: .normal)
+        button.setTitleColor(.systemBlue, for: .normal)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityLabel = "New user? Create Account"
         return button
     }()
     
     private let activityIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .large)
-        indicator.color = .gray
+        indicator.color = .secondaryLabel
         indicator.hidesWhenStopped = true
         indicator.translatesAutoresizingMaskIntoConstraints = false
         return indicator
@@ -95,57 +159,47 @@ class LoginViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         
-        // Add subviews
-        view.addSubview(logoImageView)
-        view.addSubview(welcomeLabel)
-        view.addSubview(subtitleLabel)
-        view.addSubview(emailTextField)
-        view.addSubview(passwordTextField)
-        view.addSubview(loginButton)
-        view.addSubview(forgotPasswordButton)
-        view.addSubview(createAccountButton)
+        // Set up stack views hierarchy
+        view.addSubview(containerStackView)
         view.addSubview(activityIndicator)
+        
+        containerStackView.addArrangedSubview(logoImageView)
+        containerStackView.addArrangedSubview(welcomeLabel)
+        containerStackView.addArrangedSubview(subtitleLabel)
+        containerStackView.addArrangedSubview(formStackView)
+        containerStackView.addArrangedSubview(buttonsStackView)
+        
+        formStackView.addArrangedSubview(emailTextField)
+        formStackView.addArrangedSubview(passwordTextField)
+        formStackView.addArrangedSubview(loginButton)
+        
+        buttonsStackView.addArrangedSubview(forgotPasswordButton)
+        buttonsStackView.addArrangedSubview(createAccountButton)
         
         // Configure constraints
         NSLayoutConstraint.activate([
-            logoImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40),
-            logoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            // Main stack view constraints
+            containerStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            containerStackView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            containerStackView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            containerStackView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -24),
+            
+            // Logo image constraints
             logoImageView.widthAnchor.constraint(equalToConstant: 120),
             logoImageView.heightAnchor.constraint(equalToConstant: 120),
             
-            welcomeLabel.topAnchor.constraint(equalTo: logoImageView.bottomAnchor, constant: 24),
-            welcomeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            welcomeLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            welcomeLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            // Form stack view constraints
+            formStackView.leadingAnchor.constraint(equalTo: containerStackView.leadingAnchor),
+            formStackView.trailingAnchor.constraint(equalTo: containerStackView.trailingAnchor),
             
-            subtitleLabel.topAnchor.constraint(equalTo: welcomeLabel.bottomAnchor, constant: 8),
-            subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            subtitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            // Login button constraints
+            loginButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
+            loginButton.leadingAnchor.constraint(equalTo: formStackView.leadingAnchor),
+            loginButton.trailingAnchor.constraint(equalTo: formStackView.trailingAnchor),
             
-            emailTextField.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 40),
-            emailTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            emailTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            emailTextField.heightAnchor.constraint(equalToConstant: 50),
-            
-            passwordTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 16),
-            passwordTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            passwordTextField.heightAnchor.constraint(equalToConstant: 50),
-            
-            loginButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 30),
-            loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            loginButton.heightAnchor.constraint(equalToConstant: 50),
-            
-            forgotPasswordButton.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 16),
-            forgotPasswordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            createAccountButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            createAccountButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
+            // Activity indicator constraints
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])

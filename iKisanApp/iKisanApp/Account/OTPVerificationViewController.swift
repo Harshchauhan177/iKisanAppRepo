@@ -17,8 +17,10 @@ class OTPVerificationViewController: UIViewController {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Email Verification"
-        label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        label.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+        label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
+        label.accessibilityTraits = .header
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -27,8 +29,9 @@ class OTPVerificationViewController: UIViewController {
         let label = UILabel()
         label.numberOfLines = 0
         label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .gray
+        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -47,26 +50,34 @@ class OTPVerificationViewController: UIViewController {
     private let verifyButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Verify", for: .normal)
-        button.backgroundColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1.0)
+        button.backgroundColor = .systemGreen
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "VerifyButton"
+        button.accessibilityLabel = "Verify code"
         return button
     }()
     
     private let resendButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Resend Code", for: .normal)
+        button.setTitleColor(.systemBlue, for: .normal)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityLabel = "Resend verification code"
         return button
     }()
     
     private let activityIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .large)
-        indicator.color = .gray
+        indicator.color = .secondaryLabel
         indicator.hidesWhenStopped = true
         indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.accessibilityLabel = "Loading"
         return indicator
     }()
     
@@ -90,7 +101,7 @@ class OTPVerificationViewController: UIViewController {
     
     // MARK: - UI Setup
     private func setupUI() {
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         
         // Configure subtitle with user's email
         subtitleLabel.text = "We've sent a verification code to \(email). Please enter the code to verify your account."
@@ -146,13 +157,16 @@ class OTPVerificationViewController: UIViewController {
             let textField = UITextField()
             textField.borderStyle = .roundedRect
             textField.textAlignment = .center
-            textField.font = UIFont.systemFont(ofSize: 20, weight: .bold)
+            textField.font = UIFont.preferredFont(forTextStyle: .title3)
+            textField.adjustsFontForContentSizeCategory = true
             textField.keyboardType = .numberPad
-            textField.layer.borderColor = UIColor.gray.cgColor
+            textField.layer.borderColor = UIColor.systemGray4.cgColor
             textField.layer.borderWidth = 1
             textField.layer.cornerRadius = 8
             textField.delegate = self
             textField.tag = i
+            textField.accessibilityLabel = "Digit \(i+1) of verification code"
+            textField.accessibilityHint = "Enter a single digit"
             
             // Limit to single character
             textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
@@ -296,12 +310,12 @@ extension OTPVerificationViewController: UITextFieldDelegate {
     }
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        textField.layer.borderColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1.0).cgColor
+        textField.layer.borderColor = UIColor.systemGreen.cgColor
         textField.layer.borderWidth = 2
     }
     
     func textFieldDidEndEditing(_ textField: UITextField) {
-        textField.layer.borderColor = UIColor.gray.cgColor
+        textField.layer.borderColor = UIColor.systemGray4.cgColor
         textField.layer.borderWidth = 1
     }
 } 

@@ -16,6 +16,34 @@ class EquipmentsForCropsViewController: UIViewController,UITableViewDelegate,UIT
     var selectedCropId: UUID!
     private var equipmentCategories: [EquipmentCategory] = []
     
+    override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            
+            Task {
+                self.equipmentCategories = try! await SupabaseManager.shared.client
+                    .from("equipmentCategories")
+                    .select("*")
+                    .eq("cropCategoryId", value: selectedCropId)
+                    .execute()
+                    .value ?? []
+
+                for i in equipmentCategories.indices {
+                    let equipmentAgri: [EquipmentAgri] = try! await SupabaseManager.shared.client
+                        .from("equipmentAgri")
+                        .select("*")
+                        .eq("categoryId", value: equipmentCategories[i].id)
+                        .execute()
+                        .value
+                    equipmentCategories[i].equipmentList = equipmentAgri
+                }
+
+                DispatchQueue.main.async {
+                    self.myTable.reloadData()
+                }
+            }
+        }
+
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         

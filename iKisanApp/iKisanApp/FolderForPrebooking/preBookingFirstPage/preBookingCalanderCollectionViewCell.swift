@@ -19,6 +19,29 @@ class preBookingCalanderCollectionViewCell: UICollectionViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         setupCalendar()
+        setupDynamicTextSupport()
+    }
+    
+    private func setupDynamicTextSupport() {
+        // Register for content size category changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contentSizeCategoryDidChange),
+            name: UIContentSizeCategory.didChangeNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func contentSizeCategoryDidChange() {
+        // Calendar and DatePicker controls will automatically adjust to Dynamic Type
+        // This method ensures the cell responds to text size changes
+        setNeedsLayout()
+        layoutIfNeeded()
+    }
+    
+    deinit {
+        // Remove notification observer to prevent memory leaks
+        NotificationCenter.default.removeObserver(self)
     }
     
     private func setupCalendar() {

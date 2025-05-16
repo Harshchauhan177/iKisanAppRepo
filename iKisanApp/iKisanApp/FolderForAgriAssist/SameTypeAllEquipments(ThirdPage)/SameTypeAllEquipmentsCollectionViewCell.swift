@@ -39,7 +39,15 @@ class SameTypeAllEquipmentsCollectionViewCell: UICollectionViewCell {
         }
     
     func configure(with equipment: EquipmentAgri) {
-        SameTypeAllEquipmentsImage.image = UIImage(named: equipment.imageName)
+        // Check if the imageName is a URL or a local asset name
+        if equipment.imageName.hasPrefix("http") {
+            // It's a URL, use our ImageCache utility to load it
+            SameTypeAllEquipmentsImage.loadImage(from: equipment.imageName)
+        } else {
+            // Fallback to local asset loading for backward compatibility
+            SameTypeAllEquipmentsImage.image = UIImage(named: equipment.imageName) ?? UIImage(named: "placeholder_image")
+        }
+        
         SameTypeAllEquipmentsNameLabel.text = equipment.name
         
         // Apply existing styling

@@ -17,14 +17,7 @@ class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableV
     //    let suggestions = ["Rice", "Wheat", "Oats", "Cotton", "Tea", "Maize", "Tobacco", "Sugarcane"]
     //        var filteredCrops: [String] = []
         
-        var dataController: DataController! {
-            didSet {
-                // Load data when dataController is set
-                if isViewLoaded {
-                    loadData()
-                }
-            }
-        }
+        var dataController: DataController!
         private var crops: [AgriCrop] = []
         private var filteredCrops: [AgriCrop] = []
         
@@ -40,27 +33,18 @@ class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableV
             
             Task {
                 self.crops = try! await SupabaseManager.shared.client
-                    .from("agriCrops")
+                    .from("cropCategories")
                     .select("*")
                     .execute()
                     .value
+                self.filteredCrops = self.crops
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
                 }
             }
             
-            
-            // Load data if dataController is already set
-            if dataController != nil {
-                loadData()
-            }
         }
-        
-        private func loadData() {
-            crops = dataController.getAllCrops()
-            filteredCrops = crops
-            tableView.reloadData()
-        }
+    
         
         func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
             if searchText.isEmpty {

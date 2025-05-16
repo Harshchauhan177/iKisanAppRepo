@@ -12,7 +12,6 @@ protocol MyTableViewCellDelegate: AnyObject {
 }
 
 class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionViewDelegate  {
-
     
     @IBOutlet weak var myCollectionView: UICollectionView!
     @IBOutlet weak var EquipmentTypeLabel: UILabel!
@@ -28,18 +27,17 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
         super.awakeFromNib()
         myCollectionView.delegate = self
         myCollectionView.dataSource = self
-        
         setupUI()
+        myCollectionView.showsHorizontalScrollIndicator = false
+        myCollectionView.showsVerticalScrollIndicator = false
     }
     
     private func setupUI() {
         self.contentView.layer.cornerRadius = 10
         self.contentView.layer.masksToBounds = true
         self.contentView.layer.borderWidth = 3
-//        self.contentView.layer.borderColor = UIColor.systemGray6.cgColor
         self.contentView.layer.borderColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)
         self.contentView.backgroundColor = .white
-
         // Add shadow for spacing effect
         self.layer.shadowColor = UIColor.gray.cgColor
         self.layer.shadowOffset = CGSize(width: 0, height: 2)
@@ -60,7 +58,6 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
         if let category = equipmentCategory {
             delegate?.didTapSeeAll(for: category)
         }
-
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -88,7 +85,6 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
             print("Warning: Image not found for \(equipment.imageName)")
             cell.myEquipmentImage.image = UIImage(named: "placeholder_image")
         }
-        
         cell.myEquipmentImage.layer.cornerRadius = cell.myEquipmentImage.frame.width / 2
         cell.myEquipmentImage.clipsToBounds = true
         cell.myEquipmentImage.layer.borderWidth = 2.0
@@ -113,7 +109,6 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
         viewController.performSegue(withIdentifier: "ShowEquipmentDetails", sender: equipment)
     }
 }
-
 
 extension UIView {
     var parentViewController: UIViewController? {

@@ -55,6 +55,9 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Setup Dynamic Text support
+        setupDynamicTextSupport()
+        
         // Configure UI based on modification mode
         configureUIForModification()
         
@@ -77,6 +80,56 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         
         fieldAreaTextField.delegate = self
         setUpMenus()
+    }
+    
+    private func setupDynamicTextSupport() {
+        // Register for content size category changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contentSizeCategoryDidChange),
+            name: UIContentSizeCategory.didChangeNotification,
+            object: nil
+        )
+        
+        // Apply dynamic text settings to all labels
+        applyDynamicTextStyles()
+    }
+    
+    private func applyDynamicTextStyles() {
+        // Map of labels to their base font sizes and styles
+        let labelConfigs: [(UILabel?, CGFloat, UIFont.Weight, UIFont.TextStyle)] = [
+            // Labels with their size, weight, and text style
+            (locationLabel, 16, .regular, .body),
+            (timeSlotDisplayOutlet, 16, .regular, .body),
+            (priceLabel, 16, .semibold, .headline)
+        ]
+        
+        // Apply settings to each label
+        for (label, size, weight, style) in labelConfigs {
+            if let lbl = label {
+                // Enable dynamic type adjustment
+                lbl.adjustsFontForContentSizeCategory = true
+                
+                // Create a base font of appropriate size and weight
+                let baseFont = UIFont.systemFont(ofSize: size, weight: weight)
+                
+                // Use UIFontMetrics to get a properly scaled version
+                lbl.font = UIFontMetrics(forTextStyle: style).scaledFont(for: baseFont)
+            }
+        }
+        
+        // Configure text field with dynamic type
+        if let textField = fieldAreaTextField {
+            textField.adjustsFontForContentSizeCategory = true
+            let baseFont = UIFont.systemFont(ofSize: 16, weight: .regular)
+            textField.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
+        }
+    }
+    
+    @objc private func contentSizeCategoryDidChange() {
+        // When text size changes, reapply the styles and reload
+        applyDynamicTextStyles()
+        tableView.reloadData() // Reload the table to adjust cell heights
     }
     
     private func configureUIForModification() {
@@ -106,11 +159,60 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     func updateData() {
         guard let equipment = equipment else { return }
         
-        locationLabel.text = equipment.location
-        datePicker.date = selectedDate ?? Date()
+        // Safely unwrap all IBOutlets to prevent crashes
+        if let locationLabel = locationLabel {
+            locationLabel.text = equipment.location
+        }
+        
+        if let datePicker = datePicker {
+            datePicker.date = selectedDate ?? Date()
+        }
+        
         pricePerHr = equipment.pricePerHour
         
-        // Update any other UI elements with equipment data
+        // Update price label if available
+        if let priceLabel = priceLabel {
+            priceLabel.text = "Price per hour: ₹\(pricePerHr)"
+        }
+        
+        // Safely update time slot display if available
+        if let timeSlotDisplay = timeSlotDisplayOutlet {
+            // Set default time slot if not already set
+            if timeSlotDisplay.text?.isEmpty ?? true {
+                timeSlotDisplay.text = timeSlot.first ?? "Morning"
+            }
+        }
+        
+        // Safely configure buttons
+        if let proceedButton = proceedToPay {
+            proceedButton.titleLabel?.adjustsFontForContentSizeCategory = true
+            let buttonFont = UIFont.systemFont(ofSize: 17, weight: .semibold)
+            proceedButton.titleLabel?.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: buttonFont)
+        }
+        
+        if let modifyButton = modifyButton {
+            modifyButton.titleLabel?.adjustsFontForContentSizeCategory = true
+            let buttonFont = UIFont.systemFont(ofSize: 17, weight: .semibold)
+            modifyButton.titleLabel?.font = UIFontMetrics(forTextStyle: .headline).scaledFont(for: buttonFont)
+        }
+    }
+    
+    // Configure the view controller with equipment data when coming from CreateRequestViewController
+    func configure(with equipment: Equipment, dataController: DataController, date: Date) {
+        self.equipment = equipment
+        self.selectedDate = date
+        self.bookingSource = .home // Set source to home when coming from HomeViewController search
+        
+        // Don't call updateData() here - it will be called when the view is loaded
+        // via the didSet observer on equipment, or in viewDidLoad if view is already loaded
+        if isViewLoaded {
+            updateData()
+        }
+        
+        // Initialize Razorpay if needed
+        if razorpay == nil {
+            razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
+        }
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -287,18 +389,83 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         struct _TempUpdate: Codable {
             var status: BookingStatus = .confirmed
         }
+        
+        // Keep a reference to the current booking
+        guard let currentBooking = thisBooking else { return }
+        
         Task {
-            try! await SupabaseManager.shared.client
-                .from("bookings")
-                .update(_TempUpdate())
-                .eq("bookingID", value: thisBooking?.bookingID)
-                .execute()
+            do {
+                try await SupabaseManager.shared.client
+                    .from("bookings")
+                    .update(_TempUpdate())
+                    .eq("bookingID", value: currentBooking.bookingID)
+                    .execute()
+            } catch {
+                print("Error updating booking status: \(error)")
+                // Continue with the flow even if the update fails
+                // This ensures the user experience isn't interrupted by backend issues
+            }
+                
             DispatchQueue.main.async {
-                if let viewControllers = self.navigationController?.viewControllers, viewControllers.count >= 3 {
-                    let targetVC = viewControllers[viewControllers.count - 3]
-                    self.navigationController?.popToViewController(targetVC, animated: false)
+                // Get the SceneDelegate to access the root controller
+                guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                      let sceneDelegate = windowScene.delegate as? SceneDelegate,
+                      let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController else {
+                    print("Error: Could not access tab bar controller")
+                    return
                 }
-
+                
+                // Determine if we need to redirect to the Prebooking tab
+                if currentBooking.bookingType == .prebooking {
+                    // Find the index of the Prebooking tab
+                    var prebookingTabIndex: Int? = nil
+                    
+                    if let viewControllers = tabBarController.viewControllers {
+                        for (index, viewController) in viewControllers.enumerated() {
+                            if let navController = viewController as? UINavigationController,
+                               navController.viewControllers.first is PrebookingViewController {
+                                prebookingTabIndex = index
+                                break
+                            }
+                        }
+                    }
+                    
+                    // Post notification for prebooking
+                    NotificationCenter.default.post(
+                        name: Notification.Name.preBookingAdded,
+                        object: nil,
+                        userInfo: ["booking": currentBooking]
+                    )
+                    
+                    // Switch to the Prebooking tab if found
+                    if let index = prebookingTabIndex {
+                        print("Switching to Prebooking tab at index \(index)")
+                        tabBarController.selectedIndex = index
+                        
+                        // Dismiss all modal presentations to return to the tab bar
+                        self.view.window?.rootViewController?.dismiss(animated: true) {
+                            // Pop to root of navigation controller if needed
+                            if let navController = tabBarController.selectedViewController as? UINavigationController {
+                                navController.popToRootViewController(animated: false)
+                            }
+                        }
+                    }
+                } else {
+                    // For regular bookings, navigate back to the Home tab (index 0)
+                    // Post notification first
+                    NotificationCenter.default.post(name: .bookingAdded, object: nil)
+                    
+                    // Switch to Home tab
+                    tabBarController.selectedIndex = 0
+                    
+                    // Dismiss any modals and pop to root
+                    self.view.window?.rootViewController?.dismiss(animated: true) {
+                        // Pop to root of navigation controller
+                        if let navController = tabBarController.selectedViewController as? UINavigationController {
+                            navController.popToRootViewController(animated: false)
+                        }
+                    }
+                }
             }
         }
     }
@@ -316,11 +483,18 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         super.viewDidAppear(animated)
 
         // Apply shadow to the whole table view
-        tableViewR.layer.shadowColor = UIColor.black.cgColor
-        tableViewR.layer.shadowOpacity = 0.2
-        tableViewR.layer.shadowOffset = CGSize(width: 0, height: 3)
-        tableViewR.layer.shadowRadius = 8
-        tableViewR.layer.masksToBounds = false
-        tableViewR.layer.cornerRadius = 13  // Matches your UI style
+        if let tableViewR = tableViewR {
+            tableViewR.layer.shadowColor = UIColor.black.cgColor
+            tableViewR.layer.shadowOpacity = 0.2
+            tableViewR.layer.shadowOffset = CGSize(width: 0, height: 3)
+            tableViewR.layer.shadowRadius = 8
+            tableViewR.layer.masksToBounds = false
+            tableViewR.layer.cornerRadius = 13  // Matches your UI style
+        }
+    }
+    
+    deinit {
+        // Remove notification observer when view controller is deallocated
+        NotificationCenter.default.removeObserver(self)
     }
 }
