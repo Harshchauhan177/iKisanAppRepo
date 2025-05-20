@@ -19,6 +19,36 @@ class RelatedEquipmentCollectionViewCell: UICollectionViewCell {
         // Initialization code
     }
 
+    
+    @IBAction func BookNowButton(_ sender: Any) {
+        DispatchQueue.main.async {
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController else {
+                print("Error: Could not access tab bar controller")
+                return
+            }
+            // Switch to Home tab (index 0)
+            tabBarController.selectedIndex = 0
+            // Dismiss any modals and pop to root
+            windowScene.windows.first?.rootViewController?.dismiss(animated: true) {
+                if let navController = tabBarController.selectedViewController as? UINavigationController,
+                   let homeVC = navController.viewControllers.first as? HomeViewController {
+                    navController.popToRootViewController(animated: false)
+                    // Set the search bar text to the equipment name and trigger search
+                    if let equipmentName = self.equipmentNameLabel?.text {
+                        if let searchController = homeVC.navigationItem.searchController {
+                            searchController.isActive = true
+                            searchController.searchBar.text = equipmentName
+                            homeVC.updateSearchResults(for: searchController)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    
     func configure(with equipment: EquipmentAgri) {
         print("Configuring section 2 cell with equipment: \(equipment.name)")
         
@@ -37,6 +67,10 @@ class RelatedEquipmentCollectionViewCell: UICollectionViewCell {
                 equipmentImageView?.image = UIImage(named: "placeholder_image")
             }
         }
+        
+        
+        
+        
         
         // Configure other labels as needed
       //  equipmentPurposeLabel?.text = equipment.purpose ?? "N/A"
