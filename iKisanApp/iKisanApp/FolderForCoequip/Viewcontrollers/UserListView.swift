@@ -317,7 +317,12 @@ class UserListViewController: UIViewController {
             action: #selector(dismissModal)
         )
     }
+
+    @objc private func dismissModal() {
+        self.dismiss(animated: true, completion: nil)
+    }
 }
+
 
 // Variation of UserListView with selection capability
 struct SelectableUserListView: View {

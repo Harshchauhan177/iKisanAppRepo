@@ -173,17 +173,14 @@ struct SelectFarmerView: View {
     
     private func loadFarmers() {
         isLoading = true
-        
-        // Get initial users from the data controller
         let initialUsers = dataController.getCoEquipUsers()
-        
         if !initialUsers.isEmpty {
-            // If we already have cached users, use them
             self.farmers = initialUsers
             self.filterFarmers()
             self.isLoading = false
+        } else {
+            self.isLoading = false
         }
-        // If no users were returned initially, we wait for the notification
     }
     
     private func updateFarmersFromCache() {
@@ -270,28 +267,25 @@ class SelectFarmerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let selectFarmerView = SelectFarmerView(
-            dataController: dataController,
-            onSelectionComplete: { [weak self] selectedFarmers in
-                self?.selectedUsers = selectedFarmers
-                self?.performSegue(withIdentifier: "unwindToInfoTable", sender: self)
+        Task {
+            do {
+                let user = try await AuthManager.shared.login(email: "your@email.com", password: "yourPassword")
+                print("✅ Logged in as \(user.name)")
+                // Now present SelectFarmerView
+                let selectFarmerView = SelectFarmerView(
+                    dataController: self.dataController ?? IKisanDataController(),
+                    onSelectionComplete: { [weak self] selectedFarmers in
+                        self?.selectedUsers = selectedFarmers
+                    }
+                )
+                let hostingController = UIHostingController(rootView: selectFarmerView)
+                hostingController.modalPresentationStyle = .fullScreen
+                self.present(hostingController, animated: true)
+            } catch {
+                print("❌ Login failed: \(error)")
+                // Show an error to the user
             }
-        )
-        
-        let hostingController = UIHostingController(rootView: selectFarmerView)
-        addChild(hostingController)
-        view.addSubview(hostingController.view)
-        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            hostingController.view.topAnchor.constraint(equalTo: view.topAnchor),
-            hostingController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            hostingController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            hostingController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-        
-        hostingController.didMove(toParent: self)
-        self.hostingController = hostingController
+        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

@@ -1,6 +1,7 @@
 import UIKit
 import Foundation
 import SwiftUI
+import Supabase
 
 class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     
@@ -101,16 +102,16 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         let hoursNeeded = area / capacityPerHour
         
         // Convert hours to minutes and calculate end time
-        let minutesNeeded = Int(hoursNeeded * 60) // Convert hours to minutes
-        let endTimeInMinutes = startTime + minutesNeeded
+        let minutesNeeded = hoursNeeded * 60.0 // Convert hours to minutes
+        let endTimeInMinutes = Double(startTime) + minutesNeeded
         
         // Ensure end time doesn't exceed 6 PM (18:00)
-        let finalEndTime = min(endTimeInMinutes, endTime)
+        let finalEndTime = min(endTimeInMinutes, Double(endTime))
         
         // Format the time slot string with hours and minutes
         let startHour = startTime / minutesPerHour
-        let endHour = finalEndTime / minutesPerHour
-        let endMinutes = finalEndTime % minutesPerHour
+        let endHour = Int(finalEndTime) / minutesPerHour
+        let endMinutes = Int(finalEndTime) % minutesPerHour
         
         if endMinutes == 0 {
             TimeSlotLabel.text = String(format: "%02d:00 - %02d:00", startHour, endHour)
@@ -123,10 +124,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Initialize DataController if not already set
-        if dataController == nil {
-            dataController = IKisanDataController()
-        }
+        
         
         // Configure UI with equipment data
         if let equipment = cardData {
@@ -166,6 +164,8 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         
         // Setup text field delegate
         InputAreaLabel.delegate = self
+        
+       
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -180,17 +180,20 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         navigationController?.pushViewController(infoVC, animated: true)
     }
     
-    @IBAction func AddFarmerButtonTapped(_ sender: Any) {
-        guard let dataController = dataController else { return }
+    @IBAction func AddFarmerButtonTapped(_ sender: UIButton) {
+        // Create the SelectFarmerView with the dataController and completion handler
+        let selectFarmerView = SelectFarmerView(
+            dataController: self.dataController ?? IKisanDataController(),
+            onSelectionComplete: { [weak self] selectedFarmers in
+                self?.selectedUsers = selectedFarmers
+                self?.FarmerListLabel.text = "\(selectedFarmers.count) Farmers Selected"
+            }
+        )
         
-        let selectFarmerView = SelectFarmerView(dataController: dataController) { selectedFarmers in
-            self.FarmerListLabel.text = selectedFarmers.map { $0.name }.joined(separator: ", ")
-        }
-        
+        // Present the SwiftUI view in a UIHostingController
         let hostingController = UIHostingController(rootView: selectFarmerView)
-        hostingController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
-        present(hostingController, animated: true)
+        hostingController.modalPresentationStyle = .fullScreen
+        self.present(hostingController, animated: true)
     }
 }
-
 

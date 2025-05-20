@@ -138,7 +138,8 @@ enum EquipmentData {
 }
 
 class IKisanDataController: DataController {
-    
+   
+       
     // Add a property to store FAQs
     private var faqsList: [FAQ] = []
     
@@ -571,10 +572,6 @@ class IKisanDataController: DataController {
     }
     
     func getCoEquipUsers() -> [User] {
-        // If we have cached users, return them immediately
-        if !cachedUsers.isEmpty {
-            return cachedUsers
-        }
         
         // Otherwise, fetch users asynchronously and return an empty array for now
         Task {
@@ -1657,4 +1654,20 @@ class ReviewDataClass {
         reviews = newReviews
     }
 }
+
+
+// DTO for usersforfetch table
+struct UserForFetchDTO: Codable {
+    let userID: String
+    let name: String
+    let phone: String
+    let latitude: Double
+    let longitude: Double
+    let address: String?
+    let fieldArea: Double
+    let groupID: String?
+    let email: String
+}
+
+
 
