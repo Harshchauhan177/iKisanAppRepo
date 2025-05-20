@@ -41,8 +41,10 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
             tableViewLabel.isHidden = true
         } else {
             tableViewLabel.isHidden = false
-            filteredSuggestions = (dataController?.getEquipmentSuggestions() ?? []).filter {
-                $0.lowercased().contains(searchText.lowercased())
+            if let suggestions = dataController?.getEquipmentSuggestions() {
+                filteredSuggestions = suggestions.filter { $0.lowercased().contains(searchText.lowercased()) }
+            } else {
+                filteredSuggestions = []
             }
         }
         tableViewLabel.reloadData()

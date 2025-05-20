@@ -102,6 +102,9 @@ protocol DataController {
     func getPreBookings() -> [Booking]
     func getEquipment(byId: UUID) -> Equipment?
     func refreshFAQsFromDatabase() async
+    
+    // Add this new function
+    func getCurrentUserAddress() -> String?
 }
 
 
@@ -141,6 +144,14 @@ class IKisanDataController: DataController {
     
     // Add a property to store cached users
     private var cachedUsers: [User] = []
+    
+    func getCurrentUserAddress() -> String? {
+        // Try to get address from AuthManager's currentUser
+        if let address = AuthManager.shared.currentUser?.address {
+            return address
+        }
+        return nil
+    }
     
     // Static IDs for all entities
     // Crop IDs

@@ -263,8 +263,27 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             let card = filteredCard[indexPath.row]
             cell.TitleLabel.text = card.name
             cell.PriceLabel.text = "₹\(card.pricePerHour)/hr"
-            cell.ImageView.image = UIImage(named: card.equipmentImage)
-            cell.hostLabel.text = "Hosted by Ram Pal"//"Hosted by \(card.providerID)"
+            
+            // Fix 1: Handle both URL and local images
+            if card.equipmentImage.hasPrefix("http") {
+                // Load remote image using ImageCache utility
+                cell.ImageView.loadImage(from: card.equipmentImage)
+            } else {
+                // Try loading local image with fallbacks
+                if let image = UIImage(named: card.equipmentImage) {
+                    cell.ImageView.image = image
+                } else if let typeImage = UIImage(named: card.type) {
+                    // Fallback to equipment type image
+                    cell.ImageView.image = typeImage
+                } else {
+                    // Final fallback to a numbered image
+                    cell.ImageView.image = UIImage(named: "1")
+                }
+            }
+            
+            // Fix 2: Clean provider name display
+            cell.hostLabel.text = "Hosted by \(card.providerName ?? "Unknown")"
+            
             cell.ratingLabel.text = "\(card.rating)"
             setOriginalPrice("\(card.realPricePerHour)", for: cell)
             cell.layer.cornerRadius = 10
@@ -284,27 +303,15 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
                 return
             }
             
-            if isFromHomeViewController {
-                // Navigate to ReviewBookingTableViewController if search was started from HomeViewController
-                let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-                if let reviewBookingVC = storyboard.instantiateViewController(withIdentifier: "ReviewBookingTableViewController") as? ReviewBookingTableViewController {
-                    // Set required properties first, before configuring
-                    reviewBookingVC.equipment = selectedCard
-                    reviewBookingVC.selectedDate = selectedDate ?? Date()
-                    reviewBookingVC.bookingSource = .home
-                    
-                    // Then push the view controller and let it handle its own initialization
-                    navigationController?.pushViewController(reviewBookingVC, animated: true)
-                }
-            } else {
-                // Original flow - navigate to InfoTableViewController
-                let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
-                if let infoTableVC = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
-                    infoTableVC.configure(with: selectedCard, 
-                                        dataController: dataController,
-                                        date: selectedDate ?? Date())
-                    navigationController?.pushViewController(infoTableVC, animated: true)
-                }
+            let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+            if let equipmentDescVC = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
+                equipmentDescVC.equipment = selectedCard
+                equipmentDescVC.bookingSource = isFromHomeViewController ? .coEquip : .home
+                equipmentDescVC.loadViewIfNeeded()
+                
+                // Store the selected card and date to pass in prepare(for:sender:)
+                let bookingInfo = (equipment: selectedCard, date: selectedDate ?? Date())
+                navigationController?.pushViewController(equipmentDescVC, animated: true)
             }
         }
     }
