@@ -79,7 +79,9 @@ protocol DataController {
     func updateRequest(_ request: Request)
     func deleteRequest(with id: UUID)
     func getEquipmentById(_ id: UUID) -> Equipment?
-    func getCoEquipUsers() -> [User]
+   // func getCoEquipUsers() -> [User]
+    //func getCoEquipUsers() async -> [User]
+    func getAllUsers() -> [User]
     func getEquipmentSuggestions() -> [String]
     func filterEquipment(by query: String) -> [Equipment]
     func getCategories() -> [String]
@@ -137,8 +139,64 @@ enum EquipmentData {
     ]
 }
 
+
+
 class IKisanDataController: DataController {
-   
+//    func getCoEquipUsers() async -> [User] {
+//        do {
+//            let response: Void = try await SupabaseManager.shared.client
+//                .from("users")
+//                .select("*")
+//                .execute()
+//                .value
+//
+//            return response
+//        } catch {
+//            print("❌ Error fetching users: \(error)")
+//            return []
+//        }
+//    }
+    
+    
+        
+
+        func getAllUsers() -> [User] {
+        // Use the cached users if available, otherwise fetch from Supabase
+        if !cachedUsers.isEmpty {
+            return cachedUsers
+        }
+        
+        Task {
+            do {
+                let users: [UserDTO] = try await SupabaseManager.shared.client
+                    .from("users")
+                    .select("*")
+                    .execute()
+                    .value
+                    
+                // Map UserDTO to User model and cache them
+                self.cachedUsers = users.map { dto in
+                    User(userID: UUID(uuidString: dto.id) ?? UUID(),  // Convert String to UUID
+                         name: dto.name,
+                         email: dto.email,
+                         phone: dto.phone,
+                         location: Location(latitude: dto.latitude,
+                                          longitude: dto.longitude,
+                                          address: dto.address),
+                         selectedCrops: dto.selectedCrops.compactMap { UUID(uuidString: $0) },  // Convert [String] to [UUID]
+                         fieldArea: dto.fieldArea,
+                         groupID: nil)  // Set to nil since it's not in DTO
+                }
+            } catch {
+                print("Error fetching users: \(error)")
+            }
+        }
+        
+        return cachedUsers
+    }
+        
+        // ... existing code ...
+    
        
     // Add a property to store FAQs
     private var faqsList: [FAQ] = []
@@ -147,9 +205,9 @@ class IKisanDataController: DataController {
     private var cachedUsers: [User] = []
     
     func getCurrentUserAddress() -> String? {
-        // Try to get address from AuthManager's currentUser
-        if let address = AuthManager.shared.currentUser?.address {
-            return address
+        // Get the current user from cached users
+        if let currentUser = cachedUsers.first {
+            return currentUser.location.address
         }
         return nil
     }
@@ -571,23 +629,9 @@ class IKisanDataController: DataController {
         return nil
     }
     
-    func getCoEquipUsers() -> [User] {
-        
-        // Otherwise, fetch users asynchronously and return an empty array for now
-        Task {
-            let fetchedUsers = await requestManager.fetchAllUsers()
-            // Update cached users on the main thread
-            await MainActor.run {
-                self.cachedUsers = fetchedUsers
-                print("Loaded \(fetchedUsers.count) users from database")
-                // Notify any listeners that users have been loaded
-                NotificationCenter.default.post(name: .usersLoaded, object: nil)
-            }
-        }
-        
-        return []
-    }
     
+    
+
     func getEquipmentSuggestions() -> [String] {
         // Get unique equipment names from the equipmentList
         let suggestions = Set(equipmentList.map { $0.name })
@@ -1653,20 +1697,6 @@ class ReviewDataClass {
     static func updateReviews(with newReviews: [ReviewData]) {
         reviews = newReviews
     }
-}
-
-
-// DTO for usersforfetch table
-struct UserForFetchDTO: Codable {
-    let userID: String
-    let name: String
-    let phone: String
-    let latitude: Double
-    let longitude: Double
-    let address: String?
-    let fieldArea: Double
-    let groupID: String?
-    let email: String
 }
 
 

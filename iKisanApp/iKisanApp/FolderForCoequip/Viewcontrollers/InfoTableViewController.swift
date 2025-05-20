@@ -1,7 +1,6 @@
 import UIKit
 import Foundation
 import SwiftUI
-import Supabase
 
 class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     
@@ -124,7 +123,10 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
+        if let address = dataController!.getCurrentUserAddress() {
+            // Set the address to your location field
+            LocationLabel.text = address
+        }
         
         // Configure UI with equipment data
         if let equipment = cardData {
@@ -150,13 +152,11 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         }
         
         // Set location from user's address
-        if let dataController = self.dataController,
-           let userAddress = dataController.getCurrentUserAddress() {
-            self.location = userAddress
-            self.LocationLabel.text = userAddress
-            print("📍 Location set to: \(userAddress)")
+        if let address = AuthManager.shared.currentUser?.address, !address.isEmpty {
+            self.location = address
+            self.LocationLabel.text = address
+            print("📍 Location set to: \(address)")
         } else {
-            // Set default location if user address is not available
             self.location = "Murshadpur, Greater Noida, U.P"
             self.LocationLabel.text = self.location
             print("📍 Using default location: \(self.location)")
@@ -165,7 +165,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         // Setup text field delegate
         InputAreaLabel.delegate = self
         
-       
+        print("Current user address: \(dataController?.getCurrentUserAddress() ?? "nil")")
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -181,19 +181,60 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     }
     
     @IBAction func AddFarmerButtonTapped(_ sender: UIButton) {
-        // Create the SelectFarmerView with the dataController and completion handler
-        let selectFarmerView = SelectFarmerView(
-            dataController: self.dataController ?? IKisanDataController(),
-            onSelectionComplete: { [weak self] selectedFarmers in
-                self?.selectedUsers = selectedFarmers
-                self?.FarmerListLabel.text = "\(selectedFarmers.count) Farmers Selected"
-            }
+        let selectFarmerView = SelectFarmerView(dataController: self.dataController ?? IKisanDataController()) { selectedFarmers in
+            self.FarmerListLabel.text = selectedFarmers.map { $0.name }.joined(separator: ", ")
+        }
+        let hostingController = UIHostingController(rootView: selectFarmerView)
+        hostingController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
+        self.present(hostingController, animated: true)
+    }
+    
+    @IBAction func CreateButtonTapped(_ sender: UIButton, forEvent event: UIEvent) {
+   
+        guard let area = Double(InputAreaLabel.text ?? ""),
+              let equipment = cardData,
+              let selectedDate = date else {
+            // Show error alert
+            let alert = UIAlertController(title: "Error", message: "Please fill in all required fields", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        // Get current user ID from AuthManager
+        guard let userId = AuthManager.shared.currentUser?.id else {
+            // Show error alert for user not logged in
+            let alert = UIAlertController(title: "Error", message: "Please log in to create a request", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        // Create new request
+        let request = Request(
+            userId: userId,
+            equipmentId: equipment.equipmentID,
+            requestedDate: selectedDate,
+            status: .pending,
+            type: .coEquip,
+            area: area,
+            timeSlot: currentTimeSlot,
+            timePeriod: TimeSlotLabel.text,
+            location: LocationLabel.text ?? location,
+            typeOfRequest: .myRequest,
+            selectedUsers: selectedUsers,
+            joinedFarmers: selectedUsers.map { $0.userID }
         )
         
-        // Present the SwiftUI view in a UIHostingController
-        let hostingController = UIHostingController(rootView: selectFarmerView)
-        hostingController.modalPresentationStyle = .fullScreen
-        self.present(hostingController, animated: true)
+        // Save request using data controller
+        dataController?.createRequest(request)
+        
+        // Show success message and dismiss
+        let alert = UIAlertController(title: "Success", message: "Request created successfully", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            self.navigationController?.popViewController(animated: true)
+        })
+        present(alert, animated: true)
     }
 }
 

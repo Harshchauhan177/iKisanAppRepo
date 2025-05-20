@@ -149,7 +149,9 @@ struct EquipmentMoreImages: Codable {
 
 //MARK: Model for User
 
-struct User: Codable {
+struct User: Codable , Hashable {
+    
+    
     let userID: UUID
     var name: String
     var email: String
