@@ -184,6 +184,7 @@ struct Crop {
     var name: String
     var season: Season
     var equipmentRecommendations: [UUID]
+    var imageURL: String?
 }
 
 enum Season: String {

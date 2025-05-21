@@ -77,6 +77,11 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         setupSearchController()
         setupNotifications()
         
+        // Ensure search controller behavior preserves query
+        if #available(iOS 16.0, *) {
+            navigationItem.preferredSearchBarPlacement = .stacked
+        }
+        
         // Load initial data
         loadPreBookings()
         
@@ -90,10 +95,12 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // Reset available equipment section state
-        hasAddPreBook = false
-        availableEquipments = []
-        selectedDate = nil
+        // Reset available equipment section state only if no search is active
+        if searchController.searchBar.text?.isEmpty ?? true {
+            hasAddPreBook = false
+            availableEquipments = []
+            selectedDate = nil
+        }
         
         // Remove existing observer before adding new one to prevent duplicates
         NotificationCenter.default.removeObserver(
@@ -762,8 +769,16 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         searchController.searchResultsUpdater = self
         searchController.searchBar.placeholder = "Search Equipment"
         searchController.obscuresBackgroundDuringPresentation = false
+        // Prevent search bar from hiding when navigating
+        searchController.hidesNavigationBarDuringPresentation = false
+        // Ensure search bar remains active when navigating to detail screens
+        searchController.isActive = true
+        // Keep search results visible
+        searchController.automaticallyShowsCancelButton = true
+        // Set the search controller in navigation
         navigationItem.searchController = searchController
-        definesPresentationContext = true
+        // Ensure search presentation context is defined
+        definesPresentationContext = false
         
         // Setup search table view with proper constraints
         searchTableView.delegate = self
@@ -952,9 +967,11 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
         // Update search bar text with selected equipment
         searchController.searchBar.text = selectedEquipment.name
         
-        // Hide search UI
+        // Hide search suggestions UI but keep search bar active and visible
         searchTableView.isHidden = true
-        searchController.isActive = false
+        
+        // Keep the search controller active
+        searchController.isActive = true
         
         // Reset sections state
         hasAddPreBook = false
