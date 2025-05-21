@@ -182,6 +182,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     
     @IBAction func AddFarmerButtonTapped(_ sender: UIButton) {
         let selectFarmerView = SelectFarmerView(dataController: self.dataController ?? IKisanDataController()) { selectedFarmers in
+            self.selectedUsers = selectedFarmers  // Store the selected farmers
             self.FarmerListLabel.text = selectedFarmers.map { $0.name }.joined(separator: ", ")
         }
         let hostingController = UIHostingController(rootView: selectFarmerView)
@@ -229,10 +230,11 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         // Save request using data controller
         dataController?.createRequest(request)
         
-        // Show success message and dismiss
+        // In CreateButtonTapped function, update the success alert action:
         let alert = UIAlertController(title: "Success", message: "Request created successfully", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            self.navigationController?.popViewController(animated: true)
+            // Pop to root view controller (which should be CoequipViewController)
+            self.navigationController?.popToRootViewController(animated: true)
         })
         present(alert, animated: true)
     }

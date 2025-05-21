@@ -71,7 +71,7 @@ struct Equipment: Codable, Sendable {
     }
 }
 
-struct Request {
+struct Request: Codable {
     let id: UUID
     var userId: UUID
     var equipmentId: UUID
@@ -83,10 +83,10 @@ struct Request {
     var timePeriod: String?
     var location: String
     var typeOfRequest: RequestType
-    var selectedUsers: [User]
+    var selectedUsers: [UUID] // Changed from [User] to [UUID]
     var joinedFarmers: [UUID]
     
-    init(id: UUID = UUID(), // Default to new UUID if not provided
+    init(id: UUID = UUID(),
          userId: UUID,
          equipmentId: UUID,
          requestedDate: Date,
@@ -110,20 +110,22 @@ struct Request {
         self.timePeriod = timePeriod
         self.location = location
         self.typeOfRequest = typeOfRequest
-        self.selectedUsers = selectedUsers
+        self.selectedUsers = selectedUsers.map { $0.userID } // Convert User array to UUID array
         self.joinedFarmers = joinedFarmers
     }
+}
+
+// Also make sure RequestType is Codable
+enum RequestType: Codable {
+    case myRequest
+    case acceptedRequest
 }
 struct Availability: Codable {
     var startDate: Date
     var endDate: Date
 }
 
-enum RequestType {
-    case myRequest
-    case acceptedRequest
-    
-}
+
 enum coEquipState: String, Codable {
     case Available
     case Unavailable

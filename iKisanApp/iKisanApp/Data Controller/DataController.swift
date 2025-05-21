@@ -79,6 +79,7 @@ protocol DataController {
     func updateRequest(_ request: Request)
     func deleteRequest(with id: UUID)
     func getEquipmentById(_ id: UUID) -> Equipment?
+    func getUserById(_ id: UUID) -> User?
    // func getCoEquipUsers() -> [User]
     //func getCoEquipUsers() async -> [User]
     func getAllUsers() -> [User]
@@ -90,6 +91,7 @@ protocol DataController {
     func filterEquipment(bySearchText searchText: String) -> [Equipment]
     func isEquipmentAvailable(on date: Date, for equipment: Equipment) -> Bool
     func createRequest(_ request: Request)
+    func createRequest(_ request: Request, with selectedUsers: [User])
     func getTimeSlots(for area: Double) -> [TimeSlot]
     
     //For Prebooking
@@ -107,6 +109,7 @@ protocol DataController {
     
     // Add this new function
     func getCurrentUserAddress() -> String?
+    func getCurrentUser() -> User?
 }
 
 
@@ -142,6 +145,30 @@ enum EquipmentData {
 
 
 class IKisanDataController: DataController {
+    
+        func getCurrentUser() -> User? {
+            guard let currentUser = AuthManager.shared.currentUser else {
+                return nil
+            }
+            
+            // Convert AuthUser to User model
+            return User(
+                userID: currentUser.id,  // This is already a UUID, no conversion needed
+                name: currentUser.name,
+                email: currentUser.email,
+                phone: currentUser.phone,
+                location: Location(
+                    latitude: currentUser.latitude,
+                    longitude: currentUser.longitude,
+                    address: currentUser.address
+                ),
+                selectedCrops: currentUser.selectedCrops ?? [],  // Use empty array as default if nil
+                fieldArea: currentUser.fieldArea ?? 0.0,  // Use 0.0 as default if nil
+                groupID: currentUser.groupID
+            )
+        }
+    
+    
 //    func getCoEquipUsers() async -> [User] {
 //        do {
 //            let response: Void = try await SupabaseManager.shared.client
@@ -193,6 +220,17 @@ class IKisanDataController: DataController {
         }
         
         return cachedUsers
+    }
+
+    func getUserById(_ id: UUID) -> User? {
+        // Check cached users first
+        if let user = cachedUsers.first(where: { $0.userID == id }) {
+            return user
+        }
+        
+        // If not found in cache, return nil
+        // The cache will be updated next time getAllUsers() is called
+        return nil
     }
         
         // ... existing code ...
@@ -694,6 +732,31 @@ class IKisanDataController: DataController {
         Task {
             _ = await requestManager.createRequest(request)
     }
+    }
+    
+    func createRequest(_ request: Request, with selectedUsers: [User]) {
+        var updatedRequest = request
+        // Convert User array to UUID array
+        let selectedUserIds = selectedUsers.map { $0.userID }
+        updatedRequest.selectedUsers = selectedUserIds
+        updatedRequest.joinedFarmers = selectedUserIds
+        
+        Task {
+            do {
+                try await SupabaseManager.shared.client
+                    .from("requests")
+                    .insert(updatedRequest)
+                    .execute()
+                
+                // Update local cache
+                self.coEquipRequests.append(updatedRequest)
+                if updatedRequest.status == .confirmed {
+                    self.acceptedRequests.append(updatedRequest)
+                }
+            } catch {
+                print("Error creating request: \(error)")
+            }
+        }
     }
     
     func getTimeSlots(for area: Double) -> [TimeSlot] {
@@ -1347,7 +1410,7 @@ class RequestManager {
                 timePeriod: request.timePeriod,
                 location: request.location,
                 typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
-                selectedUsersIds: request.selectedUsers.map { $0.userID.uuidString },
+                selectedUsersIds: request.selectedUsers.map { $0.uuidString }, // Fixed: UUIDs are already stored, just need uuidString
                 joinedFarmers: request.joinedFarmers
             )
             
@@ -1384,7 +1447,7 @@ class RequestManager {
                 timePeriod: request.timePeriod,
                 location: request.location,
                 typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
-                selectedUsersIds: request.selectedUsers.map { $0.userID.uuidString },
+                selectedUsersIds: request.selectedUsers.map { $0.uuidString }, // Fixed: UUIDs are already stored, just need uuidString
                 joinedFarmers: request.joinedFarmers
             )
             

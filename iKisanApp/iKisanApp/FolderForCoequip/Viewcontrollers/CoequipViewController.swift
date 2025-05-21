@@ -22,7 +22,13 @@ class CoequipViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-       
+        
+        // Add this check
+        guard let currentUser = dataController.getCurrentUser() else {
+            print("No current user found")
+            return
+        }
+        
         loadInitialData()
         updateUI()
         if let currentRequest = currentRequest,
@@ -111,28 +117,30 @@ class CoequipViewController: UIViewController {
 
 extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let dataController = dataController else {
+        guard let dataController = self.dataController,
+              let currentUser = dataController.getCurrentUser() else {
             return 0
         }
-        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
-            let requests = dataController.getAllCoEquipRequests()
+        
+        if self.CoequipSegmentedControl.selectedSegmentIndex == 0 {
+            let requests = dataController.getAllCoEquipRequests().filter { $0.userId == currentUser.userID }
             return requests.count
         } else {
-            let requests = dataController.getAcceptedRequests()
+            let requests = dataController.getAcceptedRequests().filter { $0.userId == currentUser.userID }
             return requests.count
         }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let dataController = dataController else {
+        guard let dataController = self.dataController else {
             return UITableViewCell()
         }
         
-        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+        if self.CoequipSegmentedControl.selectedSegmentIndex == 0 {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "MyRequestTableViewCell", for: indexPath) as? MyRequestTableViewCell else {
                 return UITableViewCell()
             }
-            let requests = dataController.getAllCoEquipRequests()
+            let requests = dataController.getAllCoEquipRequests().filter { $0.userId == dataController.getCurrentUser()?.userID }
             let request = requests[indexPath.row]
             if let equipment = dataController.getEquipmentById(request.equipmentId) {
                 cell.configure(with: equipment, request: request)
@@ -143,36 +151,35 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "AcceptRequestTableViewCell", for: indexPath) as? AcceptRequestTableViewCell else {
                 return UITableViewCell()
             }
-            let acceptedRequests = dataController.getAcceptedRequests()
+            let acceptedRequests = dataController.getAcceptedRequests().filter { $0.userId == dataController.getCurrentUser()?.userID }
             let request = acceptedRequests[indexPath.row]
             if let equipment = dataController.getEquipmentById(request.equipmentId) {
                 cell.configure(with: request, equipment: equipment)
                 cell.delegate = self
             }
-            
             return cell
         }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let dataController = dataController else { return }
+        guard let dataController = self.dataController else { return }
         
-        let requests = CoequipSegmentedControl.selectedSegmentIndex == 0 ? 
-            dataController.getAllCoEquipRequests() : 
-            dataController.getAcceptedRequests()
+        let requests = self.CoequipSegmentedControl.selectedSegmentIndex == 0 ? 
+            dataController.getAllCoEquipRequests().filter { $0.userId == dataController.getCurrentUser()?.userID } : 
+            dataController.getAcceptedRequests().filter { $0.userId == dataController.getCurrentUser()?.userID }
         
         let request = requests[indexPath.row]
         
-        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
-            performSegue(withIdentifier: "goToMyRequest1", sender: request)
+        if self.CoequipSegmentedControl.selectedSegmentIndex == 0 {
+            self.performSegue(withIdentifier: "goToMyRequest1", sender: request)
         } else {
-            performSegue(withIdentifier: "goToAcceptRequest", sender: request)
+            self.performSegue(withIdentifier: "goToAcceptRequest", sender: request)
         }
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }
-
+    
 extension CoequipViewController: MyRequestTableViewCellDelegate {
     func didTapConfirmButton(cell: MyRequestTableViewCell) {
         guard let indexPath = CoequipTableView.indexPath(for: cell),
