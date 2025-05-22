@@ -44,10 +44,25 @@ class AcceptRequestTableViewCell: UITableViewCell {
     }
     
     @IBAction func acceptButtonTapped(_ sender: UIButton) {
+        // Only notify delegate, remove direct navigation
         delegate?.acceptButtonTapped(in: self)
     }
     
     @IBAction func rejectButtonTapped(_ sender: UIButton) {
+        // Only notify delegate, remove direct deletion
         delegate?.rejectButtonTapped(in: self)
+        
+    }
+    
+    // Helper method to find the view controller
+    private func findViewController() -> UIViewController? {
+        var responder: UIResponder? = self
+        while let nextResponder = responder?.next {
+            if let viewController = nextResponder as? UIViewController {
+                return viewController
+            }
+            responder = nextResponder
+        }
+        return nil
     }
 }
