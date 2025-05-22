@@ -110,6 +110,9 @@ protocol DataController {
     // Add this new function
     func getCurrentUserAddress() -> String?
     func getCurrentUser() -> User?
+    
+    // Add the missing method declaration
+    func loadDataFromBackend() async
 }
 
 
@@ -343,7 +346,7 @@ class IKisanDataController: DataController {
         }
     }
     
-    private func loadDataFromBackend() async {
+    public func loadDataFromBackend() async {
         // Load all data from backend
         self.equipmentList = await requestManager.fetchEquipments()
         self.reviewList = await requestManager.fetchReviews()
@@ -351,9 +354,11 @@ class IKisanDataController: DataController {
         self.crops = await requestManager.fetchCrops()
         self.cropCategories = await requestManager.fetchCropCategories()
         
-        // Load requests
+        // Load requests and update the local arrays
         self.coEquipRequests = await requestManager.fetchRequests()
+        print("Debug: Fetched \(self.coEquipRequests.count) requests from database")
         self.acceptedRequests = self.coEquipRequests.filter { $0.status == .confirmed }
+        print("Debug: Filtered \(self.acceptedRequests.count) accepted requests")
         
         // Make a local copy of suggestions for quick access
         self.suggestionList = self.equipmentList.filter { $0.isRecommended }
@@ -564,6 +569,13 @@ class IKisanDataController: DataController {
     }
     
     func getAllCoEquipRequests() -> [Request] {
+        // Trigger a refresh of the requests
+        Task {
+            self.coEquipRequests = await requestManager.fetchRequests()
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .requestsUpdated, object: nil)
+            }
+        }
         return coEquipRequests
     }
     
@@ -962,11 +974,40 @@ class RequestManager {
     
     func fetchRequests() async -> [Request] {
         do {
-            let data: [RequestDTO] = try await SupabaseManager.shared.client
+            // Get the raw data first
+            let rawData = try await SupabaseManager.shared.client
                 .from("requests")
                 .select("*")
                 .execute()
-                .value
+                .data
+            
+            // Create a decoder with proper date decoding strategy
+            let decoder = JSONDecoder()
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+                
+                // Try ISO8601 format first
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+                
+                // Fallback to your specific format if ISO8601 fails
+                let fallbackFormatter = DateFormatter()
+                fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                if let date = fallbackFormatter.date(from: dateString) {
+                    return date
+                }
+                // Replace this line:
+                throw DecodingError.dataCorruptedError(in: container,
+                debugDescription: "Cannot decode date string \(dateString)")
+
+            }
+            
+            // Manually decode the data
+            let data = try decoder.decode([RequestDTO].self, from: rawData)
             
             // Convert DTOs to domain models with relationships
             var requests: [Request] = []
@@ -1617,9 +1658,65 @@ struct RequestDTO: Codable {
         case timePeriod
         case location
         case typeOfRequest
-        // These aren't explicit columns, so they need special handling
         case selectedUsersIds
         case joinedFarmers
+    }
+    
+    // Add this initializer for encoding
+    init(id: UUID, userId: UUID, equipmentId: UUID, requestedDate: Date, status: String, 
+         type: String, area: Double, timeSlot: String, timePeriod: String?, location: String, 
+         typeOfRequest: String, selectedUsersIds: [String], joinedFarmers: [UUID]) {
+        self.id = id
+        self.userId = userId
+        self.equipmentId = equipmentId
+        self.requestedDate = requestedDate
+        self.status = status
+        self.type = type
+        self.area = area
+        self.timeSlot = timeSlot
+        self.timePeriod = timePeriod
+        self.location = location
+        self.typeOfRequest = typeOfRequest
+        self.selectedUsersIds = selectedUsersIds
+        self.joinedFarmers = joinedFarmers
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        userId = try container.decode(UUID.self, forKey: .userId)
+        equipmentId = try container.decode(UUID.self, forKey: .equipmentId)
+        
+        // Handle date decoding manually
+        let dateString = try container.decode(String.self, forKey: .requestedDate)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        if let date = formatter.date(from: dateString) {
+            requestedDate = date
+        } else {
+            // Try ISO8601 as fallback
+            let iso8601Formatter = ISO8601DateFormatter()
+            if let date = iso8601Formatter.date(from: dateString) {
+                requestedDate = date
+            } else {
+                throw DecodingError.dataCorruptedError(
+    forKey: .requestedDate,
+    in: container,
+    debugDescription: "Cannot decode date string \(dateString)"
+)
+            }
+        }
+        
+        // Decode remaining properties
+        status = try container.decode(String.self, forKey: .status)
+        type = try container.decode(String.self, forKey: .type)
+        area = try container.decode(Double.self, forKey: .area)
+        timeSlot = try container.decode(String.self, forKey: .timeSlot)
+        timePeriod = try container.decodeIfPresent(String.self, forKey: .timePeriod)
+        location = try container.decode(String.self, forKey: .location)
+        typeOfRequest = try container.decode(String.self, forKey: .typeOfRequest)
+        selectedUsersIds = try container.decode([String].self, forKey: .selectedUsersIds)
+        joinedFarmers = try container.decode([UUID].self, forKey: .joinedFarmers)
     }
 }
 
@@ -1738,6 +1835,7 @@ extension Notification.Name {
     static let requestDeleted = Notification.Name("requestDeleted")
     static let bookingAdded = Notification.Name("bookingAdded")
     static let usersLoaded = Notification.Name("usersLoaded")
+    static let requestsUpdated = Notification.Name("requestsUpdated")
 }
 
 //

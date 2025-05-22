@@ -98,7 +98,7 @@
                                     <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 </buttonConfiguration>
                                 <connections>
-                                    <action selector="AccepctButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="mLF-AF-ddl"/>
+                                    <action selector="acceptButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="Nup-RU-ju1"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SzY-JF-RxU">
@@ -113,7 +113,7 @@
                                     <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 </buttonConfiguration>
                                 <connections>
-                                    <action selector="RejectButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="cNV-3r-r2s"/>
+                                    <action selector="rejectButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="qke-30-IK8"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -130,14 +130,14 @@
             </tableViewCellContentView>
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
             <connections>
-                <outlet property="AcceptButtonLabel" destination="K97-ob-crE" id="uCS-Zo-aL8"/>
-                <outlet property="CreatorLabel" destination="qF7-ca-JEj" id="pye-YH-CoZ"/>
-                <outlet property="DateLabel" destination="mQa-zM-mLU" id="tgO-Yc-G2g"/>
-                <outlet property="EquipmentIimageLabel" destination="K0l-Gj-yQq" id="XGQ-c7-alV"/>
-                <outlet property="EquipmentTitleLabel" destination="ot5-Qq-3c8" id="C71-ri-AvR"/>
-                <outlet property="LocationLabel" destination="XDS-75-GEf" id="gFz-Z5-StF"/>
-                <outlet property="PriceLabel" destination="TeG-25-rdj" id="kiG-6L-Pcz"/>
-                <outlet property="RejectButtonTapped" destination="SzY-JF-RxU" id="FGC-9U-FcS"/>
+                <outlet property="acceptButton" destination="K97-ob-crE" id="apw-1H-bjV"/>
+                <outlet property="dateLabel" destination="mQa-zM-mLU" id="g07-z7-kx5"/>
+                <outlet property="hostLabel" destination="Kqp-Ud-YTa" id="m96-27-yET"/>
+                <outlet property="imageLabel" destination="K0l-Gj-yQq" id="unM-8F-Nnq"/>
+                <outlet property="locationLabel" destination="XDS-75-GEf" id="8yg-fM-KAc"/>
+                <outlet property="priceLabel" destination="TeG-25-rdj" id="BTC-AX-otL"/>
+                <outlet property="rejectButton" destination="SzY-JF-RxU" id="7kB-ZV-m01"/>
+                <outlet property="titleLabel" destination="ot5-Qq-3c8" id="qjT-H7-v9P"/>
             </connections>
             <point key="canvasLocation" x="57.251908396946561" y="21.126760563380284"/>
         </tableViewCell>

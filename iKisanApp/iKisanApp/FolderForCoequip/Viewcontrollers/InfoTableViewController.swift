@@ -202,18 +202,19 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             return
         }
         
-        // Get current user ID from AuthManager
-        guard let userId = AuthManager.shared.currentUser?.id else {
-            // Show error alert for user not logged in
-            let alert = UIAlertController(title: "Error", message: "Please log in to create a request", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            return
+        // Get current user ID from DataController
+        guard let dataController = dataController,
+              let currentUser = dataController.getCurrentUser() else {
+        // Show error alert for user not logged in
+        let alert = UIAlertController(title: "Error", message: "Please log in to create a request", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+        return
         }
         
         // Create new request
         let request = Request(
-            userId: userId,
+            userId: currentUser.userID,  // Use userID directly since Request expects UUID not Optional<UUID>
             equipmentId: equipment.equipmentID,
             requestedDate: selectedDate,
             status: .pending,
@@ -228,7 +229,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         )
         
         // Save request using data controller
-        dataController?.createRequest(request)
+        dataController.createRequest(request)
         
         // In CreateButtonTapped function, update the success alert action:
         let alert = UIAlertController(title: "Success", message: "Request created successfully", preferredStyle: .alert)

@@ -20,6 +20,7 @@ class CoequipViewController: UIViewController {
         )
     }
     
+    // Update viewWillAppear to properly handle data loading
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -29,15 +30,28 @@ class CoequipViewController: UIViewController {
             return
         }
         
-        loadInitialData()
-        updateUI()
-        if let currentRequest = currentRequest,
-           let dataController = dataController {
-            let requests = dataController.getAllCoEquipRequests()
-            if let index = requests.firstIndex(where: { $0.id == currentRequest.id }) {
-                let indexPath = IndexPath(row: index, section: 0)
-                CoequipTableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+        // Load data asynchronously
+        Task {
+            await dataController.loadDataFromBackend()
+            
+            // Update UI on main thread
+            await MainActor.run {
+                self.updateUI()
+                if let currentRequest = self.currentRequest {
+                    let requests = self.dataController.getAllCoEquipRequests()
+                    if let index = requests.firstIndex(where: { $0.id == currentRequest.id }) {
+                        let indexPath = IndexPath(row: index, section: 0)
+                        self.CoequipTableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                    }
+                }
             }
+        }
+    }
+    
+
+    @objc private func handleRequestUpdate(_ notification: Notification) {
+        DispatchQueue.main.async {
+            self.updateUI()
         }
     }
     
@@ -123,11 +137,19 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
         }
         
         if self.CoequipSegmentedControl.selectedSegmentIndex == 0 {
-            let requests = dataController.getAllCoEquipRequests().filter { $0.userId == currentUser.userID }
-            return requests.count
+            let allRequests = dataController.getAllCoEquipRequests()
+            let filteredRequests = allRequests.filter { 
+                $0.userId == currentUser.userID && 
+                $0.typeOfRequest == .myRequest
+            }
+            return filteredRequests.count
         } else {
-            let requests = dataController.getAcceptedRequests().filter { $0.userId == currentUser.userID }
-            return requests.count
+            let acceptedRequests = dataController.getAllCoEquipRequests()
+            let filteredRequests = acceptedRequests.filter { 
+                $0.userId == currentUser.userID && 
+                $0.typeOfRequest == .acceptedRequest  // Changed to .accepted for Join Requests
+            }
+            return filteredRequests.count
         }
     }
 
@@ -140,7 +162,10 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "MyRequestTableViewCell", for: indexPath) as? MyRequestTableViewCell else {
                 return UITableViewCell()
             }
-            let requests = dataController.getAllCoEquipRequests().filter { $0.userId == dataController.getCurrentUser()?.userID }
+            let requests = dataController.getAllCoEquipRequests().filter { 
+                $0.userId == dataController.getCurrentUser()?.userID && 
+                $0.typeOfRequest == .myRequest
+            }
             let request = requests[indexPath.row]
             if let equipment = dataController.getEquipmentById(request.equipmentId) {
                 cell.configure(with: equipment, request: request)
@@ -151,7 +176,10 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "AcceptRequestTableViewCell", for: indexPath) as? AcceptRequestTableViewCell else {
                 return UITableViewCell()
             }
-            let acceptedRequests = dataController.getAcceptedRequests().filter { $0.userId == dataController.getCurrentUser()?.userID }
+            let acceptedRequests = dataController.getAllCoEquipRequests().filter {
+                $0.userId == dataController.getCurrentUser()?.userID &&
+                $0.typeOfRequest == .acceptedRequest  // Changed to .accepted for Join Requests
+            }
             let request = acceptedRequests[indexPath.row]
             if let equipment = dataController.getEquipmentById(request.equipmentId) {
                 cell.configure(with: request, equipment: equipment)
@@ -159,24 +187,6 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
             }
             return cell
         }
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let dataController = self.dataController else { return }
-        
-        let requests = self.CoequipSegmentedControl.selectedSegmentIndex == 0 ? 
-            dataController.getAllCoEquipRequests().filter { $0.userId == dataController.getCurrentUser()?.userID } : 
-            dataController.getAcceptedRequests().filter { $0.userId == dataController.getCurrentUser()?.userID }
-        
-        let request = requests[indexPath.row]
-        
-        if self.CoequipSegmentedControl.selectedSegmentIndex == 0 {
-            self.performSegue(withIdentifier: "goToMyRequest1", sender: request)
-        } else {
-            self.performSegue(withIdentifier: "goToAcceptRequest", sender: request)
-        }
-        
-        tableView.deselectRow(at: indexPath, animated: true)
     }
 }
     
