@@ -325,16 +325,37 @@ class LoginViewController: UIViewController {
     
     // MARK: - Navigation
     private func navigateAfterLogin(user: AuthUser) {
-        if let selectedCrops = user.selectedCrops, !selectedCrops.isEmpty {
-            // User has already selected crops, go to main app
-            let mainTabBarController = MainTabBarController()
-            UIApplication.shared.windows.first?.rootViewController = mainTabBarController
-            UIApplication.shared.windows.first?.makeKeyAndVisible()
-        } else {
-            // User needs to select crops first
-            let selectCropsVC = SelectCropsViewController()
-            let navigationController = UINavigationController(rootViewController: selectCropsVC)
-            UIApplication.shared.windows.first?.rootViewController = navigationController
+        // Always go directly to the main app after login, regardless of crop selection
+        // Users can select crops from their profile if needed
+        
+        // Use the storyboard to get the properly configured MainTabBarController
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController {
+            // Configure the tab bar with data controller
+            let dataController = IKisanDataController()
+            
+            // Set the data controller for each view controller in the tab bar
+            if let mainTabBarController = tabBarController as? MainTabBarController {
+                mainTabBarController.dataController = dataController
+            }
+            
+            // Configure individual view controllers
+            if let viewControllers = tabBarController.viewControllers {
+                for viewController in viewControllers {
+                    if let navController = viewController as? UINavigationController {
+                        if let homeVC = navController.viewControllers.first as? HomeViewController {
+                            homeVC.dataController = dataController
+                        } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
+                            agriAssistVC.dataController = dataController
+                        } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
+                            coequipVC.dataController = dataController
+                        }
+                    }
+                }
+            }
+            
+            // Set as root view controller
+            UIApplication.shared.windows.first?.rootViewController = tabBarController
             UIApplication.shared.windows.first?.makeKeyAndVisible()
         }
     }

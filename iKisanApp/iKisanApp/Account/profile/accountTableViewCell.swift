@@ -30,6 +30,17 @@ class accountTableViewCell: UITableViewCell {
     
     func configure(with crop: AgriCrop) {
 //        cropNameLabel.text = crop.name
-        accountImageView.image = UIImage(named: crop.imageName)
+        // Use the existing ImageCache utility to load and cache the image
+        if !crop.imageURL.isEmpty {
+            accountImageView.loadImage(from: crop.imageURL, placeholder: UIImage(systemName: "leaf"))
+        } else {
+            accountImageView.image = UIImage(systemName: "leaf")
+        }
+    }
+    
+
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
     }
 }

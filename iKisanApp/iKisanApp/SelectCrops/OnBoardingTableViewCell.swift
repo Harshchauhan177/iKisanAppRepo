@@ -33,7 +33,13 @@ class OnBoardingTableViewCell: UITableViewCell {
     }
     
     func configure(with crop: AgriCrop, isSelected: Bool, enteredText: String?) {
-        imageLabel.image = UIImage(named: crop.imageName)
+        // Use the existing ImageCache utility to load and cache the image
+        if !crop.imageURL.isEmpty {
+            imageLabel.loadImage(from: crop.imageURL, placeholder: UIImage(systemName: "leaf"))
+        } else {
+            imageLabel.image = UIImage(systemName: "leaf")
+        }
+        
         cropNameLabel.text = crop.name
         
         // Show text field if cell is selected or has text
@@ -86,4 +92,6 @@ class OnBoardingTableViewCell: UITableViewCell {
         }
         accessoryType = .none
     }
+    
+
 }

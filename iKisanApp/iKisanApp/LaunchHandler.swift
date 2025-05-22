@@ -19,21 +19,14 @@ class LaunchHandler {
             // User has completed onboarding but isn't logged in, show login screen
             let loginVC = LoginViewController()
             return UINavigationController(rootViewController: loginVC)
-        } else if let currentUser = AuthManager.shared.currentUser, 
-                  let selectedCrops = currentUser.selectedCrops, 
-                  !selectedCrops.isEmpty {
-            // User is logged in and has selected crops, show main interface
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            if let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController {
-                configureTabBarWithDataController(tabBarController)
-                return tabBarController
-            }
-        } else if !didCompleteCropSelection {
-            // User is logged in but hasn't completed crop selection, show crop selection
+        } else if UserDefaults.standard.bool(forKey: "isNewlyRegisteredUser") {
+            // This is a newly registered user who needs to complete crop selection
+            // This flag is set during the registration process and cleared after crop selection
             let selectCropsVC = SelectCropsViewController()
             return UINavigationController(rootViewController: selectCropsVC)
         } else {
-            // User is logged in, has completed crop selection (even if empty), show main interface
+            // User is logged in, show main interface regardless of crop selection status
+            // They can always access crop selection from their profile later
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             if let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController {
                 configureTabBarWithDataController(tabBarController)

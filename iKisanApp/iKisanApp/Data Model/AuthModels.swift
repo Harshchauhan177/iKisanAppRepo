@@ -435,7 +435,94 @@ class AuthManager {
         saveUserToUserDefaults(updatedUser)
         print("Current user refreshed and saved to UserDefaults")
     }
-}
+    
+    // Method to update user's selected crops in Supabase
+    func updateUserSelectedCrops(selectedCropIds: [UUID], totalFieldArea: Double? = nil) async throws {
+        guard var user = currentUser else {
+            throw AuthError.notLoggedIn
+        }
+        
+        print("Updating crops for user: \(user.id.uuidString) with \(selectedCropIds.count) crops")
+        if let area = totalFieldArea {
+            print("Total field area: \(area) acres")
+        }
+        
+        do {
+            // Step 1: Delete all existing crops for this user
+            // This ensures we don't have any old selections lingering
+            let deleteResult = try await supabase.client
+                .from("userSelectedCrops")
+                .delete()
+                .eq("userID", value: user.id.uuidString)
+                .execute()
+            
+            print("Deleted existing crop selections")
+            
+            // Step 2: Insert new crop selections (one row per crop)
+            // Only proceed if we have crops to add
+            if !selectedCropIds.isEmpty {
+                // Create an array of rows to insert, one for each crop ID
+                var rowsToInsert: [[String: String]] = []
+                
+                for cropId in selectedCropIds {
+                    let row = [
+                        "userID": user.id.uuidString,
+                        "cropID": cropId.uuidString
+                    ]
+                    rowsToInsert.append(row)
+                }
+                
+                // Insert all rows in a single operation
+                let insertResult = try await supabase.client
+                    .from("userSelectedCrops")
+                    .insert(rowsToInsert)
+                    .execute()
+                
+                print("Inserted \(rowsToInsert.count) new crop selections")
+            }
+            
+            // Step 3: Update the field area in the users table if provided
+            if let fieldArea = totalFieldArea {
+                try await updateFieldArea(fieldArea)
+            }
+            
+            print("Successfully updated crop selections in userSelectedCrops table")
+            
+            // Update local user
+            user.selectedCrops = selectedCropIds
+            self.currentUser = user
+            saveUserToUserDefaults(user)
+            
+            print("Updated user's selected crops locally")
+            return
+        } catch {
+            print("Error updating user crops in Supabase: \(error)")
+            throw error
+        }
+    }
+    
+    // Method to update the field area in the users table
+    func updateFieldArea(_ area: Double) async throws {
+        guard let user = currentUser else {
+            throw AuthError.notLoggedIn
+        }
+        
+        do {
+            // Update field area in the users table
+            try await supabase.client
+                .from("users")
+                .update(["fieldArea": area])
+                .eq("userID", value: user.id.uuidString)
+                .execute()
+            
+            print("Updated user's field area to \(area) acres in users table")
+        } catch {
+            print("Error updating field area: \(error)")
+            throw error
+        }
+    }
+
+} // End of AuthManager class
 
 enum AuthError: Error {
     case invalidCredentials

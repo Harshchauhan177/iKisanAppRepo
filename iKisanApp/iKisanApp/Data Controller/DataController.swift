@@ -199,6 +199,18 @@ class IKisanDataController: DataController {
             print("Loaded selected crops: \(selectedCrops)")
         }
         
+        // Eagerly fetch crops from Supabase when controller is initialized
+        Task {
+            print("Fetching crops from Supabase...")
+            let fetchedCrops = await requestManager.fetchCrops()
+            await MainActor.run {
+                self.crops = fetchedCrops
+                print("Fetched \(fetchedCrops.count) crops from Supabase")
+                // Notify any UI that needs updating
+                NotificationCenter.default.post(name: NSNotification.Name("CropsUpdated"), object: nil)
+            }
+        }
+        
         // Setup initial data
         Task {
             await loadDataFromBackend()
@@ -325,6 +337,24 @@ class IKisanDataController: DataController {
     // MARK: - AgriAssist Functions
     
     func getAllCrops() -> [AgriCrop] {
+        // If crops array is empty, try to fetch them synchronously
+        if crops.isEmpty {
+            // Create a task to fetch crops
+            Task {
+                let fetchedCrops = await requestManager.fetchCrops()
+                if !fetchedCrops.isEmpty {
+                    // Update crops on the main thread
+                    await MainActor.run {
+                        self.crops = fetchedCrops
+                        // Notify any UI that needs updating
+                        NotificationCenter.default.post(name: NSNotification.Name("CropsUpdated"), object: nil)
+                    }
+                }
+            }
+            
+            // Return current crops (might still be empty)
+            return crops
+        }
         return crops
     }
     
@@ -721,6 +751,48 @@ class IKisanDataController: DataController {
     func getSelectedCrops() -> Set<String> {
         return selectedCrops
     }
+    
+    // Key for storing crop field areas in UserDefaults
+    private let cropFieldAreasKey = "userCropFieldAreas"
+    
+    // Save field area for a specific crop
+    func saveCropFieldArea(cropName: String, area: String) {
+        // Get existing field areas or create a new dictionary
+        var fieldAreas = UserDefaults.standard.dictionary(forKey: cropFieldAreasKey) as? [String: String] ?? [:]
+        
+        // Update the field area for this crop
+        fieldAreas[cropName] = area
+        
+        // Save the updated dictionary
+        UserDefaults.standard.set(fieldAreas, forKey: cropFieldAreasKey)
+        print("Saved field area \(area) for crop: \(cropName)")
+    }
+    
+    // Save multiple crop field areas at once
+    func saveCropFieldAreas(areas: [String: String]) {
+        // Get existing field areas or create a new dictionary
+        var fieldAreas = UserDefaults.standard.dictionary(forKey: cropFieldAreasKey) as? [String: String] ?? [:]
+        
+        // Merge the new areas with existing ones
+        for (crop, area) in areas {
+            fieldAreas[crop] = area
+        }
+        
+        // Save the updated dictionary
+        UserDefaults.standard.set(fieldAreas, forKey: cropFieldAreasKey)
+        print("Saved field areas for \(areas.count) crops")
+    }
+    
+    // Get field area for a specific crop
+    func getCropFieldArea(cropName: String) -> String? {
+        let fieldAreas = UserDefaults.standard.dictionary(forKey: cropFieldAreasKey) as? [String: String] ?? [:]
+        return fieldAreas[cropName]
+    }
+    
+    // Get all stored crop field areas
+    func getAllCropFieldAreas() -> [String: String] {
+        return UserDefaults.standard.dictionary(forKey: cropFieldAreasKey) as? [String: String] ?? [:]
+    }
 }
 
 class currentUser {
@@ -977,33 +1049,27 @@ class RequestManager {
     
     func fetchCrops() async -> [AgriCrop] {
         do {
-            // Use the correct camelCase table name "agriCrops" instead of "agri_crops"
+            // Use the 'crops' table as specified by the user
             let data: [AgriCropDTO] = try await SupabaseManager.shared.client
-                .from("agriCrops")
+                .from("crops")
                 .select("*")
                 .execute()
                 .value
             
             return data.map { dto in
                 AgriCrop(
-                    id: UUID(uuidString: dto.id) ?? UUID(),
+                    id: UUID(uuidString: dto.cropID) ?? UUID(),
                     name: dto.name,
-                    imageName: dto.imageName
+                    imageURL: dto.imageURL ?? "" // Using empty string as fallback if imageURL is nil
                 )
             }
         } catch {
-            print("Error fetching crops: \(error)")
-            
-            // FALLBACK DATA: Used only when backend request fails
-            let fallbackCrops: [AgriCrop] = [
-                AgriCrop(id: UUID(uuidString: "F621E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Rice", imageName: "Rice"),
-                AgriCrop(id: UUID(uuidString: "F622E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Wheat", imageName: "Wheat"),
-                AgriCrop(id: UUID(uuidString: "F623E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Oats", imageName: "Oats"),
-                AgriCrop(id: UUID(uuidString: "F624E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Cotton", imageName: "Cotton"),
-                AgriCrop(id: UUID(uuidString: "F625E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Tea", imageName: "Tea"),
-                AgriCrop(id: UUID(uuidString: "F626E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Maize", imageName: "Maize")
-            ]
-            return fallbackCrops
+            print("Error fetching crops from Supabase: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            // Return empty array instead of fallback data to ensure only backend data is used
+            return []
         }
     }
     
@@ -1032,27 +1098,12 @@ class RequestManager {
             
             return categories
         } catch {
-            print("Error fetching equipment categories: \(error)")
-            
-            // FALLBACK DATA: Used only when backend request fails
-            let fallbackCategories: [EquipmentCategory] = [
-                EquipmentCategory(
-                    id: UUID(uuidString: "A621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                    title: "Cultivators",
-                    equipmentList: []
-                ),
-                EquipmentCategory(
-                    id: UUID(uuidString: "A622E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                    title: "Harvesters",
-                    equipmentList: []
-                ),
-                EquipmentCategory(
-                    id: UUID(uuidString: "A623E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                    title: "Seeders",
-                    equipmentList: []
-                )
-            ]
-            return fallbackCategories
+            print("Error fetching equipment categories from Supabase: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            // Return empty array instead of fallback data to ensure only backend data is used
+            return []
         }
     }
     
@@ -1102,22 +1153,12 @@ class RequestManager {
                 )
             }
         } catch {
-            print("Error fetching FAQs: \(error)")
-            
-            // FALLBACK DATA: Used only when backend request fails
-            let fallbackFAQs: [FAQ] = [
-                FAQ(id: UUID(),
-                    question: "How does prebooking work?",
-                    answer: "Select equipment, choose dates, and confirm booking."),
-                FAQ(id: UUID(),
-                    question: "What if equipment is unavailable?",
-                    answer: "You'll be notified and can choose alternate dates."),
-                FAQ(id: UUID(),
-                    question: "Can I cancel or modify a booking?",
-                    answer: "Yes, you can modify or cancel up to 24 hours before the booking.")
-            ]
-            
-            return fallbackFAQs
+            print("Error fetching FAQs from Supabase: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            // Return empty array instead of fallback data to ensure only backend data is used
+            return []
         }
     }
     
@@ -1263,9 +1304,9 @@ class RequestManager {
     
     func fetchCropCategories() async -> [CropCategory] {
         do {
-            // First fetch the crops using the correct table name
+            // First fetch the crops from the 'crops' table
             let cropsData: [AgriCropDTO] = try await SupabaseManager.shared.client
-                .from("agriCrops")
+                .from("crops")
                 .select("*")
                 .execute()
                 .value
@@ -1282,7 +1323,7 @@ class RequestManager {
                 let cropEquipmentData: [CropEquipmentMappingDTO] = try await SupabaseManager.shared.client
                     .from("cropEquipmentRecommendations")
                     .select("*")
-                    .eq("cropID", value: cropDTO.id)
+                    .eq("cropID", value: cropDTO.cropID)
                     .execute()
                     .value
                 
@@ -1296,7 +1337,7 @@ class RequestManager {
                 
                 // Create the crop category
                 let cropCategory = CropCategory(
-                    id: UUID(uuidString: cropDTO.id) ?? UUID(),
+                    id: UUID(uuidString: cropDTO.cropID) ?? UUID(),
                     cropName: cropDTO.name,
                     equipmentsForCrops: "Equipments For \(cropDTO.name)",
                     equipments: cropEquipmentCategories
@@ -1307,46 +1348,12 @@ class RequestManager {
             
             return cropCategories
         } catch {
-            print("Error fetching crop categories: \(error)")
-            
-            // FALLBACK DATA: Used only when backend request fails
-            let fallbackCategories: [CropCategory] = [
-                CropCategory(
-                    id: UUID(uuidString: "F621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                    cropName: "Rice",
-                    equipmentsForCrops: "Equipments For Rice",
-                    equipments: [
-                        EquipmentCategory(
-                            id: UUID(uuidString: "A621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                            title: "Cultivators",
-                            equipmentList: []
-                        ),
-                        EquipmentCategory(
-                            id: UUID(uuidString: "A622E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                            title: "Harvesters",
-                            equipmentList: []
-                        )
-                    ]
-                ),
-                CropCategory(
-                    id: UUID(uuidString: "F622E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                    cropName: "Wheat",
-                    equipmentsForCrops: "Equipments For Wheat",
-                    equipments: [
-                        EquipmentCategory(
-                            id: UUID(uuidString: "A623E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                            title: "Seeders",
-                            equipmentList: []
-                        ),
-                        EquipmentCategory(
-                            id: UUID(uuidString: "A624E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                            title: "Harrow",
-                            equipmentList: []
-                        )
-                    ]
-                )
-            ]
-            return fallbackCategories
+            print("Error fetching crop categories from Supabase: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            // Return empty array instead of fallback data to ensure only backend data is used
+            return []
         }
     }
 }
@@ -1443,9 +1450,18 @@ struct BookingDTO: Codable {
 }
 
 struct AgriCropDTO: Codable {
-    let id: String
+    let cropID: String
     let name: String
-    let imageName: String
+    let season: String // Using String instead of enum to avoid additional decoding issues
+    let imageURL: String?
+    
+    // Define CodingKeys to map between JSON and property names
+    enum CodingKeys: String, CodingKey {
+        case cropID = "cropID"
+        case name
+        case season
+        case imageURL = "imageURL"
+    }
 }
 
 struct EquipmentCategoryDTO: Codable {
