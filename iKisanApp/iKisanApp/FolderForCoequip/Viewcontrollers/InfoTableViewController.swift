@@ -246,6 +246,8 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         let currentLocation = AuthManager.shared.currentUser?.address ?? self.location
         
         // Create new request with current location
+        let requestId = UUID() // Generate a new UUID first
+
         let request = Request(
             userId: currentUser.userID,
             equipmentId: equipment.equipmentID,
@@ -259,30 +261,32 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             typeOfRequest: .myRequest,
             selectedUsers: selectedUsers,
             joinedFarmers: []
+           // requestId: requestId  // Use the generated UUID
         )
         
         // Save request using data controller
         dataController.createRequest(request)
         
         for selectedUser in selectedUsers {
-                    let request = Request(
-                        userId: selectedUser.userID,  // Use selected user's ID
-                        equipmentId: equipment.equipmentID,
-                        requestedDate: selectedDate,
-                        status: .pending,
-                        type: .coEquip,
-                        area: area,
-                        timeSlot: currentTimeSlot,
-                        timePeriod: TimeSlotLabel.text,
-                        location: currentLocation,
-                        typeOfRequest: .acceptedRequest,  // Set to acceptedRequest
-                        selectedUsers: [],  // Only include the current user
-                        joinedFarmers: []
-                    )
-                    
-                    // Save request using data controller
-                    dataController.createRequest(request)
-                }
+            let request = Request(
+                userId: selectedUser.userID,
+                equipmentId: equipment.equipmentID,
+                requestedDate: selectedDate,
+                status: .pending,
+                type: .coEquip,
+                area: area,
+                timeSlot: currentTimeSlot,
+                timePeriod: TimeSlotLabel.text,
+                location: currentLocation,
+                typeOfRequest: .acceptedRequest,
+                selectedUsers: [],
+                joinedFarmers: []
+                //requestId: UUID()
+            )
+            
+            // Save request using data controller
+            dataController.createRequest(request)
+        }
         let alert = UIAlertController(title: "Success", message: "Request created successfully", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
             self.navigationController?.popToRootViewController(animated: true)

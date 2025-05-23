@@ -14,24 +14,58 @@ class AcceptRequestTableViewController: UITableViewController {
     @IBOutlet weak var intputArea: UITextField!
     @IBOutlet weak var timeSlotLabel: UILabel!
     
-    let validStartTime = "08:00"
+    // Remove the hardcoded start time
+    // let validStartTime = "08:00"
+    
+    // Store equipment capacity for calculations
+    private var equipmentCapacityPerHour: Double = 1.0
+    private var startTime: String = "08:00" // Default start time if none provided
+    
+    private func extractLastTimeFromPeriod(_ timePeriod: String?) -> String {
+        // Extract the end time from a time period string (e.g., "09:00 - 10:30" -> "10:30")
+        if let period = timePeriod,
+           let lastTime = period.split(separator: "-").last?.trimmingCharacters(in: .whitespaces) {
+            return lastTime
+        }
+        return "08:00" // Default start time if no valid time period
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Fetch and set user's address
+        Task {
+            do {
+                if let address = try await AuthManager.shared.fetchCurrentUserAddress() {
+                    // Update UI on main thread
+                    DispatchQueue.main.async {
+                        self.LocationLabel.text = address
+                        print("📍 Location set from Supabase: \(address)")
+                    }
+                } else if let address = dataController?.getCurrentUserAddress() {
+                    self.LocationLabel.text = address
+                    print("📍 Location set from DataController: \(address)")
+                } else {
+                    self.LocationLabel.text = "Murshadpur, Greater Noida, U.P"
+                    print("📍 Using default location: Murshadpur, Greater Noida, U.P")
+                }
+            } catch {
+                print("Error fetching address: \(error)")
+                // Fallback to default location
+                self.LocationLabel.text = "Murshadpur, Greater Noida, U.P"
+            }
+        }
+        
         if let request = request,
            let equipment = dataController?.getEquipmentById(request.equipmentId) {
-            // Check if the equipmentImage is a URL or a local asset name
+            
             if equipment.equipmentImage.hasPrefix("http") {
-                // It's a URL, use our ImageCache utility to load it
                 imageLabel.loadImage(from: equipment.equipmentImage)
             } else {
-                // Fallback to local asset loading for backward compatibility
                 imageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
             }
             titleLabel.text = equipment.name
             hostLabel.text = equipment.providerName
-           
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, d MMM"
             let dateString = dateFormatter.string(from: request.requestedDate)
@@ -39,37 +73,70 @@ class AcceptRequestTableViewController: UITableViewController {
             let totalPrice = equipment.pricePerAcre 
             priceLabel.text = "₹ \(Int(totalPrice))\nDate: \(dateString)"
             
-           
+            // Parse equipment capacity (acres per hour)
+            if let capacityValue = parseCapacity(equipment.capacity) {
+                equipmentCapacityPerHour = capacityValue
+                print("Equipment capacity: \(equipmentCapacityPerHour) acres per hour")
+            }
             
-            
+            // Use the last time from request's timePeriod as starting time
+            startTime = extractLastTimeFromPeriod(request.timePeriod)
+            print("Using last time from request as start time: \(startTime)")
         }
         intputArea.addTarget(self, action: #selector(areaInputChanged), for: .editingChanged)
-        
-        // Configure the main accept button at bottom (if using programmatic UI)
-        // If using storyboard, configure in Interface Builder instead
     }
-    @objc func areaInputChanged() {
     
-        if let areaText = intputArea.text, !areaText.isEmpty {
-                    updateTimeSlot(basedOn: areaText)
-                }
+    // Helper function to parse capacity string (e.g., "5 acres/hour")
+    private func parseCapacity(_ capacityString: String) -> Double? {
+        // Extract numeric value from capacity string
+        let pattern = "([0-9]+\\.[0-9]*)" // Match numbers with optional decimal points
+        if let regex = try? NSRegularExpression(pattern: pattern),
+           let match = regex.firstMatch(in: capacityString, range: NSRange(capacityString.startIndex..., in: capacityString)) {
+            if let range = Range(match.range(at: 1), in: capacityString) {
+                let numberString = String(capacityString[range])
+                return Double(numberString)
+            }
         }
-    func updateTimeSlot(basedOn areaText: String) {
-        let areaCount = areaText.split(separator: " ").count
-                let durationInMinutes = areaCount * 30
-                let startTime = validStartTime
-                let endTime = getEndTime(from: startTime, durationInMinutes:durationInMinutes)
-                timeSlotLabel.text = "\(startTime) - \(endTime)"
+        return 1.0 // Default to 1 acre per hour if parsing fails
     }
-    func getEndTime(from startTime: String,durationInMinutes: Int) -> String {
-        let formatter = DateFormatter()
-                formatter.dateFormat = "HH:mm"
-                if let startDate = formatter.date(from: startTime) {
-                    let endDate = startDate.addingTimeInterval(Double(durationInMinutes * 60))
-                    return formatter.string(from: endDate)
-                }
-                return startTime
+    
+    @objc func areaInputChanged() {
+        if let areaText = intputArea.text, !areaText.isEmpty {
+            updateTimeSlot(basedOn: areaText)
+        } else {
+            // Clear the time slot when area is empty
+            timeSlotLabel.text = ""
         }
+    }
+    
+    func updateTimeSlot(basedOn areaText: String) {
+        // Convert area text to double
+        guard let area = Double(areaText) else {
+            // If conversion fails, try counting words as before
+            let areaCount = areaText.split(separator: " ").count
+            let durationInMinutes = areaCount * 30
+            let endTime = getEndTime(from: startTime, durationInMinutes: durationInMinutes)
+            timeSlotLabel.text = "\(startTime) - \(endTime)"
+            return
+        }
+        
+        // Calculate duration based on equipment capacity (acres per hour)
+        let durationInHours = area / equipmentCapacityPerHour
+        let durationInMinutes = Int(durationInHours * 60)
+        
+        let endTime = getEndTime(from: startTime, durationInMinutes: durationInMinutes)
+        timeSlotLabel.text = "\(startTime) - \(endTime)"
+    }
+    
+    func getEndTime(from startTime: String, durationInMinutes: Int) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        if let startDate = formatter.date(from: startTime) {
+            let endDate = startDate.addingTimeInterval(Double(durationInMinutes * 60))
+            return formatter.string(from: endDate)
+        }
+        return startTime
+    }
     
     @IBAction func AcceptButtonTapped(_ sender: Any) {
         guard let request = self.request,
@@ -81,53 +148,72 @@ class AcceptRequestTableViewController: UITableViewController {
             return
         }
         
-        // Validate area and time slot
-        let areaCount = area.split(separator: " ").count
-        let expectedEndTime = getEndTime(from: validStartTime, durationInMinutes: areaCount * 30)
-        if timeSlot != "\(validStartTime) - \(expectedEndTime)" {
-            showAlert(title: "Invalid Time Slot", message: "Please enter the area correctly")
-            return
+        // Validate the time slot based on the calculated end time
+        if let areaValue = Double(area) {
+            let durationInHours = areaValue / equipmentCapacityPerHour
+            let durationInMinutes = Int(durationInHours * 60)
+            let expectedEndTime = getEndTime(from: startTime, durationInMinutes: durationInMinutes)
+            
+            if timeSlot != "\(startTime) - \(expectedEndTime)" {
+                showAlert(title: "Invalid Time Slot", message: "Please enter the area correctly")
+                return
+            }
+        } else {
+            // Fallback to old validation if area isn't a valid number
+            let areaCount = area.split(separator: " ").count
+            let expectedEndTime = getEndTime(from: startTime, durationInMinutes: areaCount * 30)
+            if timeSlot != "\(startTime) - \(expectedEndTime)" {
+                showAlert(title: "Invalid Time Slot", message: "Please enter the area correctly")
+                return
+            }
         }
         
-        // Create a new request with updated values instead of modifying existing one
+        // Add current user to request creator's joinedFarmers array
+        var joinedFarmers = request.joinedFarmers
+        if !joinedFarmers.contains(request.userId) {
+            joinedFarmers.append(request.userId)
+        }
+        
         let updatedRequest = Request(
             id: request.id,
             userId: request.userId,
             equipmentId: request.equipmentId,
             requestedDate: request.requestedDate,
-            status: .confirmed,
-            type: request.type,
+            status: .pending, // Change status to pending
+            type: .coEquip, // Change type to myRequest
             area: Double(area) ?? 0.0,
-            timeSlot: .morning, // Set appropriate time slot based on your business logic
-            timePeriod: request.timePeriod,
+            timeSlot: .morning,
+            timePeriod: timeSlot,
             location: request.location,
-            typeOfRequest: request.typeOfRequest,
-            selectedUsers: [], // We'll update this below
-            joinedFarmers: request.joinedFarmers
+            typeOfRequest: .myRequest,
+            selectedUsers: [],
+            joinedFarmers: joinedFarmers
+            //, requestId: UUID() // Use updated joinedFarmers array with request creator's ID
         )
         
-        // Add current user to selected users if not already present
         var selectedUsers = request.selectedUsers
-        if !selectedUsers.contains(currentUser.userID) {
-            selectedUsers.append(currentUser.userID)
+        if !selectedUsers.contains(request.userId) {
+            selectedUsers.append(request.userId)
         }
         
-        // Update the request in data controller
         dataController.updateRequest(updatedRequest)
         
-        // Update Supabase
         Task {
             do {
-                // Convert selected users to JSON string
                 let selectedUsersJson = try JSONEncoder().encode(selectedUsers)
                 let selectedUsersString = String(data: selectedUsersJson, encoding: .utf8) ?? "[]"
+                let joinedFarmersJson = try JSONEncoder().encode(joinedFarmers)
+                let joinedFarmersString = String(data: joinedFarmersJson, encoding: .utf8) ?? "[]"
                 
                 try await SupabaseManager.shared.client
                     .from("requests")
                     .update(["area": area,
-                            "time_slot": updatedRequest.timeSlot.rawValue,
-                            "status": "confirmed",
-                            "selected_users": selectedUsersString])
+                            "timeSlot": updatedRequest.timeSlot.rawValue,
+                            "timePeriod": timeSlot,
+                            "status": "pending",
+                            "typeOfRequest": "myRequest",
+                            "selectedUsersIds": selectedUsersString,
+                            "joinedFarmers": joinedFarmersString])
                     .eq("id", value: request.id)
                     .execute()
                 
@@ -143,50 +229,13 @@ class AcceptRequestTableViewController: UITableViewController {
         }
     }
     
-    
-    
-    
     @IBAction func viewButtonTapped(_ sender: Any) {
     }
     
-    
     func showAlert(title: String, message: String) {
-            let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
-            let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-            alertController.addAction(okAction)
-            present(alertController, animated: true, completion: nil)
-        }
-
-//    func configure(with request: Request) {
-//        self.request = request
-//        
-//        // Configure equipment details section
-//        titleLabel.text = "Rice Harvester"  // Equipment name
-//        priceLabel.text = "Price ₹1100/ac"
-//        hostLabel.text = "Host By Veer Pal"
-//        
-//        // Configure location section
-//        LocationLabel.text = "Murshadpur, Greater Noida, U.P"
-//        
-//        // Configure date section (currently shows "Label" in UI)
-//        dateLabel.text = request.requestedDate.formatted(date: .abbreviated, time: .omitted)
-//        
-//        // Configure time slot
-//        timeSlotLabel.text = "8 Am - 9 Am"
-//        
-//        // Configure area input placeholder
-//        intputArea.placeholder = "Enter Your Area"
-//        
-//        // Configure image with corner radius
-//        if let imageURL = URL(string: request.equipmentId.description) {
-//            imageLabel.loadImage(from: imageURL.absoluteString)
-//        }
-//        imageLabel.layer.cornerRadius = 7
-//        imageLabel.clipsToBounds = true
-//        
-//        // Style the view button if needed
-//        viewLabel.layer.cornerRadius = 5
-//        viewLabel.backgroundColor = UIColor(named: "AccentColor") // Your green color
-//        viewLabel.setTitleColor(.white, for: .normal)
-//    }
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+        alertController.addAction(okAction)
+        present(alertController, animated: true, completion: nil)
+    }
 }

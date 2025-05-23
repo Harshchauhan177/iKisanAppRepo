@@ -85,6 +85,7 @@ struct Request: Codable {
     var typeOfRequest: RequestType
     var selectedUsers: [UUID] // Changed from [User] to [UUID]
     var joinedFarmers: [UUID]
+    //var requestId : UUID
     
     init(id: UUID = UUID(),
          userId: UUID,
@@ -98,7 +99,9 @@ struct Request: Codable {
          location: String,
          typeOfRequest: RequestType,
          selectedUsers: [User],
-         joinedFarmers: [UUID]) {
+         joinedFarmers: [UUID]
+         //requestId: UUID
+    ) {  // Changed to optional UUID
         self.id = id
         self.userId = userId
         self.equipmentId = equipmentId
@@ -110,8 +113,9 @@ struct Request: Codable {
         self.timePeriod = timePeriod
         self.location = location
         self.typeOfRequest = typeOfRequest
-        self.selectedUsers = selectedUsers.map { $0.userID } // Convert User array to UUID array
+        self.selectedUsers = selectedUsers.map { $0.userID }
         self.joinedFarmers = joinedFarmers
+        //self.requestId = requestId  // Remove force unwrap
     }
 }
 

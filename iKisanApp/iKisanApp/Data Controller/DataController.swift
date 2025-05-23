@@ -1028,6 +1028,7 @@ class RequestManager {
                     typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest,
                     selectedUsers: selectedUsers,
                     joinedFarmers: dto.joinedFarmers
+                   // requestId: dto.requestId
                 )
                 requests.append(request)
             }
@@ -1453,6 +1454,7 @@ class RequestManager {
                 typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
                 selectedUsersIds: request.selectedUsers.map { $0.uuidString }, // Fixed: UUIDs are already stored, just need uuidString
                 joinedFarmers: request.joinedFarmers
+                //, requestId: request.requestId
             )
             
             print("📤 Sending to Supabase...")
@@ -1490,6 +1492,7 @@ class RequestManager {
                 typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
                 selectedUsersIds: request.selectedUsers.map { $0.uuidString }, // Fixed: UUIDs are already stored, just need uuidString
                 joinedFarmers: request.joinedFarmers
+                //, requestId: request.requestId
             )
             
             try await SupabaseManager.shared.client
@@ -1645,6 +1648,7 @@ struct RequestDTO: Codable {
     let typeOfRequest: String
     let selectedUsersIds: [String]
     let joinedFarmers: [UUID]
+    //let requestId:UUID
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -1660,6 +1664,7 @@ struct RequestDTO: Codable {
         case typeOfRequest
         case selectedUsersIds
         case joinedFarmers
+        //case requestId
     }
     
     // Add this initializer for encoding
@@ -1679,6 +1684,7 @@ struct RequestDTO: Codable {
         self.typeOfRequest = typeOfRequest
         self.selectedUsersIds = selectedUsersIds
         self.joinedFarmers = joinedFarmers
+        //self.requestId = requestId
     }
     
     init(from decoder: Decoder) throws {
@@ -1717,6 +1723,7 @@ struct RequestDTO: Codable {
         typeOfRequest = try container.decode(String.self, forKey: .typeOfRequest)
         selectedUsersIds = try container.decode([String].self, forKey: .selectedUsersIds)
         joinedFarmers = try container.decode([UUID].self, forKey: .joinedFarmers)
+        //requestId = try container.decode(UUID.self, forKey: .requestId)
     }
 }
 
