@@ -123,11 +123,34 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let address = dataController!.getCurrentUserAddress() {
-            // Set the address to your location field
-            LocationLabel.text = address
+        // Fetch and set user's address
+        Task {
+            do {
+                if let address = try await AuthManager.shared.fetchCurrentUserAddress() {
+                    // Update UI on main thread
+                    DispatchQueue.main.async {
+                        self.location = address
+                        self.LocationLabel.text = address
+                        print("📍 Location set from Supabase: \(address)")
+                    }
+                } else if let address = dataController?.getCurrentUserAddress() {
+                    self.location = address
+                    self.LocationLabel.text = address
+                    print("📍 Location set from DataController: \(address)")
+                } else {
+                    self.location = "Murshadpur, Greater Noida, U.P"
+                    self.LocationLabel.text = self.location
+                    print("📍 Using default location: \(self.location)")
+                }
+            } catch {
+                print("Error fetching address: \(error)")
+                // Fallback to default location
+                self.location = "Murshadpur, Greater Noida, U.P"
+                self.LocationLabel.text = self.location
+            }
         }
         
+        // Rest of viewDidLoad implementation
         // Configure UI with equipment data
         if let equipment = cardData {
             // Handle image loading

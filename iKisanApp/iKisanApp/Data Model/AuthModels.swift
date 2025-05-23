@@ -65,6 +65,36 @@ struct UpdateUserRequest: Encodable {
 class AuthManager {
     static let shared = AuthManager()
     
+    // Add this new function to fetch current user address
+    func fetchCurrentUserAddress() async throws -> String? {
+        guard let currentUser = self.currentUser else {
+            return nil
+        }
+        
+        do {
+            // Fetch latest user data from Supabase
+            let result = try await supabase.client
+                .from("users")
+                .select()
+                .eq("userID", value: currentUser.id)
+                .single()
+                .execute()
+            
+            // Decode user data
+            let userData = result.data
+            let user = try JSONDecoder().decode(AuthUser.self, from: userData)
+            
+            // Update current user in memory and UserDefaults
+            self.currentUser = user
+            saveUserToUserDefaults(user)
+            
+            return user.address
+        } catch {
+            print("Error fetching user address: \(error)")
+            return currentUser.address // Fallback to cached address
+        }
+    }
+    
     private init() {
         // Load user from UserDefaults if available
         if let userData = UserDefaults.standard.data(forKey: "currentUser"),
