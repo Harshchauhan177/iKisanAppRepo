@@ -301,7 +301,14 @@ class IKisanDataController: DataController {
         
         print("Creating booking for equipment: \(equipment.name) with ID: \(equipment.equipmentID)")
         
-        // Create a new booking with the current user's ID
+        // Log location data to verify it's being passed correctly
+        if let location = booking.bookingLocation {
+            print("Booking location data: lat=\(location.latitude), lon=\(location.longitude), address=\(location.address ?? "none")")
+        } else {
+            print("Warning: No location data provided with this booking")
+        }
+        
+        // Create a new booking with the current user's ID AND preserve the location data
         let bookingWithUserId = Booking(
             bookingID: booking.bookingID,
             userID: currentUser.id, // Use the current user's ID
@@ -311,7 +318,8 @@ class IKisanDataController: DataController {
             fieldArea: booking.fieldArea,
             status: booking.status,
             timeSlot: booking.timeSlot,
-            source: booking.source
+            source: booking.source,
+            bookingLocation: booking.bookingLocation // Include the location data
         )
         
         bookingsList.append(bookingWithUserId)
@@ -1169,6 +1177,18 @@ class RequestManager {
             // Log the raw UUID values before conversion
             print("Raw UUIDs - Booking ID: \(booking.bookingID), User ID: \(booking.userID), Equipment ID: \(booking.equipmentID)")
             
+            // Extract location data if available
+            let latitude = booking.bookingLocation?.latitude
+            let longitude = booking.bookingLocation?.longitude
+            let address = booking.bookingLocation?.address
+            
+            // Log location data
+            if let lat = latitude, let lon = longitude {
+                print("Including location data in booking: lat=\(lat), lon=\(lon), address=\(address ?? "none")")
+            } else {
+                print("No location data to include in booking")
+            }
+            
             // Convert all UUIDs to lowercase strings
             let dto = BookingDTO(
                 id: booking.bookingID.uuidString.lowercased(),
@@ -1179,7 +1199,10 @@ class RequestManager {
                 fieldArea: booking.fieldArea,
                 status: booking.status.rawValue,
                 timeSlot: booking.timeSlot.rawValue,
-                source: booking.source == .home ? "home" : "prebooking"
+                source: booking.source == .home ? "home" : "prebooking",
+                latitude: latitude,
+                longitude: longitude,
+                address: address
             )
             
             print("Creating booking in database - ID: \(dto.id), User: \(dto.userId), Equipment: \(dto.equipmentId)")
@@ -1435,6 +1458,9 @@ struct BookingDTO: Codable {
     let status: String
     let timeSlot: String
     let source: String
+    let latitude: Double?
+    let longitude: Double?
+    let address: String?
     
     enum CodingKeys: String, CodingKey {
         case id = "bookingID"
@@ -1446,6 +1472,9 @@ struct BookingDTO: Codable {
         case status
         case timeSlot
         case source
+        case latitude
+        case longitude
+        case address
     }
 }
 

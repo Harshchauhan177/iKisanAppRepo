@@ -496,7 +496,8 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
                 }
                 destinationVC.bookingSource = self.bookingSource
                 destinationVC.equipment = equipment
-                destinationVC.locationA = equipment.location
+                // By default, we don't set any location here
+                // The ReviewBookingTableViewController will use the user's location from AuthManager.shared.currentUser
                 destinationVC.pricePerHr = equipment.pricePerHour
             }
         } else if segue.identifier == "MoreImageView" {
