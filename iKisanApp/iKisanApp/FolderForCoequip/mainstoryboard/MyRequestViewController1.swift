@@ -36,13 +36,13 @@ class MyRequestViewController1: UIViewController {
                 equipmentImageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
             }
             equipmentTitleLabel.text = equipment.name
-            hostNameLabel.text = "Ram Pal"//equipment.providerID.uuidString
+            hostNameLabel.text = equipment.providerName
             currentAreaLabel.text = "\(request.area) acres"
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, d MMM"
             let dateString = dateFormatter.string(from: request.requestedDate)
             dateLabel.text = "\(dateString)"
-            let totalPrice = equipment.pricePerAcre * request.area
+            let totalPrice = equipment.pricePerAcre 
             priceLabel.text = "₹ \(Int(totalPrice))\nDate: \(dateString)"
             listTableView.delegate = self
             listTableView.dataSource = self

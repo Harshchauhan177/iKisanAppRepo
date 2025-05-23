@@ -122,7 +122,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     // Update viewDidLoad to setup text field delegate
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        ImageLabel.layer.cornerRadius = 10
         // Fetch and set user's address
         Task {
             do {
@@ -258,12 +258,31 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             location: currentLocation,  // Use the current location
             typeOfRequest: .myRequest,
             selectedUsers: selectedUsers,
-            joinedFarmers: selectedUsers.map { $0.userID }
+            joinedFarmers: []
         )
         
         // Save request using data controller
         dataController.createRequest(request)
         
+        for selectedUser in selectedUsers {
+                    let request = Request(
+                        userId: selectedUser.userID,  // Use selected user's ID
+                        equipmentId: equipment.equipmentID,
+                        requestedDate: selectedDate,
+                        status: .pending,
+                        type: .coEquip,
+                        area: area,
+                        timeSlot: currentTimeSlot,
+                        timePeriod: TimeSlotLabel.text,
+                        location: currentLocation,
+                        typeOfRequest: .acceptedRequest,  // Set to acceptedRequest
+                        selectedUsers: [],  // Only include the current user
+                        joinedFarmers: []
+                    )
+                    
+                    // Save request using data controller
+                    dataController.createRequest(request)
+                }
         let alert = UIAlertController(title: "Success", message: "Request created successfully", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
             self.navigationController?.popToRootViewController(animated: true)

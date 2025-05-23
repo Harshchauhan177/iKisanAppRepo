@@ -35,8 +35,8 @@ class AcceptRequestTableViewCell: UITableViewCell {
         }
       
         titleLabel.text = equipment.name
-        priceLabel.text = "₹ \(equipment.pricePerHour)"
-        hostLabel.text = equipment.providerID.uuidString
+        priceLabel.text = "₹ \(equipment.pricePerAcre)"
+        hostLabel.text = equipment.providerName
         locationLabel.text = equipment.location
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "E, d MMM"

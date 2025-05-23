@@ -30,13 +30,13 @@ class AcceptRequestTableViewController: UITableViewController {
                 imageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
             }
             titleLabel.text = equipment.name
-            hostLabel.text; equipment.providerID.uuidString
+            hostLabel.text = equipment.providerName
            
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, d MMM"
             let dateString = dateFormatter.string(from: request.requestedDate)
             dateLabel.text = "\(dateString)"
-            let totalPrice = equipment.pricePerAcre * request.area
+            let totalPrice = equipment.pricePerAcre 
             priceLabel.text = "₹ \(Int(totalPrice))\nDate: \(dateString)"
             
            
