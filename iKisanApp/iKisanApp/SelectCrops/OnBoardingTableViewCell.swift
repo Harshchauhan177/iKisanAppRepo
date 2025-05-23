@@ -32,7 +32,7 @@ class OnBoardingTableViewCell: UITableViewCell {
         onTextChanged?(textField.text)
     }
     
-    func configure(with crop: AgriCrop, isSelected: Bool, enteredText: String?) {
+    func configure(with crop: Crop, isSelected: Bool, enteredText: String?) {
         // Use the existing ImageCache utility to load and cache the image
         if !crop.imageURL.isEmpty {
             imageLabel.loadImage(from: crop.imageURL, placeholder: UIImage(systemName: "leaf"))

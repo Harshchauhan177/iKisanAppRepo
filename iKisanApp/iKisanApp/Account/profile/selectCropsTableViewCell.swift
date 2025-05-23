@@ -28,7 +28,7 @@ class selectCropsTableViewCell: UITableViewCell {
         cropImageView.layer.masksToBounds = true
     }
     
-    func configure(with crop: AgriCrop) {
+    func configure(with crop: Crop) {
         cropNameLabel.text = crop.name
         // Use the existing ImageCache utility to load and cache the image
         if !crop.imageURL.isEmpty {

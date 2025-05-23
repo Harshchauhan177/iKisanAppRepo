@@ -6,7 +6,7 @@ class SelectCropsViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: - Properties
     private var dataController = IKisanDataController()
-    private var cropList: [AgriCrop] = []
+    private var cropList: [Crop] = []
     private var selectedCrops: Set<String> = []
     private var enteredText: [String: String] = [:]
     
@@ -121,7 +121,7 @@ class SelectCropsViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     private func loadData() {
-        cropList = dataController.getAllCrops()
+        cropList = dataController.getAllCropsForSelection()
         
         // If coming from profile, load the user's previously selected crops
         if isFromProfile {
@@ -148,7 +148,7 @@ class SelectCropsViewController: UIViewController, UITableViewDataSource, UITabl
             guard let self = self else { return }
             
             // Get the updated crops list
-            self.cropList = self.dataController.getAllCrops()
+            self.cropList = self.dataController.getAllCropsForSelection()
             
             // Update the UI
             self.tableView.reloadData()

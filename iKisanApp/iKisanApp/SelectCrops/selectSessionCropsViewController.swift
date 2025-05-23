@@ -10,7 +10,7 @@ import UIKit
 class selectSessionCropsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     var datacontroller = IKisanDataController()
-    var cropList: [AgriCrop] = []
+    var cropList: [Crop] = []
     var selectedCrops: Set<String> = []
     var enteredText: [String: String] = [:]
     
@@ -31,7 +31,7 @@ class selectSessionCropsViewController: UIViewController, UITableViewDataSource,
         // Ensure navigation bar is visible
         self.navigationController?.setNavigationBarHidden(false, animated: false)
         
-        cropList = datacontroller.getAllCrops()
+        cropList = datacontroller.getAllCropsForSelection()
         OnBoardingTableView.dataSource = self
         OnBoardingTableView.delegate = self
         OnBoardingTableView.register(UINib(nibName: "OnBoardingTableViewCell", bundle: nil), forCellReuseIdentifier: "OnBoardingTableViewCell")

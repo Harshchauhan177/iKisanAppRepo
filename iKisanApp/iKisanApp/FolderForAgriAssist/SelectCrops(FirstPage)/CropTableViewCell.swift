@@ -30,8 +30,8 @@ class CropTableViewCell: UITableViewCell {
     func configure(with crop: AgriCrop) {
         cropNameLabel.text = crop.name
         // Use the existing ImageCache utility to load and cache the image
-        if !crop.imageURL.isEmpty {
-            cropImageView.loadImage(from: crop.imageURL, placeholder: UIImage(systemName: "leaf"))
+        if !crop.imageName.isEmpty {
+            cropImageView.loadImage(from: crop.imageName, placeholder: UIImage(systemName: "leaf"))
         } else {
             cropImageView.image = UIImage(systemName: "leaf")
         }

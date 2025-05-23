@@ -29,6 +29,7 @@ protocol DataController {
     
     // AgriAssist Related Functions
     func getAllCrops() -> [AgriCrop]
+    func getAllCropsForSelection() -> [Crop]
     func getCropCategory(forCrop cropId: UUID) -> CropCategory?
     func getEquipmentCategories(forCrop cropId: UUID) -> [EquipmentCategory]
     func getEquipmentAgri(forCategory categoryId: UUID) -> [EquipmentAgri]
@@ -179,6 +180,7 @@ class IKisanDataController: DataController {
     private var suggestionList: [Equipment] = []
     private var bookingsList: [Booking] = []
     private var crops: [AgriCrop] = []
+    private var cropsForSelection: [Crop] = []
     private var cropCategories: [CropCategory] = []
     private let sectionHeaders = ["Equipment Type Details", "Related Equipment"]
     private var coEquipRequests: [Request] = []
@@ -343,6 +345,35 @@ class IKisanDataController: DataController {
     }
     
     // MARK: - AgriAssist Functions
+    
+    func getAllCropsForSelection() -> [Crop] {
+        // If crops for selection array is empty, try to fetch them synchronously
+        if cropsForSelection.isEmpty {
+            // Create a task to fetch crops
+            Task {
+                let fetchedCrops = await requestManager.fetchCropsForSelection()
+                if !fetchedCrops.isEmpty {
+                    // Update crops on the main thread
+                    await MainActor.run {
+                        self.cropsForSelection = fetchedCrops
+                        // Notify any UI that needs updating
+                        NotificationCenter.default.post(name: NSNotification.Name("CropsForSelectionUpdated"), object: nil)
+                    }
+                }
+            }
+            
+            // Return existing crops for selection if available, otherwise convert from current crops temporarily
+            if !cropsForSelection.isEmpty {
+                return cropsForSelection
+            } else if !crops.isEmpty {
+                // Temporarily convert AgriCrop to Crop until data is loaded
+                return crops.map { Crop(id: $0.id, name: $0.name, imageURL: $0.imageName) }
+            }
+            return []
+        }
+        
+        return cropsForSelection
+    }
     
     func getAllCrops() -> [AgriCrop] {
         // If crops array is empty, try to fetch them synchronously
@@ -1055,6 +1086,32 @@ class RequestManager {
         }
     }
     
+    func fetchCropsForSelection() async -> [Crop] {
+        do {
+            // Use the 'crops' table as specified by the user
+            let data: [AgriCropDTO] = try await SupabaseManager.shared.client
+                .from("crops")
+                .select("*")
+                .execute()
+                .value
+            
+            return data.map { dto in
+                Crop(
+                    id: UUID(uuidString: dto.cropID) ?? UUID(),
+                    name: dto.name,
+                    imageURL: dto.imageURL ?? "" // Using empty string as fallback if imageURL is nil
+                )
+            }
+        } catch {
+            print("Error fetching crops for selection from Supabase: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            // Return empty array instead of fallback data to ensure only backend data is used
+            return []
+        }
+    }
+    
     func fetchCrops() async -> [AgriCrop] {
         do {
             // Use the 'crops' table as specified by the user
@@ -1068,7 +1125,7 @@ class RequestManager {
                 AgriCrop(
                     id: UUID(uuidString: dto.cropID) ?? UUID(),
                     name: dto.name,
-                    imageURL: dto.imageURL ?? "" // Using empty string as fallback if imageURL is nil
+                    imageName: dto.imageURL ?? "" // Using empty string as fallback if imageURL is nil
                 )
             }
         } catch {

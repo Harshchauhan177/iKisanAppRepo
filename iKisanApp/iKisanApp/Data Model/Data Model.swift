@@ -179,13 +179,13 @@ struct Location: Codable {
 
 //MARK: Model for Crop
 
-struct Crop {
-    let cropID: UUID
-    var name: String
-    var season: Season
-    var equipmentRecommendations: [UUID]
-    var imageURL: String?
-}
+//struct Crop {
+//    let cropID: UUID
+//    var name: String
+//    var season: Season
+//    var equipmentRecommendations: [UUID]
+//    var imageURL: String?
+//}
 
 enum Season: String {
     case kharif = "Kharif"
@@ -330,7 +330,14 @@ enum BookingStatus: String, Codable {
 struct AgriCrop {
     let id: UUID
     let name: String
-    let imageURL: String // Changed from imageName to imageURL for remote images
+    let imageName: String
+}
+
+// Crop struct specifically for Select Crops functionality
+struct Crop {
+    let id: UUID
+    let name: String
+    let imageURL: String
 }
 
 struct CropCategory {
