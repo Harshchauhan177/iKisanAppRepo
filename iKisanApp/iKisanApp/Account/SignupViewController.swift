@@ -323,6 +323,9 @@ class SignupViewController: UIViewController {
                     signupButton.isEnabled = true
                     
                     if success {
+                        // Set flag that this is a newly registered user who needs to select crops
+                        UserDefaults.standard.set(true, forKey: "isNewlyRegisteredUser")
+                        
                         // Show OTP verification screen
                         showOTPVerification(email: email)
                     }

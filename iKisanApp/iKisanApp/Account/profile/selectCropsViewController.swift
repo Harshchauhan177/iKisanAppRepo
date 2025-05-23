@@ -18,8 +18,8 @@ class selectCropsViewController: UIViewController,UITableViewDataSource, UITable
             }
         }
     }
-    private var crops: [AgriCrop] = []
-    private var filteredCrops: [AgriCrop] = []
+    private var crops: [Crop] = []
+    private var filteredCrops: [Crop] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,7 +34,7 @@ class selectCropsViewController: UIViewController,UITableViewDataSource, UITable
     }
     
     private func loadData() {
-        crops = dataController.getAllCrops()
+        crops = dataController.getAllCropsForSelection()
         filteredCrops = crops
         cropTableView.reloadData()
     }

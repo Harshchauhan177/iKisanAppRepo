@@ -7,15 +7,18 @@
 
 import UIKit
 import Razorpay
+import Foundation
+// Import for accessing AuthManager
+import Supabase
 protocol ReviewBookingDelegate: AnyObject {
     func didModifyBooking(_ booking: Booking)
 }
 
-class ReviewBookingTableViewController: UITableViewController, UITextFieldDelegate,RazorpayPaymentCompletionProtocol {
+class ReviewBookingTableViewController: UITableViewController, UITextFieldDelegate, RazorpayPaymentCompletionProtocol, BookingLocationPickerDelegate {
     var razorpay : RazorpayCheckout!
     var selectedDate: Date?
     var timeSlot = ["Morning","Afternoon","Evening"]
-    var locationA: String?
+    var bookingLocation: Location? // Store location for this booking
     var pricePerHr: Double = 100
     var payableAmount: Double = 0
     var thisBooking: Booking?
@@ -31,13 +34,53 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     @IBOutlet var tableViewR: UITableView!
     
     
-    var bookingSource: BookingSource! // Default to home
+    var bookingSource: BookingSource? // Changed from implicitly unwrapped optional to regular optional
     
     weak var delegate: ReviewBookingDelegate?
     var isModifying: Bool = false
     var booking: Booking?
     
-    @IBOutlet var locationLabel: UILabel!
+    @IBOutlet var locationLabel: UILabel! {
+        didSet {
+            // Make the label visually appear interactive
+            locationLabel.isUserInteractionEnabled = true
+            
+            // Add a tap gesture recognizer
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(locationLabelTapped))
+            locationLabel.addGestureRecognizer(tapGesture)
+            
+            // Style to indicate it's tappable
+            locationLabel.textColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1.0) // iKisan green color
+            locationLabel.font = UIFont.systemFont(ofSize: locationLabel.font.pointSize, weight: .medium)
+            
+            // Add a map pin icon to visually indicate this is for location
+            if let locationIcon = UIImage(systemName: "location.fill") {
+                let imageAttachment = NSTextAttachment()
+                imageAttachment.image = locationIcon.withTintColor(UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1.0))
+                imageAttachment.bounds = CGRect(x: 0, y: -3, width: locationIcon.size.width, height: locationIcon.size.height)
+                
+                // Create attributed string with icon
+                let fullString = NSMutableAttributedString()
+                fullString.append(NSAttributedString(attachment: imageAttachment))
+                fullString.append(NSAttributedString(string: " ")) // Space after icon
+                
+                // Set the attributed text when there's an actual location text
+                if let existingText = locationLabel.text, !existingText.isEmpty {
+                    fullString.append(NSAttributedString(string: existingText))
+                    locationLabel.attributedText = fullString
+                }
+            }
+            
+            // Add an underline to indicate it's interactive
+            locationLabel.layer.borderColor = UIColor.lightGray.cgColor
+            locationLabel.layer.borderWidth = 0.5
+            locationLabel.layer.cornerRadius = 4
+            locationLabel.clipsToBounds = true
+            
+            // Add some padding
+            locationLabel.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        }
+    }
     
     @IBOutlet var datePicker: UIDatePicker!
     
@@ -80,6 +123,9 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         
         fieldAreaTextField.delegate = self
         setUpMenus()
+        
+        // Setup location cell to use standard iOS disclosure behavior
+        setupLocationCell()
     }
     
     private func setupDynamicTextSupport() {
@@ -150,6 +196,30 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
             datePicker.date = booking.bookingDate
             fieldAreaTextField.text = String(booking.fieldArea)
             timeSlotDisplayOutlet.text = booking.timeSlot.rawValue
+            
+            // Set location from booking if available
+            if let bookingLoc = booking.bookingLocation {
+                self.bookingLocation = bookingLoc // Store for future updates
+                
+                // Update display
+                if let address = bookingLoc.address, !address.isEmpty {
+                    locationLabel.text = address
+                } else {
+                    locationLabel.text = "Location: \(bookingLoc.latitude), \(bookingLoc.longitude)"
+                }
+            } else {
+                // If booking doesn't have a location, try to use user's default location
+                if let userLocation = AuthManager.shared.currentUser?.location {
+                    self.bookingLocation = userLocation
+                    
+                    // Update display
+                    if let address = userLocation.address, !address.isEmpty {
+                        locationLabel.text = address
+                    } else {
+                        locationLabel.text = "Location: \(userLocation.latitude), \(userLocation.longitude)"
+                    }
+                }
+            }
         } else if let selectedDate = selectedDate {
             // If not modifying but we have a selected date, use that
             datePicker.date = selectedDate
@@ -161,7 +231,41 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         
         // Safely unwrap all IBOutlets to prevent crashes
         if let locationLabel = locationLabel {
-            locationLabel.text = equipment.location
+            // First check if we already have a custom location set for this booking (user already modified it)
+            if let bookingLoc = bookingLocation {
+                if let address = bookingLoc.address, !address.isEmpty {
+                    locationLabel.text = address
+                } else {
+                    locationLabel.text = "Location: \(bookingLoc.latitude), \(bookingLoc.longitude)"
+                }
+            } 
+            // Next, use the farmer's (user's) location from their profile - this is the default behavior
+            else if let user = AuthManager.shared.currentUser {
+                if let userLocation = user.location {
+                    if let address = userLocation.address, !address.isEmpty {
+                        locationLabel.text = address
+                    } else {
+                        locationLabel.text = "Location: \(userLocation.latitude), \(userLocation.longitude)"
+                    }
+                    // Store user's location for this booking by default
+                    bookingLocation = userLocation
+                } else if let address = user.address, !address.isEmpty {
+                    // If user has an address directly on the user object
+                    locationLabel.text = address
+                    bookingLocation = Location(latitude: user.latitude, longitude: user.longitude, address: address)
+                } else if user.latitude != 0.0 || user.longitude != 0.0 {
+                    // If user only has coordinates
+                    let locationString = "Location: \(user.latitude), \(user.longitude)"
+                    locationLabel.text = locationString
+                    bookingLocation = Location(latitude: user.latitude, longitude: user.longitude, address: nil)
+                } else {
+                    // Only as a last resort fallback to equipment location
+                    locationLabel.text = equipment.location
+                }
+            } else {
+                // Fallback to equipment location if no user info is available
+                locationLabel.text = equipment.location
+            }
         }
         
         if let datePicker = datePicker {
@@ -216,20 +320,163 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-            textField.resignFirstResponder()
+        textField.resignFirstResponder()
 
-          
-            if let fieldAreaText = textField.text, let fieldArea = Double(fieldAreaText) {
-                let totalPrice = fieldArea * pricePerHr
-                priceLabel.text = "Total Price: \(totalPrice)"
-                self.payableAmount = totalPrice
-            } else {
-                priceLabel.text = "Invalid input"
-            }
-
-            return true
+        if let fieldAreaText = textField.text, let fieldArea = Double(fieldAreaText) {
+            let totalPrice = fieldArea * pricePerHr
+            priceLabel.text = "Total Price: \(totalPrice)"
+            self.payableAmount = totalPrice
+        } else {
+            priceLabel.text = "Invalid input"
         }
+
+        return true
+    }
     
+    // Handle tap on location label to update booking location using map interface
+    @objc func locationLabelTapped() {
+        // Get current location data to initialize the picker
+        var initialLat: Double = 0.0
+        var initialLong: Double = 0.0
+        var initialAddress: String? = nil
+        
+        // Try to use existing booking location first
+        if let existingLocation = bookingLocation {
+            initialLat = existingLocation.latitude
+            initialLong = existingLocation.longitude
+            initialAddress = existingLocation.address
+        } 
+        // Otherwise use user's location from profile if available
+        else if let userLocation = AuthManager.shared.currentUser?.location {
+            initialLat = userLocation.latitude
+            initialLong = userLocation.longitude
+            initialAddress = userLocation.address
+        }
+        // Last resort - use user's direct coordinates if available
+        else if let user = AuthManager.shared.currentUser, user.latitude != 0.0 || user.longitude != 0.0 {
+            initialLat = user.latitude
+            initialLong = user.longitude
+            initialAddress = user.address
+        }
+        
+        // Create and configure the location picker
+        let locationPicker = BookingLocationPickerViewController(
+            latitude: initialLat,
+            longitude: initialLong,
+            address: initialAddress
+        )
+        
+        // Set delegate to receive selected location
+        locationPicker.delegate = self
+        
+        // Present the location picker modally
+        locationPicker.modalPresentationStyle = .fullScreen
+        present(locationPicker, animated: true)
+    }
+    
+    
+    // MARK: - Location Cell Setup
+    
+    private func setupLocationCell() {
+        // Update location label style to make it look like a standard label (not interactive)
+        if let locationLabel = locationLabel {
+            // Add proper styling for the label
+            locationLabel.textColor = .black
+            locationLabel.font = UIFont.systemFont(ofSize: locationLabel.font.pointSize, weight: .regular)
+            
+            // Update the label's parent cell to have disclosure indicator
+            if let cell = locationLabel.superview?.superview as? UITableViewCell {
+                cell.accessoryType = .disclosureIndicator
+                cell.selectionStyle = .default
+            }
+            
+            // Make sure the cell responds to selection instead of label taps
+            if let recognizers = locationLabel.gestureRecognizers {
+                for recognizer in recognizers {
+                    locationLabel.removeGestureRecognizer(recognizer)
+                }
+            }
+            
+            // Remove styling that made the label look tappable
+            locationLabel.layer.borderWidth = 0
+            locationLabel.layer.cornerRadius = 0
+            locationLabel.clipsToBounds = false
+        }
+    }
+    
+    // MARK: - UITableViewDelegate
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // Deselect the row to provide visual feedback
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        // Identify if this is the location cell
+        // We need to determine which indexPath corresponds to the location cell
+        // This depends on your specific table layout
+        let locationCellSection = 0 // Adjust based on your table structure
+        let locationCellRow = 0    // Adjust based on your table structure
+        
+        if indexPath.section == locationCellSection && indexPath.row == locationCellRow {
+            // This is the location cell, open the location picker
+            openLocationPicker()
+        }
+    }
+    
+    private func openLocationPicker() {
+        // Get current location data to initialize the picker
+        var initialLat: Double = 0.0
+        var initialLong: Double = 0.0
+        var initialAddress: String? = nil
+        
+        // Try to use existing booking location first
+        if let existingLocation = bookingLocation {
+            initialLat = existingLocation.latitude
+            initialLong = existingLocation.longitude
+            initialAddress = existingLocation.address
+        } 
+        // Otherwise use user's location from profile if available
+        else if let userLocation = AuthManager.shared.currentUser?.location {
+            initialLat = userLocation.latitude
+            initialLong = userLocation.longitude
+            initialAddress = userLocation.address
+        }
+        // Last resort - use user's direct coordinates if available
+        else if let user = AuthManager.shared.currentUser, user.latitude != 0.0 || user.longitude != 0.0 {
+            initialLat = user.latitude
+            initialLong = user.longitude
+            initialAddress = user.address
+        }
+        
+        // Create and configure the location picker
+        let locationPicker = BookingLocationPickerViewController(
+            latitude: initialLat,
+            longitude: initialLong,
+            address: initialAddress
+        )
+        
+        // Set delegate to receive selected location
+        locationPicker.delegate = self
+        
+        // Present the location picker using navigation stack for iOS standard behavior
+        navigationController?.pushViewController(locationPicker, animated: true)
+    }
+    
+    // MARK: - BookingLocationPickerDelegate
+    
+    func didUpdateLocation(latitude: Double, longitude: Double, address: String?) {
+        // Create a Location object from the selected coordinates and address
+        let selectedLocation = Location(latitude: latitude, longitude: longitude, address: address)
+        
+        // Store the location for the booking
+        self.bookingLocation = selectedLocation
+        
+        // Update the location display in the UI
+        if let address = address, !address.isEmpty {
+            locationLabel.text = address
+        } else {
+            locationLabel.text = "Location: \(latitude), \(longitude)"
+        }
+    }
     
     private func setUpMenus() {
         var actions: [UIAction] = []
@@ -261,6 +508,11 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         modifiedBooking.bookingDate = datePicker.date
         modifiedBooking.fieldArea = fieldArea
         modifiedBooking.timeSlot = timeSlotEnum
+        
+        // Update booking location if it's been changed
+        if let customLocation = bookingLocation {
+            modifiedBooking.bookingLocation = customLocation
+        }
         
         // Notify delegate of modification
         delegate?.didModifyBooking(modifiedBooking)
@@ -324,8 +576,13 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         case .coEquip:
             bookingType = .coEquip
         default:
-            bookingType = .prebooking
+            // Default to onDemand for Home tab bookings when source is nil
+            bookingType = .onDemand
         }
+        
+        // Get location for booking - use the bookingLocation property we've already set
+        // It should already contain either a custom location or the user's default location
+        // If it's nil, the booking will be created without a location
         
         let newBooking = Booking(
             bookingID: UUID(),
@@ -336,7 +593,8 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
             fieldArea: fieldArea,
             status: .pending, // Always set status to pending by default
             timeSlot: timeSlotEnum,
-            source: bookingSource
+            source: bookingSource ?? .home, // Provide a default .home value if bookingSource is nil
+            bookingLocation: self.bookingLocation // Include the location in the booking
         )
         thisBooking = newBooking
         
@@ -415,55 +673,57 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
                     return
                 }
                 
-                // Determine if we need to redirect to the Prebooking tab
-                if currentBooking.bookingType == .prebooking {
-                    // Find the index of the Prebooking tab
-                    var prebookingTabIndex: Int? = nil
+                // First determine which tab to redirect to based on booking source
+                var targetTabIndex = 0 // Default to Home tab (index 0)
+                
+                // Check the source of the booking to determine where to redirect
+                switch currentBooking.source {
+                case .home:
+                    // If booking was initiated from Home tab, always return to Home tab
+                    targetTabIndex = 0
+                    // Post notification for regular booking
+                    NotificationCenter.default.post(name: .bookingAdded, object: nil)
+                    print("Redirecting to Home tab after booking from Home")
                     
+                case .prebooking:
+                    // If initiated from Prebooking tab, find and use that tab's index
                     if let viewControllers = tabBarController.viewControllers {
                         for (index, viewController) in viewControllers.enumerated() {
                             if let navController = viewController as? UINavigationController,
                                navController.viewControllers.first is PrebookingViewController {
-                                prebookingTabIndex = index
+                                targetTabIndex = index
                                 break
                             }
                         }
                     }
-                    
                     // Post notification for prebooking
                     NotificationCenter.default.post(
                         name: Notification.Name.preBookingAdded,
                         object: nil,
                         userInfo: ["booking": currentBooking]
                     )
+                    print("Redirecting to Prebooking tab after booking from Prebooking")
                     
-                    // Switch to the Prebooking tab if found
-                    if let index = prebookingTabIndex {
-                        print("Switching to Prebooking tab at index \(index)")
-                        tabBarController.selectedIndex = index
-                        
-                        // Dismiss all modal presentations to return to the tab bar
-                        self.view.window?.rootViewController?.dismiss(animated: true) {
-                            // Pop to root of navigation controller if needed
-                            if let navController = tabBarController.selectedViewController as? UINavigationController {
-                                navController.popToRootViewController(animated: false)
-                            }
-                        }
-                    }
-                } else {
-                    // For regular bookings, navigate back to the Home tab (index 0)
-                    // Post notification first
+                case .coEquip:
+                    // For coEquip, find the appropriate tab (or default to Home)
+                    // Post appropriate notification
                     NotificationCenter.default.post(name: .bookingAdded, object: nil)
+                    print("Redirecting to Home tab after coEquip booking")
                     
-                    // Switch to Home tab
-                    tabBarController.selectedIndex = 0
-                    
-                    // Dismiss any modals and pop to root
-                    self.view.window?.rootViewController?.dismiss(animated: true) {
-                        // Pop to root of navigation controller
-                        if let navController = tabBarController.selectedViewController as? UINavigationController {
-                            navController.popToRootViewController(animated: false)
-                        }
+                default:
+                    // For any other source, default to Home tab
+                    NotificationCenter.default.post(name: .bookingAdded, object: nil)
+                    print("Redirecting to Home tab (default case)")
+                }
+                
+                // Switch to the target tab
+                tabBarController.selectedIndex = targetTabIndex
+                
+                // Dismiss all modal presentations to return to the tab bar
+                self.view.window?.rootViewController?.dismiss(animated: true) {
+                    // Pop to root of navigation controller if needed
+                    if let navController = tabBarController.selectedViewController as? UINavigationController {
+                        navController.popToRootViewController(animated: false)
                     }
                 }
             }

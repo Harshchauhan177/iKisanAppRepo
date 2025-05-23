@@ -21,9 +21,5 @@
 			</array>
 		</dict>
 	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>iKisan needs your location to help you add your accurate address details and improve nearby equipment recommendations.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>iKisan needs your location to help you add your accurate address details and improve nearby equipment recommendations.</string>
 </dict>
 </plist>

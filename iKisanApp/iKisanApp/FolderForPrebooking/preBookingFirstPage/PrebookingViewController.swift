@@ -77,6 +77,11 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         setupSearchController()
         setupNotifications()
         
+        // Ensure search controller behavior preserves query
+        if #available(iOS 16.0, *) {
+            navigationItem.preferredSearchBarPlacement = .stacked
+        }
+        
         // Load initial data
         loadPreBookings()
         
@@ -90,10 +95,12 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // Reset available equipment section state
-        hasAddPreBook = false
-        availableEquipments = []
-        selectedDate = nil
+        // Reset available equipment section state only if no search is active
+        if searchController.searchBar.text?.isEmpty ?? true {
+            hasAddPreBook = false
+            availableEquipments = []
+            selectedDate = nil
+        }
         
         // Remove existing observer before adding new one to prevent duplicates
         NotificationCenter.default.removeObserver(
@@ -339,8 +346,12 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             // Get all prebooking dates
             let prebookingDates = preBookings.map { $0.bookingDate }
             
+            // Only pass equipment that has been explicitly searched for
+            // This prevents green dots from showing when no search is performed
+            let equipmentToShow = !searchedEquipments.isEmpty ? searchedEquipments : []
+            
             cell.configure(
-                with: searchedEquipments.isEmpty ? recommendedEquipments : searchedEquipments,
+                with: equipmentToShow,
                 dataController: dataController,
                 prebookingDates: prebookingDates
             )
@@ -758,8 +769,16 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         searchController.searchResultsUpdater = self
         searchController.searchBar.placeholder = "Search Equipment"
         searchController.obscuresBackgroundDuringPresentation = false
+        // Prevent search bar from hiding when navigating
+        searchController.hidesNavigationBarDuringPresentation = false
+        // Ensure search bar remains active when navigating to detail screens
+        searchController.isActive = true
+        // Keep search results visible
+        searchController.automaticallyShowsCancelButton = true
+        // Set the search controller in navigation
         navigationItem.searchController = searchController
-        definesPresentationContext = true
+        // Ensure search presentation context is defined
+        definesPresentationContext = false
         
         // Setup search table view with proper constraints
         searchTableView.delegate = self
@@ -777,9 +796,52 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         
         searchTableView.isHidden = true
         
-        // Load all equipment for search
+        // Load all equipment for search from backend
+        loadAllEquipmentForSearch()
+    }
+    
+    private func loadAllEquipmentForSearch() {
+        // First try to load from data controller
         if let dataController = dataController {
-            allEquipments = dataController.getAllEquipment()
+            let localEquipments = dataController.getAllEquipment()
+            
+            // If we already have equipment locally, use it immediately
+            if !localEquipments.isEmpty {
+                self.allEquipments = localEquipments
+                return // Skip network request if we have local data
+            }
+        }
+        
+        // Network request throttling - use a timestamp to prevent excessive calls
+        let lastRequestKey = "lastEquipmentFetchTime"
+        let minTimeBetweenRequests = 30.0 // seconds
+        
+        let now = Date()
+        if let lastRequestTime = UserDefaults.standard.object(forKey: lastRequestKey) as? Date,
+           now.timeIntervalSince(lastRequestTime) < minTimeBetweenRequests {
+            print("Skipping equipment fetch - too soon since last request")
+            return
+        }
+        
+        // Then fetch from backend only if needed
+        Task {
+            do {
+                // Save request timestamp
+                UserDefaults.standard.set(now, forKey: lastRequestKey)
+                
+                // Fetch equipment from backend
+                let requestManager = RequestManager.shared
+                let equipments = await requestManager.fetchEquipments()
+                
+                // Update on main thread
+                await MainActor.run {
+                    if !equipments.isEmpty {
+                        self.allEquipments = equipments
+                    }
+                }
+            } catch {
+                print("Error fetching equipment for search: \(error)")
+            }
         }
     }
     
@@ -855,6 +917,11 @@ extension PrebookingViewController: UISearchResultsUpdating {
             return
         }
         
+        // If we have few equipment items, refresh from backend
+        if allEquipments.count < 5 {
+            loadAllEquipmentForSearch()
+        }
+        
         // Comprehensive search across all equipment fields
         searchSuggestions = allEquipments.filter { equipment in
             equipment.name.lowercased().contains(searchText) ||
@@ -863,11 +930,11 @@ extension PrebookingViewController: UISearchResultsUpdating {
             equipment.location.lowercased().contains(searchText)
         }
         
-        searchTableView.isHidden = searchSuggestions.isEmpty
+        // Always show search results, even if empty
+        searchTableView.isHidden = false
         searchTableView.reloadData()
         
         searchTableView.backgroundColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)
-
     }
 }
 
@@ -900,9 +967,11 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
         // Update search bar text with selected equipment
         searchController.searchBar.text = selectedEquipment.name
         
-        // Hide search UI
+        // Hide search suggestions UI but keep search bar active and visible
         searchTableView.isHidden = true
-        searchController.isActive = false
+        
+        // Keep the search controller active
+        searchController.isActive = true
         
         // Reset sections state
         hasAddPreBook = false

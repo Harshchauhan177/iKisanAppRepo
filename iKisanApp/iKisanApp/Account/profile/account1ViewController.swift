@@ -21,8 +21,8 @@ class account1ViewController: UIViewController,UITableViewDataSource, UITableVie
             }
         }
     }
-    private var crops: [AgriCrop] = []
-    private var filteredCrops: [AgriCrop] = []
+    private var crops: [Crop] = []
+    private var filteredCrops: [Crop] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,7 +37,7 @@ class account1ViewController: UIViewController,UITableViewDataSource, UITableVie
     }
     
     private func loadData() {
-        crops = dataController.getAllCrops()
+        crops = dataController.getAllCropsForSelection()
         filteredCrops = crops
         accountTableView.reloadData()
     }

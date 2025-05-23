@@ -1,12 +1,17 @@
 import UIKit
+import Foundation
+import Supabase
 
 class SelectCropsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     // MARK: - Properties
     private var dataController = IKisanDataController()
-    private var cropList: [AgriCrop] = []
+    private var cropList: [Crop] = []
     private var selectedCrops: Set<String> = []
     private var enteredText: [String: String] = [:]
+    
+    // Flag to indicate if this view controller is being presented from the profile
+    var isFromProfile: Bool = false
     
     // MARK: - UI Components
     private let tableView: UITableView = {
@@ -72,6 +77,14 @@ class SelectCropsViewController: UIViewController, UITableViewDataSource, UITabl
         tableView.register(UINib(nibName: "OnBoardingTableViewCell", bundle: nil), forCellReuseIdentifier: "OnBoardingTableViewCell")
         tableView.dataSource = self
         tableView.delegate = self
+        
+        // Register for CropsUpdated notification
+        NotificationCenter.default.addObserver(self, selector: #selector(cropsUpdated), name: NSNotification.Name("CropsUpdated"), object: nil)
+    }
+    
+    deinit {
+        // Remove notification observer when view controller is deallocated
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - Setup Methods
@@ -108,13 +121,43 @@ class SelectCropsViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     private func loadData() {
-        cropList = dataController.getAllCrops()
+        cropList = dataController.getAllCropsForSelection()
+        
+        // If coming from profile, load the user's previously selected crops
+        if isFromProfile {
+            selectedCrops = dataController.getSelectedCrops()
+            
+            // Load saved field areas for the crops
+            loadSavedFieldAreas()
+            
+            // Update the continue button text to reflect we're in profile mode
+            continueButton.setTitle("Save Selected Crops", for: .normal)
+        }
+        
         tableView.reloadData()
         updateContinueButton()
         
         // Show/hide empty state
         emptyStateLabel.isHidden = !cropList.isEmpty
         tableView.isHidden = cropList.isEmpty
+    }
+    
+    @objc private func cropsUpdated() {
+        // Called when crops are updated in the data controller
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Get the updated crops list
+            self.cropList = self.dataController.getAllCropsForSelection()
+            
+            // Update the UI
+            self.tableView.reloadData()
+            self.updateContinueButton()
+            
+            // Show/hide empty state
+            self.emptyStateLabel.isHidden = !self.cropList.isEmpty
+            self.tableView.isHidden = self.cropList.isEmpty
+        }
     }
     
     // MARK: - TableView DataSource
@@ -141,8 +184,12 @@ class SelectCropsViewController: UIViewController, UITableViewDataSource, UITabl
         cell.onTextChanged = { [weak self] newText in
             if let newText = newText, !newText.isEmpty {
                 self?.enteredText[crop.name] = newText
+                // Save to DataController immediately so it's available across views
+                self?.dataController.saveCropFieldArea(cropName: crop.name, area: newText)
             } else {
                 self?.enteredText.removeValue(forKey: crop.name)
+                // Remove from DataController if empty
+                self?.dataController.saveCropFieldArea(cropName: crop.name, area: "")
             }
             // Reload cell to update height
             tableView.reloadRows(at: [indexPath], with: .none)
@@ -192,53 +239,220 @@ class SelectCropsViewController: UIViewController, UITableViewDataSource, UITabl
         // Save selected crops (even if empty)
         dataController.setSelectedCrops(selectedCrops)
         
+        // Save field areas for all crops that have values entered
+        saveFieldAreas()
+        
         // Mark crop selection as completed
         UserDefaults.standard.set(true, forKey: "didCompleteCropSelection")
         
-        // Update user's selected crops in the database if user is logged in
-        if let currentUser = AuthManager.shared.currentUser {
-            // Get crop IDs for the selected crop names
-            let selectedCropIds = cropList
-                .filter { selectedCrops.contains($0.name) }
-                .map { $0.id }
-            
-            Task {
-                do {
-                    // Perform any necessary database updates
-                    // For now, we'll just update the local user
-                    var updatedUser = currentUser
-                    updatedUser.selectedCrops = selectedCropIds
-                    
-                    // Save to UserDefaults
-                    if let encoded = try? JSONEncoder().encode(updatedUser) {
-                        UserDefaults.standard.set(encoded, forKey: "currentUser")
-                    }
-                    
-                    // Navigate to main interface
-                    await MainActor.run {
-                        if let sceneDelegate = self.view.window?.windowScene?.delegate as? SceneDelegate {
-                            sceneDelegate.switchToMainInterfaceAfterLogin()
+        // Reset the new user flag since crop selection is now complete
+        UserDefaults.standard.set(false, forKey: "isNewlyRegisteredUser")
+        
+        // Check if we're coming from profile or onboarding
+        if isFromProfile {
+            // When coming from profile, just update the data and return to profile
+            if let currentUser = AuthManager.shared.currentUser {
+                // Get crop IDs for the selected crop names
+                let selectedCropIds = cropList
+                    .filter { selectedCrops.contains($0.name) }
+                    .map { $0.id }
+                
+                // Show loading indicator
+                let loadingAlert = UIAlertController(title: "Updating", message: "Saving your crop selections...", preferredStyle: .alert)
+                let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+                loadingIndicator.hidesWhenStopped = true
+                loadingIndicator.style = .medium
+                loadingIndicator.startAnimating()
+                loadingAlert.view.addSubview(loadingIndicator)
+                present(loadingAlert, animated: true)
+                
+                Task {
+                    do {
+                        print("Selected crops updated and saved: \(selectedCrops)")
+                        print("Sending \(selectedCropIds.count) crop IDs to Supabase")
+                        // Log the IDs we're sending for debugging
+                        for (index, id) in selectedCropIds.enumerated() {
+                            print("Crop \(index+1): \(id.uuidString)")
                         }
-                    }
-                } catch {
-                    print("Error updating user crops: \(error)")
-                    // Still allow proceeding even if there was an error
-                    await MainActor.run {
-                        if let sceneDelegate = self.view.window?.windowScene?.delegate as? SceneDelegate {
-                            sceneDelegate.switchToMainInterfaceAfterLogin()
+                        
+                        // Update crops in Supabase using the new method
+                        // Calculate total field area from entered text
+                        var totalFieldArea: Double = 0.0
+                        
+                        for (cropName, areaText) in enteredText {
+                            if let area = Double(areaText) {
+                                totalFieldArea += area
+                                print("Adding \(area) acres for crop: \(cropName)")
+                            }
+                        }
+                        
+                        print("Total field area: \(totalFieldArea) acres")
+                        
+                        do {
+                            // Pass both selectedCropIds and totalFieldArea to update method
+                            try await AuthManager.shared.updateUserSelectedCrops(
+                                selectedCropIds: selectedCropIds,
+                                totalFieldArea: totalFieldArea
+                            )
+                        } catch {
+                            // Check if the error is just about the users table
+                            let errorDescription = error.localizedDescription
+                            if errorDescription.contains("selectedCrops") && errorDescription.contains("users") {
+                                print("Ignoring error updating users table as it's not critical: \(error)")
+                                // Continue execution as if successful since the userSelectedCrops table was updated
+                            } else {
+                                // If it's a different error, rethrow it
+                                throw error
+                            }
+                        }
+                        
+                        // Update successful - dismiss the loading alert and show success
+                        await MainActor.run {
+                            loadingAlert.dismiss(animated: true) {
+                                // Show a brief success message
+                                let successAlert = UIAlertController(
+                                    title: "Success",
+                                    message: "Your crop selections have been updated.",
+                                    preferredStyle: .alert
+                                )
+                                successAlert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                                    // Dismiss this view controller to return to profile
+                                    // We need to properly navigate back to the profile view
+                                    if let presentingVC = self.presentingViewController {
+                                        self.dismiss(animated: true)
+                                    } else if let navigationController = self.navigationController {
+                                        navigationController.popViewController(animated: true)
+                                    } else {
+                                        // Fallback in case neither works
+                                        self.dismiss(animated: true)
+                                    }
+                                })
+                                self.present(successAlert, animated: true)
+                            }
+                        }
+                    } catch {
+                        print("Error updating user crops in Supabase: \(error)")
+                        // Get more detailed error information
+                        // We'll check the error object directly since it will contain the details
+                        print("Detailed error information: \(error)")
+                        
+                        // Show a more informative error message
+                        await MainActor.run {
+                            loadingAlert.dismiss(animated: true) {
+                                // Create a user-friendly error message
+                                var errorMessage = "Failed to update crop selections in database."
+                                
+                                // Extract error details from any error type
+                                let errorDetails = "\(error)"
+                                errorMessage += " Technical details: \(errorDetails)"
+                                
+                                self.showAlert(title: "Error", message: errorMessage)
+                            }
                         }
                     }
                 }
+            } else {
+                // No user logged in (shouldn't happen from profile, but just in case)
+                if let navigationController = self.navigationController {
+                    navigationController.popViewController(animated: true)
+                } else {
+                    dismiss(animated: true)
+                }
             }
         } else {
-            // No logged in user, just go to main interface
-            if let sceneDelegate = self.view.window?.windowScene?.delegate as? SceneDelegate {
-                sceneDelegate.switchToMainInterfaceAfterLogin()
+            // Original onboarding flow
+            // Update user's selected crops in the database if user is logged in
+            if let currentUser = AuthManager.shared.currentUser {
+                // Get crop IDs for the selected crop names
+                let selectedCropIds = cropList
+                    .filter { selectedCrops.contains($0.name) }
+                    .map { $0.id }
+                
+                // Calculate total field area from entered text
+                var totalFieldArea: Double = 0.0
+                
+                for (cropName, areaText) in enteredText {
+                    if let area = Double(areaText) {
+                        totalFieldArea += area
+                        print("Adding \(area) acres for crop: \(cropName)")
+                    }
+                }
+                
+                print("Total field area (onboarding): \(totalFieldArea) acres")
+                
+                // Start an async task to update Supabase
+                Task {
+                    do {
+                        // Update crops and field area in Supabase
+                        try await AuthManager.shared.updateUserSelectedCrops(
+                            selectedCropIds: selectedCropIds,
+                            totalFieldArea: totalFieldArea
+                        )
+                        // Navigate to main interface
+                        await MainActor.run {
+                            if let sceneDelegate = self.view.window?.windowScene?.delegate as? SceneDelegate {
+                                sceneDelegate.switchToMainInterfaceAfterLogin()
+                            }
+                        }
+                    } catch {
+                        print("Error updating user crops and field area: \(error)")
+                        // Log the specific error for debugging
+                        print("Detailed error information: \(error)")
+                        
+                        // Still allow proceeding even if there was an error
+                        // We'll just use the local update for now
+                        await MainActor.run {
+                            // Save locally before proceeding
+                            var updatedUser = currentUser
+                            updatedUser.selectedCrops = selectedCropIds
+
+                            // Save to UserDefaults
+                            if let encoded = try? JSONEncoder().encode(updatedUser) {
+                                UserDefaults.standard.set(encoded, forKey: "currentUser")
+                            }
+                            
+                            // Continue with main interface
+                            if let sceneDelegate = self.view.window?.windowScene?.delegate as? SceneDelegate {
+                                sceneDelegate.switchToMainInterfaceAfterLogin()
+                            }
+                        }
+                    }
+                }
+            } else {
+                // No logged in user, just go to main interface
+                if let sceneDelegate = self.view.window?.windowScene?.delegate as? SceneDelegate {
+                    sceneDelegate.switchToMainInterfaceAfterLogin()
+                }
             }
         }
+        // Method end - the duplicate else clause has been removed
     }
     
     // MARK: - Helper Methods
+    private func loadSavedFieldAreas() {
+        // Get all saved field areas from DataController
+        let savedFieldAreas = dataController.getAllCropFieldAreas()
+        
+        // Populate the enteredText dictionary with saved values
+        for (cropName, fieldArea) in savedFieldAreas {
+            enteredText[cropName] = fieldArea
+            print("Loaded saved field area for \(cropName): \(fieldArea) acres")
+        }
+    }
+    
+    private func saveFieldAreas() {
+        // Save all entered field areas to DataController
+        dataController.saveCropFieldAreas(areas: enteredText)
+    }
+    
+    private func updateContinueButton() {
+        if selectedCrops.isEmpty {
+            continueButton.setTitle("Continue to App", for: .normal)
+        } else {
+            continueButton.setTitle("Continue with Selected Crops", for: .normal)
+        }
+    }
+    
     private func showAlert(title: String, message: String) {
         let alertController = UIAlertController(
             title: title,
@@ -250,13 +464,5 @@ class SelectCropsViewController: UIViewController, UITableViewDataSource, UITabl
         alertController.addAction(okAction)
         
         present(alertController, animated: true)
-    }
-    
-    private func updateContinueButton() {
-        if selectedCrops.isEmpty {
-            continueButton.setTitle("Continue to App", for: .normal)
-        } else {
-            continueButton.setTitle("Continue with Selected Crops", for: .normal)
-        }
     }
 } 
