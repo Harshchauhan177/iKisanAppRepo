@@ -2,74 +2,47 @@ import UIKit
 
 class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout,UISearchBarDelegate, UICalendarViewDelegate, UICalendarSelectionSingleDateDelegate {
     
-    
-
     @IBOutlet weak var categoryCollectionView: UICollectionView!
     @IBOutlet weak var calendarLabel: UIButton!
-    
     @IBOutlet weak var dateLabel: UILabel!
-    
     @IBOutlet weak var cardCollectionView: UICollectionView!
-    
     @IBOutlet weak var searchBar: UISearchBar!
     
-    var categories = ["Combine","Rice","Wheat","Soyabean","Irrigation","Other"]
+    // Remove hardcoded categories and use a property
+    private var categories: [String] = []
     var isFromHomeViewController = false
-    var card:[Equipment]=[]
+    var card:[Equipment]=[] 
     var filteredCard: [Equipment] = []
     var numberOfColumns: CGFloat = 2
     var selectedCategory:String?
     var selectedDate: Date?
     var selectedSuggestion: String?
-    private var selectedCalendarDate: Date?
+     var selectedCalendarDate: Date?
     private var calendarView: UICalendarView?
     var dataController: DataController!
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        categoryCollectionView.delegate = self
-        categoryCollectionView.dataSource = self
-        cardCollectionView.delegate = self
-        cardCollectionView.dataSource = self
-        searchBar.delegate = self
 
-        searchBar.backgroundColor = .clear
-        searchBar.searchBarStyle = .minimal
-        if let textField = searchBar.value(forKey: "searchField") as? UITextField {
-            textField.backgroundColor = .clear
-        }
-        categoryCollectionView.register(UINib(nibName: "CategoryCell", bundle: nil), forCellWithReuseIdentifier: "CategoryCell")
-        cardCollectionView.register(UINib(nibName: "CardCell", bundle: nil), forCellWithReuseIdentifier: "CardCell")
-        if let dataController = dataController {
-            card = dataController.getAllEquipment()
-            if let suggestion = selectedSuggestion {
-                filteredCard = card.filter { 
-                    $0.name.lowercased().contains(suggestion.lowercased()) 
-                }
-            } else {
-                filteredCard = card
-            }
-        } else {
-            showAlert(message: "System error: Please try again later")
-        }
-        DispatchQueue.main.async {
-            self.setupInitialState()
-        }
-    }
+
     private func setupInitialState() {
-        if selectedCategory == nil {
-            selectedCategory = "Combine"
+        // Set initial category
+        if selectedCategory == nil && !categories.isEmpty {
+            selectedCategory = "Combine"  // Set to Combine by default
         }
+        
         setupCollectionViewLayouts()
 
+        // Set initial date format
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "E, d MMM"
+        dateFormatter.dateFormat = "E, dd MMM"
         dateLabel.text = dateFormatter.string(from: Date())
+        
+        // Select initial category
         if let category = selectedCategory,
            let index = categories.firstIndex(of: category) {
             categoryCollectionView.selectItem(at: IndexPath(row: index, section: 0), animated: false, scrollPosition: .left)
             filterCardsByCategory()
         }
+        
         updateCategorySelection()
         categoryCollectionView.reloadData()
         cardCollectionView.reloadData()
@@ -77,12 +50,34 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        // Apply search filter if suggestion exists
         if let suggestion = selectedSuggestion,
            !suggestion.isEmpty,
            let searchBarRef = searchBar {
             searchBarRef.text = suggestion
             applySearchFilter()
         }
+        
+        // Reapply category filter
+        if let category = selectedCategory {
+            filterCardsByCategory()
+        }
+        
+        // Set today's date if no date is selected
+        let dateToUse = selectedCalendarDate ?? Date()
+        selectedCalendarDate = dateToUse
+        filteredCard = card.filter { isEquipmentAvailable(on: dateToUse, for: $0) }
+        cardCollectionView.reloadData()
+        
+        // Update date label
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd MMM yyyy"
+        dateLabel.text = dateFormatter.string(from: dateToUse)
+        
+        // Update UI
+        updateCategorySelection()
+        cardCollectionView.reloadData()
     }
     func applySearchFilter() {
       
@@ -105,66 +100,173 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
 
 
 
+    @objc private func doneButtonTapped() {
+        dismiss(animated: true) {
+            // Update the date label with selected date or today's date
+            let dateToUse = self.selectedCalendarDate ?? Date()
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "dd MMM yyyy"
+            self.dateLabel.text = dateFormatter.string(from: dateToUse)
+        }
+    }
+    // Add this property to store the selected date
+    var selectedDateForInfo: Date = Date()  // Initialize with today's date
+    
+    // Update the dateSelection method to store the selected date
+    func dateSelection(_ selection: UICalendarSelectionSingleDate, didSelectDate dateComponents: DateComponents?) {
+        guard let dateComponents = dateComponents,
+              let date = Calendar.current.date(from: dateComponents) else { return }
+        selectedCalendarDate = date
+        selectedDateForInfo = date  // Store the selected date
+        
+        // Dismiss the calendar view controller
+        dismiss(animated: true) {
+            // Update the date label with the selected date
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "dd MMM yyyy"
+            self.dateLabel.text = dateFormatter.string(from: date)
+            
+            // Filter equipment based on availability
+            self.filteredCard = self.card.filter { self.isEquipmentAvailable(on: date, for: $0) }
+            self.cardCollectionView.reloadData()
+        }
+    }
+  
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        categoryCollectionView.delegate = self
+        categoryCollectionView.dataSource = self
+        cardCollectionView.delegate = self
+        cardCollectionView.dataSource = self
+        searchBar.delegate = self
+
+        searchBar.backgroundColor = .clear
+        searchBar.searchBarStyle = .minimal
+        if let textField = searchBar.value(forKey: "searchField") as? UITextField {
+            textField.backgroundColor = .clear
+        }
+        
+        // Register cells
+        categoryCollectionView.register(UINib(nibName: "CategoryCell", bundle: nil), forCellWithReuseIdentifier: "CategoryCell")
+        cardCollectionView.register(UINib(nibName: "CardCell", bundle: nil), forCellWithReuseIdentifier: "CardCell")
+        
+        // Load data
+        if let dataController = dataController {
+            categories = dataController.getCategories()
+            card = dataController.getAllEquipment()
+            
+            // Set initial search text if coming from suggestion
+            if let suggestion = selectedSuggestion {
+                searchBar.text = suggestion
+                filteredCard = card.filter { 
+                    $0.name.lowercased().contains(suggestion.lowercased()) 
+                }
+            } else {
+                filteredCard = card
+            }
+        } else {
+            showAlert(message: "System error: Please try again later")
+        }
+        
+        DispatchQueue.main.async {
+            self.setupInitialState()
+        }
+    }
+
+
+
+
     @IBAction func calendarbuttonTapped(_ sender: Any) {
         let calendarVC = UIViewController()
-        calendarVC.view.backgroundColor = .white
+        calendarVC.view.backgroundColor = UIColor(white: 0, alpha: 0.3)
+        calendarVC.modalPresentationStyle = .overCurrentContext
+        calendarVC.modalTransitionStyle = .crossDissolve
+        
+        let containerView = UIView()
+        containerView.backgroundColor = .white
+        containerView.layer.cornerRadius = 12
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        calendarVC.view.addSubview(containerView)
+        
         let calendar = UICalendarView()
         calendar.calendar = .current
         calendar.locale = .current
         calendar.fontDesign = .rounded
         calendar.delegate = self
         calendar.backgroundColor = .white
+        calendar.layer.cornerRadius = 12
         
-        calendarView = calendar
-        let selection = UICalendarSelectionSingleDate(delegate: self)
-        calendar.selectionBehavior = selection
+        // Configure calendar appearance
+        let dateSelection = UICalendarSelectionSingleDate(delegate: self)
+        let defaultDate = selectedCalendarDate ?? Date()
+        let components = Calendar.current.dateComponents([.year, .month, .day], from: defaultDate)
+        dateSelection.selectedDate = components
+        calendar.selectionBehavior = dateSelection
+        
+        // Set date range and disable past dates
+        let today = Calendar.current.startOfDay(for: Date())
+        calendar.availableDateRange = DateInterval(start: today, end: .distantFuture)
+        
+        // Enable multi-month scrolling
+        calendar.visibleDateComponents = components
+        
         calendar.translatesAutoresizingMaskIntoConstraints = false
-        calendarVC.view.addSubview(calendar)
-        let doneButton = UIButton(type: .system)
-        doneButton.setTitle("Done", for: .normal)
-        doneButton.translatesAutoresizingMaskIntoConstraints = false
-        doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
-        doneButton.backgroundColor = .white
-        calendarVC.view.addSubview(doneButton)
+        containerView.addSubview(calendar)
+        
+        let monthLabel = UILabel()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM yyyy"
+        monthLabel.text = dateFormatter.string(from: defaultDate)
+        monthLabel.font = .systemFont(ofSize: 18, weight: .medium)
+        monthLabel.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(monthLabel)
         
         NSLayoutConstraint.activate([
-            calendar.leadingAnchor.constraint(equalTo: calendarVC.view.leadingAnchor, constant: 10),
-            calendar.trailingAnchor.constraint(equalTo: calendarVC.view.trailingAnchor, constant: -10),
-            calendar.topAnchor.constraint(equalTo: calendarVC.view.topAnchor, constant: 20),
-            calendar.heightAnchor.constraint(equalToConstant: 420),
-            doneButton.topAnchor.constraint(equalTo: calendar.bottomAnchor, constant: 10),
-            doneButton.centerXAnchor.constraint(equalTo: calendarVC.view.centerXAnchor),
-            doneButton.heightAnchor.constraint(equalToConstant: 44),
-            doneButton.widthAnchor.constraint(equalToConstant: 100)
+            containerView.centerXAnchor.constraint(equalTo: calendarVC.view.centerXAnchor),
+            containerView.centerYAnchor.constraint(equalTo: calendarVC.view.centerYAnchor),
+            containerView.widthAnchor.constraint(equalToConstant: 320),
+            containerView.heightAnchor.constraint(equalToConstant: 400), // Increased height for full month view
+            
+            monthLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
+            monthLabel.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            
+            calendar.topAnchor.constraint(equalTo: monthLabel.bottomAnchor, constant: 16),
+            calendar.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            calendar.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            calendar.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16)
         ])
-        
-        calendarVC.modalPresentationStyle = .pageSheet
-        if let sheet = calendarVC.sheetPresentationController {
-            sheet.detents = [.custom { context in
-                return 500
-            }]
-            sheet.prefersGrabberVisible = true
-            sheet.preferredCornerRadius = 20
-        }
         
         present(calendarVC, animated: true)
     }
     
-    @objc private func doneButtonTapped() {
-        if let date = selectedCalendarDate {
-            selectedDate = date
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "E, d MMM"
-            dateLabel.text = dateFormatter.string(from: date)
-            filterCardsByDate()
-        }
-        dismiss(animated: true)
-    }
-    func dateSelection(_ selection: UICalendarSelectionSingleDate, didSelectDate dateComponents: DateComponents?) {
-        guard let dateComponents = dateComponents,
-              let date = Calendar.current.date(from: dateComponents) else { return }
-        selectedCalendarDate = date
-    }
+//    @objc private func doneButtonTapped() {
+//        dismiss(animated: true) {
+//            // Update the date label with selected date or today's date
+//            let dateToUse = self.selectedCalendarDate ?? Date()
+//            let dateFormatter = DateFormatter()
+//            dateFormatter.dateFormat = "dd MMM yyyy"
+//            self.dateLabel.text = dateFormatter.string(from: dateToUse)
+//        }
+//    }
+    // UICalendarSelectionSingleDateDelegate method
+//    func dateSelection(_ selection: UICalendarSelectionSingleDate, didSelectDate dateComponents: DateComponents?) {
+//        guard let dateComponents = dateComponents,
+//              let date = Calendar.current.date(from: dateComponents) else { return }
+//        selectedCalendarDate = date
+//        selectedDateForInfo = date  // Store the selected date
+//        
+//        // Dismiss the calendar view controller
+//        dismiss(animated: true) {
+//            // Update the date label with the selected date
+//            let dateFormatter = DateFormatter()
+//            dateFormatter.dateFormat = "dd MMM yyyy"
+//            self.dateLabel.text = dateFormatter.string(from: date)
+//            
+//            // Filter equipment based on availability
+//            self.filteredCard = self.card.filter { self.isEquipmentAvailable(on: date, for: $0) }
+//            self.cardCollectionView.reloadData()
+//        }
+//    }
     
     func calendarView(_ calendarView: UICalendarView, decorationFor dateComponents: DateComponents) -> UICalendarView.Decoration? {
         return nil
@@ -185,8 +287,8 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         }
         cardCollectionView.reloadData()
     }
-    func isEquipmentAvailable(on date: Date, for card: Equipment) -> Bool {
-        return true
+    func isEquipmentAvailable(on date: Date, for equipment: Equipment) -> Bool {
+        return equipment.isAvailable(on: date)
     }
     func highlightSelectedCategory() {
         for cell in categoryCollectionView.visibleCells {
@@ -309,11 +411,33 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
                 equipmentDescVC.bookingSource = isFromHomeViewController ? .coEquip : .home
                 equipmentDescVC.loadViewIfNeeded()
                 
-                // Store the selected card and date to pass in prepare(for:sender:)
-                let bookingInfo = (equipment: selectedCard, date: selectedDate ?? Date())
+                // Pass the selected date
+                //equipmentDescVC.selectedDate = selectedCalendarDate ?? Date()
+                equipmentDescVC.selectedDate = selectedCalendarDate ?? Date()
+                
                 navigationController?.pushViewController(equipmentDescVC, animated: true)
             }
         }
+        
+            func dateSelection(_ selection: UICalendarSelectionSingleDate, didSelectDate dateComponents: DateComponents?) {
+                if let dateComponents = dateComponents,
+                   let date = Calendar.current.date(from: dateComponents) {
+                    selectedCalendarDate = date
+                    
+                    // Update the date label
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "dd MMM yyyy"
+                    dateLabel.text = dateFormatter.string(from: date)
+                    
+                    // Dismiss the calendar
+                    dismiss(animated: true)
+                }
+            }
+            
+            func calendarView(_ calendarView: UICalendarView, decorationFor dateComponents: DateComponents) -> UICalendarView.Decoration? {
+                return nil
+            }
+        
     }
     
     private func updateCategorySelection() {
@@ -377,21 +501,13 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showInfoDetails" {
-            if let destinationVC = segue.destination as? InfoTableViewController {
-                if let selectedCard = sender as? Equipment {
-                    destinationVC.cardData = selectedCard
-                    destinationVC.date = selectedDate ?? Date()
-                }
-            }
-        } else if segue.identifier == "goToInfoTableView",
-                  let infoTableVC = segue.destination as? InfoTableViewController {
-            infoTableVC.dataController = self.dataController
-            if let equipment = sender as? Equipment {
-                infoTableVC.cardData = equipment
-            }
+        if let infoVC = segue.destination as? InfoTableViewController {
+            infoVC.date = selectedCalendarDate ?? Date()
+            infoVC.cardData = sender as? Equipment
+            infoVC.dataController = dataController
         }
     }
+
     private func showAlert(message: String) {
         let alert = UIAlertController(
             title: "Error",

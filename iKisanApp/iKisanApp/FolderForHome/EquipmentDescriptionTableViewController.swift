@@ -8,6 +8,8 @@
 import UIKit
 
 class EquipmentDescriptionTableViewController: UITableViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+    // Add this property near the top of the class with other properties
+    var selectedDate: Date?
     
     //MARK: Section1 Equipment Deatils
     
@@ -481,8 +483,9 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
             viewController.cardData = equipment
             
             // Get the date from CreateRequestViewController if available
+            // In navigateToCoEquipBooking()
             if let createRequestVC = self.navigationController?.viewControllers.first(where: { $0 is CreateRequestViewController }) as? CreateRequestViewController {
-                viewController.date = createRequestVC.selectedDate
+                viewController.date = createRequestVC.selectedCalendarDate  // Change from selectedDate to selectedCalendarDate
             }
             
             // Set the data controller if needed

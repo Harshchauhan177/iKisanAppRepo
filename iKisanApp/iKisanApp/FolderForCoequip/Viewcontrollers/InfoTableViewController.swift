@@ -145,10 +145,18 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         }
         
         // Set date if available
+        // Update date label with the passed date
         if let selectedDate = date {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, d MMM"
             dateLabel.text = dateFormatter.string(from: selectedDate)
+        } else {
+        // If no date was passed, use today's date
+        let today = Date()
+        date = today
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "E, d MMM"
+        dateLabel.text = dateFormatter.string(from: today)
         }
         
         // Set location from user's address
@@ -191,7 +199,6 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     }
     
     @IBAction func CreateButtonTapped(_ sender: UIButton, forEvent event: UIEvent) {
-   
         guard let area = Double(InputAreaLabel.text ?? ""),
               let equipment = cardData,
               let selectedDate = date else {
@@ -202,19 +209,22 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             return
         }
         
-        // Get current user ID from DataController
+        // Get current user ID and location from AuthManager
         guard let dataController = dataController,
               let currentUser = dataController.getCurrentUser() else {
-        // Show error alert for user not logged in
-        let alert = UIAlertController(title: "Error", message: "Please log in to create a request", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-        return
+            // Show error alert for user not logged in
+            let alert = UIAlertController(title: "Error", message: "Please log in to create a request", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
         }
         
-        // Create new request
+        // Get the most up-to-date location
+        let currentLocation = AuthManager.shared.currentUser?.address ?? self.location
+        
+        // Create new request with current location
         let request = Request(
-            userId: currentUser.userID,  // Use userID directly since Request expects UUID not Optional<UUID>
+            userId: currentUser.userID,
             equipmentId: equipment.equipmentID,
             requestedDate: selectedDate,
             status: .pending,
@@ -222,7 +232,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             area: area,
             timeSlot: currentTimeSlot,
             timePeriod: TimeSlotLabel.text,
-            location: LocationLabel.text ?? location,
+            location: currentLocation,  // Use the current location
             typeOfRequest: .myRequest,
             selectedUsers: selectedUsers,
             joinedFarmers: selectedUsers.map { $0.userID }
@@ -231,10 +241,8 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         // Save request using data controller
         dataController.createRequest(request)
         
-        // In CreateButtonTapped function, update the success alert action:
         let alert = UIAlertController(title: "Success", message: "Request created successfully", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            // Pop to root view controller (which should be CoequipViewController)
             self.navigationController?.popToRootViewController(animated: true)
         })
         present(alert, animated: true)
