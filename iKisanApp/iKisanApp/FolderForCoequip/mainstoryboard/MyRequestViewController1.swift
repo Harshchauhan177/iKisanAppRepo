@@ -46,15 +46,7 @@ class MyRequestViewController1: UIViewController {
             priceLabel.text = "₹ \(Int(totalPrice))\nDate: \(dateString)"
             listTableView.delegate = self
             listTableView.dataSource = self
-            // Store the UUIDs
-            selectedUserIds = request.selectedUsers
-            
-            // Convert UUIDs to Users using getAllUsers
-            if let dataController = self.dataController {
-                acceptedRequestPeopleList = request.selectedUsers.compactMap { userId in
-                    dataController.getAllUsers().first { $0.userID == userId }
-                }
-            }
+
             
             listTableView.reloadData()
         }

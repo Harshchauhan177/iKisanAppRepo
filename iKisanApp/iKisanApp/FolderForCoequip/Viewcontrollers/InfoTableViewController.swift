@@ -149,9 +149,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
                 self.LocationLabel.text = self.location
             }
         }
-        
-        // Rest of viewDidLoad implementation
-        // Configure UI with equipment data
+    
         if let equipment = cardData {
             // Handle image loading
             if equipment.equipmentImage.hasPrefix("http") {
@@ -167,8 +165,6 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             hostName.text = "Hosted by \(equipment.providerName ?? "Unknown")"
         }
         
-        // Set date if available
-        // Update date label with the passed date
         if let selectedDate = date {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, d MMM"
@@ -232,66 +228,101 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             return
         }
         
-        // Get current user ID and location from AuthManager
         guard let dataController = dataController,
               let currentUser = dataController.getCurrentUser() else {
-            // Show error alert for user not logged in
             let alert = UIAlertController(title: "Error", message: "Please log in to create a request", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             present(alert, animated: true)
             return
         }
         
-        // Get the most up-to-date location
         let currentLocation = AuthManager.shared.currentUser?.address ?? self.location
+        let requestId = UUID()
+    
+        Task {
+            do {
+                // Create the main request first
+                let request = Request(
+                    id: requestId,
+                    userId: currentUser.userID,
+                    equipmentId: equipment.equipmentID,
+                    requestedDate: selectedDate,
+                    status: .pending,
+                    type: .coEquip,
+                    area: area,
+                    timeSlot: currentTimeSlot,
+                    timePeriod: TimeSlotLabel.text,
+                    location: currentLocation,
+                    typeOfRequest: .myRequest
+                )
+    
+                // Wait for the request to be created and verify the response
+                let response = try await dataController.createRequest(request)
+                
+                // Add a small delay to ensure the request is committed
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+                
+                // Create participants after ensuring request exists
+                for user in selectedUsers {
+                    let participant = RequestParticipant(
+                        id: UUID(),
+                        requestId: requestId,
+                        userId: user.userID,
+                        status: .pending,
+                        acceptedAt: nil
+                    )
+                    
+                    do {
+                        try await dataController.createRequestParticipant(participant)
+                    } catch {
+                        print("❌ Error creating participant for user \(user.userID): \(error)")
+                        // Continue with other participants even if one fails
+                        continue
+                    }
+                    let request = Request(
+                        id: requestId,
+                        userId: currentUser.userID,
+                        equipmentId: equipment.equipmentID,
+                        requestedDate: selectedDate,
+                        status: .pending,
+                        type: .coEquip,
+                        area: area,
+                        timeSlot: currentTimeSlot,
+                        timePeriod: TimeSlotLabel.text,
+                        location: currentLocation,
+                        typeOfRequest: .acceptedRequest
+                    )
         
-        // Create new request with current location
-        let requestId = UUID() // Generate a new UUID first
-
-        let request = Request(
-            userId: currentUser.userID,
-            equipmentId: equipment.equipmentID,
-            requestedDate: selectedDate,
-            status: .pending,
-            type: .coEquip,
-            area: area,
-            timeSlot: currentTimeSlot,
-            timePeriod: TimeSlotLabel.text,
-            location: currentLocation,  // Use the current location
-            typeOfRequest: .myRequest,
-            selectedUsers: selectedUsers,
-            joinedFarmers: []
-           // requestId: requestId  // Use the generated UUID
-        )
-        
-        // Save request using data controller
-        dataController.createRequest(request)
-        
-        for selectedUser in selectedUsers {
-            let request = Request(
-                userId: selectedUser.userID,
-                equipmentId: equipment.equipmentID,
-                requestedDate: selectedDate,
-                status: .pending,
-                type: .coEquip,
-                area: area,
-                timeSlot: currentTimeSlot,
-                timePeriod: TimeSlotLabel.text,
-                location: currentLocation,
-                typeOfRequest: .acceptedRequest,
-                selectedUsers: [],
-                joinedFarmers: []
-                //requestId: UUID()
-            )
-            
-            // Save request using data controller
-            dataController.createRequest(request)
+                    // Wait for the request to be created and verify the response
+                    let response = try await dataController.createRequest(request)
+                    
+                }
+                
+                // Show success on main thread
+                await MainActor.run {
+                    let alert = UIAlertController(
+                        title: "Success",
+                        message: "Request and participants created successfully",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                        self.navigationController?.popToRootViewController(animated: true)
+                    })
+                    self.present(alert, animated: true)
+                }
+                
+            } catch {
+                await MainActor.run {
+                    let alert = UIAlertController(
+                        title: "Error",
+                        message: "Failed to create request: \(error.localizedDescription)",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(alert, animated: true)
+                }
+            }
         }
-        let alert = UIAlertController(title: "Success", message: "Request created successfully", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            self.navigationController?.popToRootViewController(animated: true)
-        })
-        present(alert, animated: true)
     }
 }
 

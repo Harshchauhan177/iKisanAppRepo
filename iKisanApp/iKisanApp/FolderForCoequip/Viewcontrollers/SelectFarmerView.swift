@@ -16,7 +16,7 @@ struct SelectFarmerView: View {
         case all = "All"
         case oneKm = "1 Km"
         case contact = "Contact"
-        case previous = "Previous"
+        //case previous = "Previous"
     }
 
     var filteredUsers: [User] {
@@ -49,14 +49,7 @@ struct SelectFarmerView: View {
                 return true // Placeholder
             }
             
-        case .previous:
-            // Filter users from previous requests
-            return filtered.filter { user in
-                let requests = dataController.getAllCoEquipRequests()
-                return requests.contains { request in
-                    request.selectedUsers.contains(user.userID)
-                }
-            }
+       
         }
     }
 

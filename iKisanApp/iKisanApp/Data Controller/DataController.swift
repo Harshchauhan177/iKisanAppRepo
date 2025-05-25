@@ -93,7 +93,8 @@ protocol DataController {
     func createRequest(_ request: Request)
     func createRequest(_ request: Request, with selectedUsers: [User])
     func getTimeSlots(for area: Double) -> [TimeSlot]
-    
+    //func createRequestParticipant(_ participant: RequestParticipant)
+    func createRequestParticipant(_ participant: RequestParticipant)
     //For Prebooking
     // Add these new methods to the existing protocol
     func getRecommendedEquipments() -> [Equipment]
@@ -148,6 +149,43 @@ enum EquipmentData {
 
 
 class IKisanDataController: DataController {
+   
+    func createRequestParticipant(_ participant: RequestParticipant) {
+        Task {
+            do {
+                // Validate required fields
+                guard participant.id != nil,
+                      participant.requestId != nil,
+                      participant.userId != nil else {
+                    print("❌ Error: Missing required fields for request participant")
+                    return
+                }
+                
+                let response = try await SupabaseManager.shared.client
+                    .from("request_participants")
+                    .insert(participant)
+                    .execute()
+                
+                print("✅ Request participant created successfully")
+                
+            } catch let error as PostgrestError {
+                print("❌ Error creating request participant: \(error.message)")
+                if error.message.contains("unique_request_user") {
+                    print("⚠️ This user is already a participant in this request")
+                } else if error.message.contains("request_participants_requestId_fkey") {
+                    print("⚠️ Invalid request ID reference")
+                } else if error.message.contains("request_participants_userId_fkey") {
+                    print("⚠️ Invalid user ID reference")
+                }
+            } catch {
+                print("❌ Error creating request participant: \(error.localizedDescription)")
+            }
+        }
+    }
+
+
+    
+    
     
         func getCurrentUser() -> User? {
             guard let currentUser = AuthManager.shared.currentUser else {
@@ -750,8 +788,7 @@ class IKisanDataController: DataController {
         var updatedRequest = request
         // Convert User array to UUID array
         let selectedUserIds = selectedUsers.map { $0.userID }
-        updatedRequest.selectedUsers = selectedUserIds
-        updatedRequest.joinedFarmers = selectedUserIds
+        
         
         Task {
             do {
@@ -1012,7 +1049,7 @@ class RequestManager {
             // Convert DTOs to domain models with relationships
             var requests: [Request] = []
             for dto in data {
-                let selectedUsers = await fetchUsersById(userIds: dto.selectedUsersIds)
+               // let selectedUsers = await fetchUsersById(userIds: dto.selectedUsersIds)
                 
                 let request = Request(
                     id: dto.id,
@@ -1025,10 +1062,8 @@ class RequestManager {
                     timeSlot: TimeSlot(rawValue: dto.timeSlot) ?? .morning,
                     timePeriod: dto.timePeriod,
                     location: dto.location,
-                    typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest,
-                    selectedUsers: selectedUsers,
-                    joinedFarmers: dto.joinedFarmers
-                   // requestId: dto.requestId
+                    typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest
+                    
                 )
                 requests.append(request)
             }
@@ -1451,10 +1486,8 @@ class RequestManager {
                 timeSlot: request.timeSlot.rawValue,
                 timePeriod: request.timePeriod,
                 location: request.location,
-                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
-                selectedUsersIds: request.selectedUsers.map { $0.uuidString }, // Fixed: UUIDs are already stored, just need uuidString
-                joinedFarmers: request.joinedFarmers
-                //, requestId: request.requestId
+                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest"
+                
             )
             
             print("📤 Sending to Supabase...")
@@ -1475,7 +1508,7 @@ class RequestManager {
             return false
         }
     }
-    
+   
     func updateRequest(_ request: Request) async -> Bool {
         do {
             let dto = RequestDTO(
@@ -1489,10 +1522,8 @@ class RequestManager {
                 timeSlot: request.timeSlot.rawValue,
                 timePeriod: request.timePeriod,
                 location: request.location,
-                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
-                selectedUsersIds: request.selectedUsers.map { $0.uuidString }, // Fixed: UUIDs are already stored, just need uuidString
-                joinedFarmers: request.joinedFarmers
-                //, requestId: request.requestId
+                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest"
+                
             )
             
             try await SupabaseManager.shared.client
@@ -1646,9 +1677,7 @@ struct RequestDTO: Codable {
     let timePeriod: String?
     let location: String
     let typeOfRequest: String
-    let selectedUsersIds: [String]
-    let joinedFarmers: [UUID]
-    //let requestId:UUID
+    
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -1662,15 +1691,14 @@ struct RequestDTO: Codable {
         case timePeriod
         case location
         case typeOfRequest
-        case selectedUsersIds
-        case joinedFarmers
-        //case requestId
+        
+       
     }
     
     // Add this initializer for encoding
     init(id: UUID, userId: UUID, equipmentId: UUID, requestedDate: Date, status: String, 
          type: String, area: Double, timeSlot: String, timePeriod: String?, location: String, 
-         typeOfRequest: String, selectedUsersIds: [String], joinedFarmers: [UUID]) {
+         typeOfRequest: String) {
         self.id = id
         self.userId = userId
         self.equipmentId = equipmentId
@@ -1682,9 +1710,6 @@ struct RequestDTO: Codable {
         self.timePeriod = timePeriod
         self.location = location
         self.typeOfRequest = typeOfRequest
-        self.selectedUsersIds = selectedUsersIds
-        self.joinedFarmers = joinedFarmers
-        //self.requestId = requestId
     }
     
     init(from decoder: Decoder) throws {
@@ -1721,9 +1746,7 @@ struct RequestDTO: Codable {
         timePeriod = try container.decodeIfPresent(String.self, forKey: .timePeriod)
         location = try container.decode(String.self, forKey: .location)
         typeOfRequest = try container.decode(String.self, forKey: .typeOfRequest)
-        selectedUsersIds = try container.decode([String].self, forKey: .selectedUsersIds)
-        joinedFarmers = try container.decode([UUID].self, forKey: .joinedFarmers)
-        //requestId = try container.decode(UUID.self, forKey: .requestId)
+       
     }
 }
 

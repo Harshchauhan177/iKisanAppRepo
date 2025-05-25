@@ -71,7 +71,7 @@ struct Equipment: Codable, Sendable {
     }
 }
 
-struct Request: Codable {
+struct Request: Codable, Identifiable {
     let id: UUID
     var userId: UUID
     var equipmentId: UUID
@@ -83,25 +83,20 @@ struct Request: Codable {
     var timePeriod: String?
     var location: String
     var typeOfRequest: RequestType
-    var selectedUsers: [UUID] // Changed from [User] to [UUID]
-    var joinedFarmers: [UUID]
-    //var requestId : UUID
     
-    init(id: UUID = UUID(),
-         userId: UUID,
-         equipmentId: UUID,
-         requestedDate: Date,
-         status: BookingStatus,
-         type: BookingType,
-         area: Double,
-         timeSlot: TimeSlot,
-         timePeriod: String?,
-         location: String,
-         typeOfRequest: RequestType,
-         selectedUsers: [User],
-         joinedFarmers: [UUID]
-         //requestId: UUID
-    ) {  // Changed to optional UUID
+    init(
+        id: UUID = UUID(),
+        userId: UUID,
+        equipmentId: UUID,
+        requestedDate: Date,
+        status: BookingStatus,
+        type: BookingType,
+        area: Double,
+        timeSlot: TimeSlot,
+        timePeriod: String?,
+        location: String,
+        typeOfRequest: RequestType
+    ) {
         self.id = id
         self.userId = userId
         self.equipmentId = equipmentId
@@ -113,12 +108,24 @@ struct Request: Codable {
         self.timePeriod = timePeriod
         self.location = location
         self.typeOfRequest = typeOfRequest
-        self.selectedUsers = selectedUsers.map { $0.userID }
-        self.joinedFarmers = joinedFarmers
-        //self.requestId = requestId  // Remove force unwrap
     }
 }
 
+struct RequestParticipant: Codable, Identifiable {
+    var id: UUID = UUID()  // default UUID, or assigned from backend
+    var requestId: UUID
+    var userId: UUID
+    var status: BookingStatus // Your enum matching public.booking_status_enum
+    var acceptedAt: Date?          // optional timestamp
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case requestId = "requestId"
+        case userId = "userId"
+        case status
+        case acceptedAt = "accepted_at"
+    }
+}
 // Also make sure RequestType is Codable
 enum RequestType: Codable {
     case myRequest

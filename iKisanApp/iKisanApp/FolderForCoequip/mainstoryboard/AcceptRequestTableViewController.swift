@@ -168,11 +168,7 @@ class AcceptRequestTableViewController: UITableViewController {
             }
         }
         
-        // Add current user to request creator's joinedFarmers array
-        var joinedFarmers = request.joinedFarmers
-        if !joinedFarmers.contains(request.userId) {
-            joinedFarmers.append(request.userId)
-        }
+        
         
         let updatedRequest = Request(
             id: request.id,
@@ -185,48 +181,14 @@ class AcceptRequestTableViewController: UITableViewController {
             timeSlot: .morning,
             timePeriod: timeSlot,
             location: request.location,
-            typeOfRequest: .myRequest,
-            selectedUsers: [],
-            joinedFarmers: joinedFarmers
-            //, requestId: UUID() // Use updated joinedFarmers array with request creator's ID
+            typeOfRequest: .myRequest
+            
         )
         
-        var selectedUsers = request.selectedUsers
-        if !selectedUsers.contains(request.userId) {
-            selectedUsers.append(request.userId)
-        }
+        
         
         dataController.updateRequest(updatedRequest)
         
-        Task {
-            do {
-                let selectedUsersJson = try JSONEncoder().encode(selectedUsers)
-                let selectedUsersString = String(data: selectedUsersJson, encoding: .utf8) ?? "[]"
-                let joinedFarmersJson = try JSONEncoder().encode(joinedFarmers)
-                let joinedFarmersString = String(data: joinedFarmersJson, encoding: .utf8) ?? "[]"
-                
-                try await SupabaseManager.shared.client
-                    .from("requests")
-                    .update(["area": area,
-                            "timeSlot": updatedRequest.timeSlot.rawValue,
-                            "timePeriod": timeSlot,
-                            "status": "pending",
-                            "typeOfRequest": "myRequest",
-                            "selectedUsersIds": selectedUsersString,
-                            "joinedFarmers": joinedFarmersString])
-                    .eq("id", value: request.id)
-                    .execute()
-                
-                await MainActor.run {
-                    showAlert(title: "Success", message: "Request accepted successfully")
-                    self.navigationController?.popViewController(animated: true)
-                }
-            } catch {
-                await MainActor.run {
-                    showAlert(title: "Error", message: "Failed to update request: \(error.localizedDescription)")
-                }
-            }
-        }
     }
     
     @IBAction func viewButtonTapped(_ sender: Any) {
