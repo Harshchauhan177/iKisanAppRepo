@@ -24,24 +24,29 @@ class AcceptRequestTableViewCell: UITableViewCell {
         super.awakeFromNib()
         imageLabel.layer.cornerRadius = 10
     }
-    func configure(with request: Request, equipment: Equipment) {
-       
-        if equipment.equipmentImage.hasPrefix("http") {
-            // It's a URL, use our ImageCache utility to load it
+    func configure(participant: RequestParticipant, request: Request, equipment: Equipment) {
+        // Use passed-in Equipment object
+        if !equipment.equipmentImage.isEmpty {
             imageLabel.loadImage(from: equipment.equipmentImage)
         } else {
-            // Fallback to local asset loading for backward compatibility
-            imageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
+            imageLabel.image = UIImage(named: "default_equipment_image")
         }
-      
+
+
         titleLabel.text = equipment.name
         priceLabel.text = "₹ \(equipment.pricePerAcre)"
         hostLabel.text = equipment.providerName
         locationLabel.text = equipment.location
+
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "E, d MMM"
         dateLabel.text = dateFormatter.string(from: request.requestedDate)
+
+        acceptButton.isEnabled = participant.status == .pending
+        rejectButton.isEnabled = participant.status == .pending
     }
+
+
     
     @IBAction func acceptButtonTapped(_ sender: UIButton) {
         // Only notify delegate, remove direct navigation

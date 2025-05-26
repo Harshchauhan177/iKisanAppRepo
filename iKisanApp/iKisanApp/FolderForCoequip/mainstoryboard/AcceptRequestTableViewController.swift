@@ -181,7 +181,7 @@ class AcceptRequestTableViewController: UITableViewController {
             timeSlot: .morning,
             timePeriod: timeSlot,
             location: request.location,
-            typeOfRequest: .myRequest
+            typeOfRequest: .myRequest, participants: []
             
         )
         

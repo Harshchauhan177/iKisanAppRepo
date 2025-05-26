@@ -83,6 +83,7 @@ struct Request: Codable, Identifiable {
     var timePeriod: String?
     var location: String
     var typeOfRequest: RequestType
+    var participants: [RequestParticipant]?
     
     init(
         id: UUID = UUID(),
@@ -95,7 +96,8 @@ struct Request: Codable, Identifiable {
         timeSlot: TimeSlot,
         timePeriod: String?,
         location: String,
-        typeOfRequest: RequestType
+        typeOfRequest: RequestType,
+        participants: [RequestParticipant]
     ) {
         self.id = id
         self.userId = userId
@@ -108,28 +110,30 @@ struct Request: Codable, Identifiable {
         self.timePeriod = timePeriod
         self.location = location
         self.typeOfRequest = typeOfRequest
+        self.participants = participants
     }
 }
 
 struct RequestParticipant: Codable, Identifiable {
-    var id: UUID = UUID()  // default UUID, or assigned from backend
-    var requestId: UUID
-    var userId: UUID
-    var status: BookingStatus // Your enum matching public.booking_status_enum
-    var acceptedAt: Date?          // optional timestamp
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case requestId = "requestId"
-        case userId = "userId"
-        case status
-        case acceptedAt = "accepted_at"
-    }
+    let id: UUID
+    let requestId: UUID
+    let userId: UUID
+    var status: ParticipantStatus
+    var area: Double?           // Area entered by this participant
+    var timeSlot: TimeSlot?     // Time slot selected by this participant
+    var joinedAt: Date
+}
+
+enum ParticipantStatus: String, Codable {
+    case pending
+    case accepted
+    case rejected
 }
 // Also make sure RequestType is Codable
 enum RequestType: Codable {
     case myRequest
     case acceptedRequest
+    case sentRequest
 }
 struct Availability: Codable {
     var startDate: Date

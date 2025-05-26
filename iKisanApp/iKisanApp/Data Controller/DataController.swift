@@ -1062,7 +1062,7 @@ class RequestManager {
                     timeSlot: TimeSlot(rawValue: dto.timeSlot) ?? .morning,
                     timePeriod: dto.timePeriod,
                     location: dto.location,
-                    typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest
+                    typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest, participants: []
                     
                 )
                 requests.append(request)

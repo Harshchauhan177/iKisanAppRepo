@@ -253,7 +253,8 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
                     timeSlot: currentTimeSlot,
                     timePeriod: TimeSlotLabel.text,
                     location: currentLocation,
-                    typeOfRequest: .myRequest
+                    typeOfRequest: .myRequest,
+                    participants: [] // Add this line
                 )
     
                 // Wait for the request to be created and verify the response
@@ -268,8 +269,8 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
                         id: UUID(),
                         requestId: requestId,
                         userId: user.userID,
-                        status: .pending,
-                        acceptedAt: nil
+                        status: .pending, joinedAt: request.requestedDate
+                        
                     )
                     
                     do {
@@ -279,22 +280,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
                         // Continue with other participants even if one fails
                         continue
                     }
-                    let request = Request(
-                        id: requestId,
-                        userId: currentUser.userID,
-                        equipmentId: equipment.equipmentID,
-                        requestedDate: selectedDate,
-                        status: .pending,
-                        type: .coEquip,
-                        area: area,
-                        timeSlot: currentTimeSlot,
-                        timePeriod: TimeSlotLabel.text,
-                        location: currentLocation,
-                        typeOfRequest: .acceptedRequest
-                    )
-        
-                    // Wait for the request to be created and verify the response
-                    let response = try await dataController.createRequest(request)
+
                     
                 }
                 

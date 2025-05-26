@@ -34,15 +34,22 @@ class CoequipViewController: UIViewController {
             await MainActor.run {
                 self.updateUI()
                 if let currentRequest = self.currentRequest {
-                    // Get the filtered requests that match the current user and type
+                    // Get requests based on request_participants table
                     let requests = self.dataController.getAllCoEquipRequests().filter { request in
-                        request.userId == currentUser.userID &&
-                        request.typeOfRequest == (self.CoequipSegmentedControl.selectedSegmentIndex == 0 ? .myRequest : .acceptedRequest)
+                        if self.CoequipSegmentedControl.selectedSegmentIndex == 0 {
+                            // My Requests - show requests where user is the creator
+                            return request.userId == currentUser.userID &&
+                                   request.typeOfRequest == .myRequest
+                        } else {
+                            // Join Requests - show requests where user is a participant
+                            return request.participants?.contains { participant in
+                                participant.userId == currentUser.userID
+                            } ?? false
+                        }
                     }
                     
                     if let index = requests.firstIndex(where: { $0.id == currentRequest.id }) {
                         let indexPath = IndexPath(row: index, section: 0)
-                        // Add safety check before scrolling
                         if indexPath.row < self.CoequipTableView.numberOfRows(inSection: 0) {
                             self.CoequipTableView.scrollToRow(at: indexPath, at: .middle, animated: true)
                         }
@@ -139,19 +146,25 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let dataController = self.dataController else { return 0 }
+        guard let dataController = self.dataController,
+              let currentUser = dataController.getCurrentUser() else { return 0 }
         
-        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
-            return dataController.getAllCoEquipRequests().filter { 
-                $0.userId == dataController.getCurrentUser()?.userID && 
-                $0.typeOfRequest == .myRequest 
-            }.count
-        } else {
-            return dataController.getAllCoEquipRequests().filter {
-                $0.userId == dataController.getCurrentUser()?.userID &&
-                $0.typeOfRequest == .acceptedRequest
-            }.count
+        let requests = dataController.getAllCoEquipRequests().filter { request in
+            if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+                // My Requests tab
+                return request.userId == currentUser.userID &&
+                       request.typeOfRequest == .myRequest
+            } else {
+                // Join Requests tab
+               
+                return request.participants?.contains { participant in
+                    participant.userId == currentUser.userID
+                } ?? false
+                
+            }
         }
+        
+        return requests.count
     }
     
     // Add this method to safely scroll to a row
@@ -176,8 +189,16 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
               let currentUser = dataController.getCurrentUser() else { return UITableViewCell() }
         
         let requests = dataController.getAllCoEquipRequests().filter { request in
-            request.userId == currentUser.userID &&
-            request.typeOfRequest == (CoequipSegmentedControl.selectedSegmentIndex == 0 ? .myRequest : .acceptedRequest)
+            if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+                // My Requests - show requests where user is the creator
+                return request.userId == currentUser.userID &&
+                       request.typeOfRequest == .myRequest
+            } else {
+                // Join Requests - show requests where user is a participant
+                return request.participants?.contains { participant in
+                    participant.userId == currentUser.userID
+                } ?? false
+            }
         }
         
         // Safety check to prevent index out of range
@@ -195,7 +216,15 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
             return cell
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: "AcceptRequestTableViewCell", for: indexPath) as! AcceptRequestTableViewCell
-            cell.configure(with: request, equipment: equipment)
+            
+            // Find the participant for the current user
+            guard let participant = request.participants?.first(where: { $0.userId == currentUser.userID }) else {
+                // Handle case where participant is not found (e.g., return an empty cell or log an error)
+                return UITableViewCell()
+            }
+            
+            // Pass the request, the specific participant, and the equipment to the configure function
+            cell.configure(participant: participant, request: request, equipment: equipment )
             cell.request = request
             cell.dataController = dataController
             cell.delegate = self
