@@ -25,7 +25,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     private var filteredEquipment: [Equipment] = []
     
     private var searchSuggestions: [Equipment] = []
-    private let searchTableView = UITableView()
+    // Removed custom searchTableView in favor of standard UISearchController results
     private var isShowingSuggestions = false
     
     var preBookings: [Booking] = []
@@ -100,6 +100,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             hasAddPreBook = false
             availableEquipments = []
             selectedDate = nil
+            searchedEquipments = []
         }
         
         // Remove existing observer before adding new one to prevent duplicates
@@ -597,9 +598,17 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         return section
     }
     
-    func userSearched(){
+    func userSearched() {
+        // Reset the view state when search is initiated
         hasAddPreBook = false
+        searchedEquipments = []
+        selectedDate = nil
+        
+        // Reload collection view to reflect changes
         collectionView.reloadData()
+        
+        // Ensure search bar is visible and ready for input
+        searchController.searchBar.becomeFirstResponder()
     }
     
     
@@ -764,37 +773,30 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     }
     
     private func setupSearchController() {
-        searchController = UISearchController(searchResultsController: nil)
+        // Create search results controller
+        let resultsController = UITableViewController()
+        resultsController.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SearchCell")
+        resultsController.tableView.delegate = self
+        resultsController.tableView.dataSource = self
+        resultsController.tableView.backgroundColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)
+        
+        // Initialize search controller with results controller
+        searchController = UISearchController(searchResultsController: resultsController)
         searchController.searchBar.delegate = self
         searchController.searchResultsUpdater = self
         searchController.searchBar.placeholder = "Search Equipment"
-        searchController.obscuresBackgroundDuringPresentation = false
-        // Prevent search bar from hiding when navigating
-        searchController.hidesNavigationBarDuringPresentation = false
-        // Ensure search bar remains active when navigating to detail screens
-        searchController.isActive = true
-        // Keep search results visible
+        searchController.obscuresBackgroundDuringPresentation = true
+        
+        // Standard HIG-compliant search bar behavior
+        searchController.hidesNavigationBarDuringPresentation = true
         searchController.automaticallyShowsCancelButton = true
+        
         // Set the search controller in navigation
         navigationItem.searchController = searchController
-        // Ensure search presentation context is defined
-        definesPresentationContext = false
+        navigationItem.hidesSearchBarWhenScrolling = false
         
-        // Setup search table view with proper constraints
-        searchTableView.delegate = self
-        searchTableView.dataSource = self
-        searchTableView.register(UITableViewCell.self, forCellReuseIdentifier: "SearchCell")
-        searchTableView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(searchTableView)
-        
-        NSLayoutConstraint.activate([
-            searchTableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            searchTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            searchTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            searchTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-        
-        searchTableView.isHidden = true
+        // Ensure search presentation context is defined correctly
+        definesPresentationContext = true
         
         // Load all equipment for search from backend
         loadAllEquipmentForSearch()
@@ -911,9 +913,8 @@ extension PrebookingViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         guard let searchText = searchController.searchBar.text?.lowercased(),
               !searchText.isEmpty else {
-            searchTableView.isHidden = true
             searchSuggestions = []
-            searchTableView.reloadData()
+            (searchController.searchResultsController as? UITableViewController)?.tableView.reloadData()
             return
         }
         
@@ -930,11 +931,8 @@ extension PrebookingViewController: UISearchResultsUpdating {
             equipment.location.lowercased().contains(searchText)
         }
         
-        // Always show search results, even if empty
-        searchTableView.isHidden = false
-        searchTableView.reloadData()
-        
-        searchTableView.backgroundColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)
+        // Reload the search results table
+        (searchController.searchResultsController as? UITableViewController)?.tableView.reloadData()
     }
 }
 
@@ -953,7 +951,6 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
         content.text = equipment.name
         content.secondaryText = "\(equipment.type) - \(equipment.location)"
         cell.contentConfiguration = content
-        cell.backgroundColor = .init(red: 0.9216, green: 0.9216, blue: 0.9216, alpha: 1.0)
         
         return cell
     }
@@ -967,45 +964,38 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
         // Update search bar text with selected equipment
         searchController.searchBar.text = selectedEquipment.name
         
-        // Hide search suggestions UI but keep search bar active and visible
-        searchTableView.isHidden = true
-        
-        // Keep the search controller active
-        searchController.isActive = true
-        
-        // Reset sections state
-        hasAddPreBook = false
-        availableEquipments = []
-        selectedDate = nil
-        
-        // Update calendar with selected equipment
-        if let calendarCell = collectionView.cellForItem(at: IndexPath(item: 0, section: Section.calendar.rawValue)) as? preBookingCalanderCollectionViewCell {
-            calendarCell.configure(with: searchedEquipments, dataController: dataController)
+        // Dismiss search controller
+        searchController.dismiss(animated: true) {
+            // Reset sections state
+            self.hasAddPreBook = false
+            self.availableEquipments = []
+            self.selectedDate = nil
+            
+            // Update calendar with selected equipment
+            if let calendarCell = self.collectionView.cellForItem(at: IndexPath(item: 0, section: Section.calendar.rawValue)) as? preBookingCalanderCollectionViewCell {
+                calendarCell.configure(with: self.searchedEquipments, dataController: self.dataController)
+            }
+            
+            // Reload all affected sections
+            self.collectionView.reloadData()
         }
-        
-        // Reload all affected sections
-        collectionView.reloadData()
     }
 }
 
 // MARK: - UISearchBarDelegate
 extension PrebookingViewController: UISearchBarDelegate {
-    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
-        searchTableView.isHidden = false
-    }
-    
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        searchTableView.isHidden = true
+        // Clear search state
         searchedEquipments = []
         searchSuggestions = []
-        searchTableView.reloadData()
         
         // Reset sections state
         hasAddPreBook = false
         availableEquipments = []
         selectedDate = nil
         
-        collectionView.reloadData()  // Reload entire collection view to reflect changes
+        // Reload collection view to reflect changes
+        collectionView.reloadData()
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -1014,27 +1004,29 @@ extension PrebookingViewController: UISearchBarDelegate {
         
         // Use proper search method from DataController
         searchedEquipments = dataController?.searchEquipment(query: query) ?? []
-        searchTableView.isHidden = true
         
-        if !searchedEquipments.isEmpty {
-            // Reset sections state
-            hasAddPreBook = false
-            availableEquipments = []
-            selectedDate = nil
-            
-            // Update calendar with ALL searched equipment
-            if let calendarCell = collectionView.cellForItem(at: IndexPath(item: 0, section: Section.calendar.rawValue)) as? preBookingCalanderCollectionViewCell {
-                calendarCell.configure(with: searchedEquipments, dataController: dataController)
+        // Dismiss search controller
+        searchController.dismiss(animated: true) {
+            if !self.searchedEquipments.isEmpty {
+                // Reset sections state
+                self.hasAddPreBook = false
+                self.availableEquipments = []
+                self.selectedDate = nil
+                
+                // Update calendar with ALL searched equipment
+                if let calendarCell = self.collectionView.cellForItem(at: IndexPath(item: 0, section: Section.calendar.rawValue)) as? preBookingCalanderCollectionViewCell {
+                    calendarCell.configure(with: self.searchedEquipments, dataController: self.dataController)
+                }
+                
+                // Show available section if any equipment is available today
+                let today = Date()
+                if self.searchedEquipments.contains(where: { $0.isAvailable(on: today) }) {
+                    self.hasAddPreBook = true
+                    self.availableEquipments = self.searchedEquipments.filter { $0.isAvailable(on: today) }
+                }
+                
+                self.collectionView.reloadData()
             }
-            
-            // Show available section if any equipment is available today
-            let today = Date()
-            if searchedEquipments.contains(where: { $0.isAvailable(on: today) }) {
-                hasAddPreBook = true
-                availableEquipments = searchedEquipments.filter { $0.isAvailable(on: today) }
-            }
-            
-            collectionView.reloadData()
         }
     }
 }
