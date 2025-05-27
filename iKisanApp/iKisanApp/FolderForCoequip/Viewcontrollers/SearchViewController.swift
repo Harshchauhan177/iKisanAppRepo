@@ -13,7 +13,7 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
     @IBOutlet weak var tableViewLabel: UITableView!
     
     var dataController: DataController?
-    var filteredSuggestions: [String] = []
+    private var filteredSuggestions: [String] = []
     var selectedSuggestion: String?
     
     override func viewDidLoad() {
@@ -22,10 +22,10 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
         tableViewLabel.delegate = self
         tableViewLabel.dataSource = self
         searchBarLabel.delegate = self
+        
+        // Initialize with empty suggestions
         filteredSuggestions = []
-        searchBarLabel.delegate = self
-        tableViewLabel.delegate = self
-        tableViewLabel.dataSource = self
+        
         searchBarLabel.placeholder = "Search equipment..."
         searchBarLabel.searchBarStyle = .minimal
         if let textField = searchBarLabel.value(forKey: "searchField") as? UITextField {
@@ -34,12 +34,17 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
             textField.clipsToBounds = true
         }
     }
+    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
             filteredSuggestions = []
+            tableViewLabel.isHidden = true
         } else {
-            filteredSuggestions = (dataController?.getEquipmentSuggestions() ?? []).filter {
-                $0.lowercased().contains(searchText.lowercased())
+            tableViewLabel.isHidden = false
+            if let suggestions = dataController?.getEquipmentSuggestions() {
+                filteredSuggestions = suggestions.filter { $0.lowercased().contains(searchText.lowercased()) }
+            } else {
+                filteredSuggestions = []
             }
         }
         tableViewLabel.reloadData()
@@ -48,6 +53,7 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
     }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return filteredSuggestions.count
     }
@@ -72,8 +78,6 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
         return cell
     }
     
-    
-
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         selectedSuggestion = filteredSuggestions[indexPath.row]
         if let navController = self.navigationController {
@@ -93,13 +97,5 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
         }
 
         tableView.deselectRow(at: indexPath, animated: true)
-    }
-
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showCreateRequestViewController",
-           let createRequestVC = segue.destination as? CreateRequestViewController {
-            createRequestVC.dataController = self.dataController
-            createRequestVC.selectedSuggestion = self.selectedSuggestion
-        } 
     }
 }

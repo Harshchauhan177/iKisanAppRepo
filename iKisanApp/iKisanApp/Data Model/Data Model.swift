@@ -71,7 +71,7 @@ struct Equipment: Codable, Sendable {
     }
 }
 
-struct Request {
+struct Request: Codable {
     let id: UUID
     var userId: UUID
     var equipmentId: UUID
@@ -83,10 +83,10 @@ struct Request {
     var timePeriod: String?
     var location: String
     var typeOfRequest: RequestType
-    var selectedUsers: [User]
+    var selectedUsers: [UUID] // Changed from [User] to [UUID]
     var joinedFarmers: [UUID]
     
-    init(id: UUID = UUID(), // Default to new UUID if not provided
+    init(id: UUID = UUID(),
          userId: UUID,
          equipmentId: UUID,
          requestedDate: Date,
@@ -110,20 +110,22 @@ struct Request {
         self.timePeriod = timePeriod
         self.location = location
         self.typeOfRequest = typeOfRequest
-        self.selectedUsers = selectedUsers
+        self.selectedUsers = selectedUsers.map { $0.userID } // Convert User array to UUID array
         self.joinedFarmers = joinedFarmers
     }
+}
+
+// Also make sure RequestType is Codable
+enum RequestType: Codable {
+    case myRequest
+    case acceptedRequest
 }
 struct Availability: Codable {
     var startDate: Date
     var endDate: Date
 }
 
-enum RequestType {
-    case myRequest
-    case acceptedRequest
-    
-}
+
 enum coEquipState: String, Codable {
     case Available
     case Unavailable
@@ -149,7 +151,9 @@ struct EquipmentMoreImages: Codable {
 
 //MARK: Model for User
 
-struct User: Codable {
+struct User: Codable , Hashable {
+    
+    
     let userID: UUID
     var name: String
     var email: String
@@ -327,10 +331,10 @@ enum BookingStatus: String, Codable {
 
 //MARK: Model for AgriAssist
 
-struct AgriCrop {
-    let id: UUID
-    let name: String
-    let imageName: String
+struct AgriCrop: Codable, Sendable {
+    var id: UUID = .init()
+    var name: String
+    var imageName: String
 }
 
 // Crop struct specifically for Select Crops functionality
@@ -347,13 +351,18 @@ struct CropCategory {
     var equipments: [EquipmentCategory]
 }
 
-struct EquipmentCategory {
+struct EquipmentCategory: Codable, Sendable {
     let id: UUID
     var title: String
-    var equipmentList: [EquipmentAgri]
+    var equipmentList: [EquipmentAgri] = []
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+    }
 }
 
-struct EquipmentAgri {
+struct EquipmentAgri: Codable, Sendable {
     let id: UUID
     let categoryId: UUID
     var name: String
@@ -385,3 +394,13 @@ let sampleUsers: [User] = [
 
 ]
 //
+
+func getSampleUsers() {
+    Task {
+        let crops: [AgriCrop] = try! await SupabaseManager.shared.client
+            .from("agriCrops")
+            .select("*")
+            .execute()
+            .value
+    }
+}

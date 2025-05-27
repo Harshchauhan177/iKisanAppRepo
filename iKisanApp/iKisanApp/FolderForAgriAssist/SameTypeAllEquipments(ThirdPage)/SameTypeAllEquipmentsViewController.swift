@@ -17,6 +17,23 @@ class SameTypeAllEquipmentsViewController: UIViewController,UICollectionViewDele
     var selectedCategoryId: UUID!
     var equipments: [EquipmentAgri] = []
     
+    override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            
+            Task {
+                self.equipments = try! await SupabaseManager.shared.client
+                    .from("equipmentAgri")
+                    .select("*")
+                    .eq("categoryId", value: selectedCategoryId)
+                    .execute()
+                    .value
+                DispatchQueue.main.async {
+                    self.SameTypeAllEquipmentsCollectionView.reloadData()
+                }
+            }
+        }
+
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
