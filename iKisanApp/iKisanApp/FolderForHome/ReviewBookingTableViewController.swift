@@ -19,6 +19,8 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     var selectedDate: Date?
     var timeSlot = ["Morning","Afternoon","Evening"]
     var bookingLocation: Location? // Store location for this booking
+    // Track if the current selection is available
+    private var isEquipmentAvailable = true
     var pricePerHr: Double = 100
     var payableAmount: Double = 0
     var thisBooking: Booking?
@@ -126,6 +128,93 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         
         // Setup location cell to use standard iOS disclosure behavior
         setupLocationCell()
+        
+        // Initialize selectedDate with the current date picker value
+        selectedDate = datePicker.date
+        
+        // Update available time slots for the initial date
+        updateAvailableTimeSlots()
+        
+        // Set up date picker action
+        datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
+    }
+    
+    // MARK: - Equipment Availability Check
+    
+    // Handle date picker value changes
+    @objc private func datePickerValueChanged() {
+        // Update the selected date
+        selectedDate = datePicker.date
+        
+        // Reset time slot if date changes
+        if let currentTimeSlot = timeSlotDisplayOutlet.text, !currentTimeSlot.isEmpty {
+            // Check if the current time slot is still available with the new date
+            if !checkEquipmentAvailability() {
+                // If not available, reset the time slot
+                timeSlotDisplayOutlet.text = ""
+                
+                // Show a message to the user
+                let alert = UIAlertController(
+                    title: "Time Slot Not Available",
+                    message: "The previously selected time slot is not available on this date. Please select a different time slot.",
+                    preferredStyle: .alert
+                )
+                let okAction = UIAlertAction(title: "OK", style: .default)
+                okAction.setValue(UIColor.init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
+                alert.addAction(okAction)
+                present(alert, animated: true)
+            }
+        }
+        
+        // Update available time slots for the menu
+        updateAvailableTimeSlots()
+    }
+    
+    // Update available time slots based on the selected date
+    private func updateAvailableTimeSlots() {
+        guard let equipment = equipment, let selectedDate = selectedDate else { return }
+        
+        // Get the data controller
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let sceneDelegate = windowScene.delegate as? SceneDelegate else { return }
+        
+        let dataController = sceneDelegate.dataController
+        
+        // Get available time slots for the selected date and equipment
+        let availableTimeSlots = dataController.getAvailableTimeSlots(equipmentID: equipment.equipmentID, date: selectedDate)
+        
+        // Convert TimeSlot enum values to strings
+        let availableSlotStrings = availableTimeSlots.map { $0.rawValue }
+        
+        // Update the time slot menu with only available slots
+        setUpTimeSlotMenu(with: availableSlotStrings)
+    }
+    
+    // Check if equipment is available for booking on selected date and time slot
+    private func checkEquipmentAvailability() -> Bool {
+        guard let equipment = equipment,
+              let selectedDate = selectedDate,
+              let timeSlotText = timeSlotDisplayOutlet.text,
+              let timeSlot = TimeSlot(rawValue: timeSlotText) else {
+            return true // If we can't check, assume it's available
+        }
+        
+        // Get the data controller
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let sceneDelegate = windowScene.delegate as? SceneDelegate else {
+            return true // If we can't check, assume it's available
+        }
+        
+        let dataController = sceneDelegate.dataController
+        
+        // Check if the equipment is available for the selected date and time slot
+        let available = dataController.isEquipmentAvailable(equipmentID: equipment.equipmentID, date: selectedDate, timeSlot: timeSlot)
+        
+        // If we're modifying an existing booking, the current time slot is always available
+        let isCurrentBookingTimeSlot = isModifying && booking?.timeSlot.rawValue == timeSlotText && Calendar.current.isDate(booking?.bookingDate ?? Date(), inSameDayAs: selectedDate)
+        
+        // Equipment is available if it's either generally available or it's the current booking's time slot
+        return available || isCurrentBookingTimeSlot
     }
     
     private func setupDynamicTextSupport() {
@@ -479,18 +568,31 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     }
     
     private func setUpMenus() {
+        // Set up the initial time slot menu with all time slots
+        setUpTimeSlotMenu(with: timeSlot)
+    }
+    
+    // Set up the time slot menu with the provided time slots
+    private func setUpTimeSlotMenu(with availableTimeSlots: [String]) {
         var actions: [UIAction] = []
-        for time in timeSlot {
-            let action = UIAction(title: time, handler: { [weak self] _ in
-                self?.timeSlotDisplayOutlet.text = time // Update label
-            })
+        
+        // If there are no available time slots, show a message
+        if availableTimeSlots.isEmpty {
+            let action = UIAction(title: "No available time slots", attributes: .disabled, handler: { _ in })
             actions.append(action)
+        } else {
+            // Create actions for each available time slot
+            for time in availableTimeSlots {
+                let action = UIAction(title: time, handler: { [weak self] _ in
+                    self?.timeSlotDisplayOutlet.text = time // Update label
+                })
+                actions.append(action)
+            }
         }
+        
         let timeMenu = UIMenu(title: "Select Time", children: actions)
         timeButtonOutlet.menu = timeMenu
         timeButtonOutlet.showsMenuAsPrimaryAction = true
-        
-        
     }
 
     @IBAction func modifyButtonTapped(_ sender: Any) {
@@ -561,6 +663,21 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
                 preferredStyle: .alert
             )
             alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        // Check if the equipment is available for the selected date and time slot
+        if !checkEquipmentAvailability() {
+            // Show an alert to the user that the equipment is not available
+            let alert = UIAlertController(
+                title: "Equipment Not Available",
+                message: "This equipment is already booked for the selected date and time slot. Please choose a different date or time slot.",
+                preferredStyle: .alert
+            )
+            let okAction = UIAlertAction(title: "OK", style: .default)
+            okAction.setValue(UIColor.init(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
+            alert.addAction(okAction)
             present(alert, animated: true)
             return
         }

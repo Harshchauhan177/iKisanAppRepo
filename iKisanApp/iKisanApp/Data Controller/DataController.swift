@@ -50,7 +50,9 @@ protocol DataController {
     func getEquipment(sortedBy: SortOption) -> [Equipment]
     func searchEquipment(query: String) -> [Equipment]
     func getUpcomingBookings() -> [Booking]
-    func addBooking(_ booking: Booking)
+    func addBooking(_ booking: Booking) -> Bool
+    func isEquipmentAvailable(equipmentID: UUID, date: Date, timeSlot: TimeSlot) -> Bool
+    func getAvailableTimeSlots(equipmentID: UUID, date: Date) -> [TimeSlot]
     func refreshBookingsFromDatabase() async
     
     // AgriAssist Related Functions
@@ -430,17 +432,23 @@ class IKisanDataController: DataController {
         return bookingsList.filter { $0.bookingDate > currentDate }
     }
     
-    func addBooking(_ booking: Booking) {
+    func addBooking(_ booking: Booking) -> Bool {
         // Ensure we have a logged in user
         guard let currentUser = AuthManager.shared.currentUser else {
             print("Error: No logged in user found")
-            return
+            return false
         }
         
         // Verify the equipment exists
         guard let equipment = getEquipment(byId: booking.equipmentID) else {
             print("Error: Equipment with ID \(booking.equipmentID) not found")
-            return
+            return false
+        }
+        
+        // Check if the equipment is already booked for this date and time slot
+        if !isEquipmentAvailable(equipmentID: booking.equipmentID, date: booking.bookingDate, timeSlot: booking.timeSlot) {
+            print("Error: Equipment \(equipment.name) is already booked for \(booking.bookingDate) during \(booking.timeSlot.rawValue)")
+            return false
         }
         
         print("Creating booking for equipment: \(equipment.name) with ID: \(equipment.equipmentID)")
@@ -472,6 +480,8 @@ class IKisanDataController: DataController {
         Task {
             await RequestManager.shared.createBooking(bookingWithUserId)
         }
+        
+        return true
     }
     
     func refreshBookingsFromDatabase() async {
@@ -484,6 +494,57 @@ class IKisanDataController: DataController {
             self.bookingsList = latestBookings
             print("Refreshed bookings from database: \(latestBookings.count) bookings loaded")
         }
+    }
+    
+    func isEquipmentAvailable(equipmentID: UUID, date: Date, timeSlot: TimeSlot) -> Bool {
+        // Get all bookings for this equipment
+        let existingBookings = bookingsList.filter { booking in
+            // Only consider confirmed or pending bookings
+            let relevantStatus = [BookingStatus.confirmed, BookingStatus.pending].contains(booking.status)
+            
+            // Check if this booking is for the same equipment
+            let sameEquipment = booking.equipmentID == equipmentID
+            
+            // Check if the booking is for the same date (ignoring time)
+            let sameDate = Calendar.current.isDate(booking.bookingDate, inSameDayAs: date)
+            
+            // Check if the booking is for the same time slot
+            let sameTimeSlot = booking.timeSlot == timeSlot
+            
+            // Return true if all conditions are met (meaning the equipment is already booked)
+            return relevantStatus && sameEquipment && sameDate && sameTimeSlot
+        }
+        
+        // If there are no existing bookings that match our criteria, the equipment is available
+        return existingBookings.isEmpty
+    }
+    
+    func getAvailableTimeSlots(equipmentID: UUID, date: Date) -> [TimeSlot] {
+        // Start with all possible time slots
+        var availableSlots: [TimeSlot] = [.morning, .afternoon, .evening]
+        
+        // Get all bookings for this equipment on this date
+        let bookedSlots = bookingsList.filter { booking in
+            // Only consider confirmed or pending bookings
+            let relevantStatus = [BookingStatus.confirmed, BookingStatus.pending].contains(booking.status)
+            
+            // Check if this booking is for the same equipment
+            let sameEquipment = booking.equipmentID == equipmentID
+            
+            // Check if the booking is for the same date (ignoring time)
+            let sameDate = Calendar.current.isDate(booking.bookingDate, inSameDayAs: date)
+            
+            return relevantStatus && sameEquipment && sameDate
+        }.map { $0.timeSlot }
+        
+        // Remove booked slots from available slots
+        for slot in bookedSlots {
+            if let index = availableSlots.firstIndex(of: slot) {
+                availableSlots.remove(at: index)
+            }
+        }
+        
+        return availableSlots
     }
     
     // MARK: - AgriAssist Functions

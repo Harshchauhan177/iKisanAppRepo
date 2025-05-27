@@ -62,7 +62,24 @@ class PaymentViewController: UIViewController {
         // confirmedBooking.status = .confirmed
         
         // Add booking to data controller (which saves to local list and backend)
-        dataController.addBooking(confirmedBooking)
+        let bookingSuccess = dataController.addBooking(confirmedBooking)
+        
+        if !bookingSuccess {
+            // Show an alert to the user that the booking failed
+            DispatchQueue.main.async {
+                let alert = UIAlertController(
+                    title: "Booking Failed",
+                    message: "This equipment is already booked for the selected date and time slot. Please choose a different date or time slot.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+                    // Navigate back to the booking screen
+                    self.navigationController?.popViewController(animated: true)
+                }))
+                self.present(alert, animated: true)
+                return
+            }
+        }
         
         // Post notification for prebooking
         if booking.bookingType == .prebooking {
@@ -166,7 +183,24 @@ class PaymentViewController: UIViewController {
             // confirmedBooking.status = .confirmed
             
             // Add to data controller (which saves to local and backend)
-            dataController.addBooking(confirmedBooking)
+            let bookingSuccess = dataController.addBooking(confirmedBooking)
+            
+            if !bookingSuccess {
+                // Show an alert to the user that the booking failed
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(
+                        title: "Booking Failed",
+                        message: "This equipment is already booked for the selected date and time slot. Please choose a different date or time slot.",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+                        // Dismiss payment view controller
+                        self.dismiss(animated: true)
+                    }))
+                    self.present(alert, animated: true)
+                    return
+                }
+            }
             
             // Post notification for prebooking if applicable
             if booking.bookingType == .prebooking {
