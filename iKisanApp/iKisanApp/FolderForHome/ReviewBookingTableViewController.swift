@@ -129,6 +129,15 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         // Setup location cell to use standard iOS disclosure behavior
         setupLocationCell()
         
+        // Set minimum date to today to prevent booking in the past
+        let today = Calendar.current.startOfDay(for: Date())
+        datePicker.minimumDate = today
+        
+        // If the current date is before today, set it to today
+        if datePicker.date < today {
+            datePicker.date = today
+        }
+        
         // Initialize selectedDate with the current date picker value
         selectedDate = datePicker.date
         
