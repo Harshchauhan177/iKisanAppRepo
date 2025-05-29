@@ -25,14 +25,15 @@ class AcceptRequestTableViewCell: UITableViewCell {
         imageLabel.layer.cornerRadius = 10
     }
     func configure(participant: RequestParticipant, request: Request, equipment: Equipment) {
-        // Use passed-in Equipment object
-        if !equipment.equipmentImage.isEmpty {
-            imageLabel.loadImage(from: equipment.equipmentImage)
-        } else {
-            imageLabel.image = UIImage(named: "default_equipment_image")
+        
+
+        if let imageView = imageLabel{
+            if !equipment.equipmentImage.isEmpty {
+                imageLabel.loadImage(from: equipment.equipmentImage)
+            } else {
+                imageLabel.image = UIImage(named: "default_equipment_image")
+            }
         }
-
-
         titleLabel.text = equipment.name
         priceLabel.text = "₹ \(equipment.pricePerAcre)"
         hostLabel.text = equipment.providerName

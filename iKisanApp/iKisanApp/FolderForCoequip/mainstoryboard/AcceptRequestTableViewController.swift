@@ -148,7 +148,7 @@ class AcceptRequestTableViewController: UITableViewController {
             return
         }
         
-        // Validate the time slot based on the calculated end time
+        // Validate time slot calculations
         if let areaValue = Double(area) {
             let durationInHours = areaValue / equipmentCapacityPerHour
             let durationInMinutes = Int(durationInHours * 60)
@@ -159,7 +159,6 @@ class AcceptRequestTableViewController: UITableViewController {
                 return
             }
         } else {
-            // Fallback to old validation if area isn't a valid number
             let areaCount = area.split(separator: " ").count
             let expectedEndTime = getEndTime(from: startTime, durationInMinutes: areaCount * 30)
             if timeSlot != "\(startTime) - \(expectedEndTime)" {
@@ -168,27 +167,80 @@ class AcceptRequestTableViewController: UITableViewController {
             }
         }
         
-        
-        
         let updatedRequest = Request(
             id: request.id,
             userId: request.userId,
             equipmentId: request.equipmentId,
             requestedDate: request.requestedDate,
-            status: .pending, // Change status to pending
-            type: .coEquip, // Change type to myRequest
+            status: .pending,
+            type: .coEquip,
             area: Double(area) ?? 0.0,
             timeSlot: .morning,
             timePeriod: timeSlot,
             location: request.location,
-            typeOfRequest: .myRequest, participants: []
-            
+            typeOfRequest: .myRequest,
+            participants: []
         )
-        
-        
         
         dataController.updateRequest(updatedRequest)
         
+        // Navigate back to CoequipViewController
+        if let navigationController = self.navigationController {
+            navigationController.popViewController(animated: true)
+            
+            // Find and reload CoequipViewController
+            if let coequipVC = navigationController.viewControllers.first(where: { $0 is CoequipViewController }) as? CoequipViewController {
+                coequipVC.loadInitialData()
+            }
+        }
+    }
+    
+    @IBAction func rejectButtonTapped(_ sender: Any) {
+        guard let request = self.request,
+              let dataController = self.dataController else {
+            return
+        }
+        
+        // Show confirmation alert
+        let alertController = UIAlertController(
+            title: "Reject Request",
+            message: "Are you sure you want to reject this request?",
+            preferredStyle: .alert
+        )
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+        let rejectAction = UIAlertAction(title: "Reject", style: .destructive) { [weak self] _ in
+            // Update request with empty participants
+            let updatedRequest = Request(
+                id: request.id,
+                userId: request.userId,
+                equipmentId: request.equipmentId,
+                requestedDate: request.requestedDate,
+                status: request.status,
+                type: request.type,
+                area: request.area,
+                timeSlot: request.timeSlot,
+                timePeriod: request.timePeriod,
+                location: request.location,
+                typeOfRequest: request.typeOfRequest,
+                participants: []
+            )
+            
+            dataController.updateRequest(updatedRequest)
+            
+            // Navigate back and reload
+            if let navigationController = self?.navigationController {
+                navigationController.popViewController(animated: true)
+                
+                if let coequipVC = navigationController.viewControllers.first(where: { $0 is CoequipViewController }) as? CoequipViewController {
+                    coequipVC.loadInitialData()
+                }
+            }
+        }
+        
+        alertController.addAction(cancelAction)
+        alertController.addAction(rejectAction)
+        present(alertController, animated: true)
     }
     
     @IBAction func viewButtonTapped(_ sender: Any) {
