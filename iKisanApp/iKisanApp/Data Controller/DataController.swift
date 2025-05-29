@@ -95,7 +95,6 @@ protocol DataController {
     func getTimeSlots(for area: Double) -> [TimeSlot]
     //func createRequestParticipant(_ participant: RequestParticipant)
     func createRequestParticipant(_ participant: RequestParticipant)
-    func fetchParticipant() async -> [RequestParticipant] 
     //For Prebooking
     // Add these new methods to the existing protocol
     func getRecommendedEquipments() -> [Equipment]
@@ -184,22 +183,7 @@ class IKisanDataController: DataController {
         }
     }
 
-    func fetchParticipant() async -> [RequestParticipant] {
-        do {
-            let rawData = try await SupabaseManager.shared.client
-                .from("request_participants")
-                .select("*")
-                .execute()
-                .data
 
-            let decoder = JSONDecoder()
-            let participants = try decoder.decode([RequestParticipant].self, from: rawData)
-            return participants
-        } catch {
-            print("Error fetching participants: \(error)")
-            return []
-        }
-    }
     
     
     
@@ -633,7 +617,6 @@ class IKisanDataController: DataController {
         return coEquipRequests
     }
     
-    
     func getAcceptedRequests() -> [Request] {
         return acceptedRequests
     }
@@ -1026,7 +1009,6 @@ class RequestManager {
         }
     }
     
-
     func fetchRequests() async -> [Request] {
         do {
             // Get the raw data first
