@@ -84,6 +84,8 @@ struct Request: Codable, Identifiable {
     var location: String
     var typeOfRequest: RequestType
     var participants: [RequestParticipant]?
+    var selectedUsersIds: [UUID]?
+    var joinedFarmers: [UUID]?
     
     init(
         id: UUID = UUID(),
@@ -97,7 +99,9 @@ struct Request: Codable, Identifiable {
         timePeriod: String?,
         location: String,
         typeOfRequest: RequestType,
-        participants: [RequestParticipant]
+        participants: [RequestParticipant],
+        selectedUsersIds: [UUID]? = nil,
+        joinedFarmers: [UUID]? = nil
     ) {
         self.id = id
         self.userId = userId
@@ -111,6 +115,8 @@ struct Request: Codable, Identifiable {
         self.location = location
         self.typeOfRequest = typeOfRequest
         self.participants = participants
+        self.selectedUsersIds = selectedUsersIds
+        self.joinedFarmers = joinedFarmers
     }
 }
 

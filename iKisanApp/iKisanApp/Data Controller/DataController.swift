@@ -94,7 +94,7 @@ protocol DataController {
     func createRequest(_ request: Request, with selectedUsers: [User])
     func getTimeSlots(for area: Double) -> [TimeSlot]
     //func createRequestParticipant(_ participant: RequestParticipant)
-    func createRequestParticipant(_ participant: RequestParticipant)
+    func createRequestParticipant(_ participant: RequestParticipant) async throws
     //For Prebooking
     // Add these new methods to the existing protocol
     func getRecommendedEquipments() -> [Equipment]
@@ -150,36 +150,46 @@ enum EquipmentData {
 
 class IKisanDataController: DataController {
    
-    func createRequestParticipant(_ participant: RequestParticipant) {
-        Task {
-            do {
-                // Validate required fields
-                guard participant.id != nil,
-                      participant.requestId != nil,
-                      participant.userId != nil else {
-                    print("❌ Error: Missing required fields for request participant")
-                    return
-                }
-                
-                let response = try await SupabaseManager.shared.client
-                    .from("request_participants")
-                    .insert(participant)
-                    .execute()
-                
-                print("✅ Request participant created successfully")
-                
-            } catch let error as PostgrestError {
-                print("❌ Error creating request participant: \(error.message)")
-                if error.message.contains("unique_request_user") {
-                    print("⚠️ This user is already a participant in this request")
-                } else if error.message.contains("request_participants_requestId_fkey") {
-                    print("⚠️ Invalid request ID reference")
-                } else if error.message.contains("request_participants_userId_fkey") {
-                    print("⚠️ Invalid user ID reference")
-                }
-            } catch {
-                print("❌ Error creating request participant: \(error.localizedDescription)")
+    func createRequestParticipant(_ participant: RequestParticipant) async throws {
+        // Validate required fields
+        guard participant.id != nil,
+              participant.requestId != nil,
+              participant.userId != nil else {
+            throw NSError(domain: "DataController", code: 400, userInfo: [NSLocalizedDescriptionKey: "Missing required fields for request participant"])
+        }
+        
+        do {
+            let response = try await SupabaseManager.shared.client
+                .from("request_participants")
+                .insert(participant)
+                .execute()
+            
+            print("✅ Request participant created successfully")
+            
+            // Update the selectedUsersIds array in the requests table using proper JSON format
+            try await SupabaseManager.shared.client
+                .from("requests")
+                .update([
+                    "selectedUsersIds": [participant.userId.uuidString]
+                ])
+                .eq("id", value: participant.requestId.uuidString)
+                .execute()
+            
+            print("✅ Request selectedUsersIds updated successfully")
+            
+        } catch let error as PostgrestError {
+            print("❌ Error creating request participant: \(error.message)")
+            if error.message.contains("unique_request_user") {
+                throw NSError(domain: "DataController", code: 409, userInfo: [NSLocalizedDescriptionKey: "This user is already a participant in this request"])
+            } else if error.message.contains("request_participants_requestId_fkey") {
+                throw NSError(domain: "DataController", code: 404, userInfo: [NSLocalizedDescriptionKey: "Invalid request ID reference"])
+            } else if error.message.contains("request_participants_userId_fkey") {
+                throw NSError(domain: "DataController", code: 404, userInfo: [NSLocalizedDescriptionKey: "Invalid user ID reference"])
             }
+            throw error
+        } catch {
+            print("❌ Error creating request participant: \(error.localizedDescription)")
+            throw error
         }
     }
 
@@ -1011,46 +1021,109 @@ class RequestManager {
     
     func fetchRequests() async -> [Request] {
         do {
-            // Get the raw data first
+            print("🔄 Fetching requests from database...")
+            
+            // Get the raw data with participants
             let rawData = try await SupabaseManager.shared.client
                 .from("requests")
-                .select("*")
+                .select("""
+                    *,
+                    request_participants (
+                        id,
+                        requestId,
+                        userId,
+                        status,
+                        area,
+                        timeSlotId,
+                        joinedAt,
+                        created_at,
+                        updated_at
+                    )
+                """)
                 .execute()
                 .data
             
             // Create a decoder with proper date decoding strategy
             let decoder = JSONDecoder()
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            
             decoder.dateDecodingStrategy = .custom { decoder in
                 let container = try decoder.singleValueContainer()
                 let dateString = try container.decode(String.self)
                 
-                // Try ISO8601 format first
-                if let date = formatter.date(from: dateString) {
-                    return date
+                // Create date formatter for the simple format
+                let formatter = DateFormatter()
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                
+                // Try parsing with different formats
+                let formats = [
+                    "yyyy-MM-dd'T'HH:mm:ss",       // Basic format: 2025-05-29T09:54:35
+                    "yyyy-MM-dd'T'HH:mm:ssZ",      // With timezone: 2025-05-29T09:54:35Z
+                    "yyyy-MM-dd'T'HH:mm:ss.SSSZ"   // With milliseconds and timezone
+                ]
+                
+                for format in formats {
+                    formatter.dateFormat = format
+                    if let date = formatter.date(from: dateString) {
+                        return date
+                    }
                 }
                 
-                // Fallback to your specific format if ISO8601 fails
-                let fallbackFormatter = DateFormatter()
-                fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-                if let date = fallbackFormatter.date(from: dateString) {
-                    return date
-                }
-                // Replace this line:
-                throw DecodingError.dataCorruptedError(in: container,
-                debugDescription: "Cannot decode date string \(dateString)")
-
+                print("❌ Failed to parse date string: \(dateString)")
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Cannot decode date string \(dateString)"
+                )
             }
             
-            // Manually decode the data
-            let data = try decoder.decode([RequestDTO].self, from: rawData)
-            
-            // Convert DTOs to domain models with relationships
-            var requests: [Request] = []
-            for dto in data {
-               // let selectedUsers = await fetchUsersById(userIds: dto.selectedUsersIds)
+            // Decode the requests with their participants
+            struct RequestWithParticipants: Codable {
+                let id: UUID
+                let userId: UUID
+                let equipmentId: UUID
+                let requestedDate: Date
+                let status: String
+                let type: String
+                let area: Double
+                let timeSlot: String
+                let timePeriod: String?
+                let location: String
+                let typeOfRequest: String
+                let selectedUsersIds: [String]?
+                let request_participants: [ParticipantDTO]?
                 
+                struct ParticipantDTO: Codable {
+                    let id: UUID
+                    let requestId: UUID
+                    let userId: UUID
+                    let status: String
+                    let area: Double?
+                    let timeSlotId: String? // Changed from timeSlot to timeSlotId to match DB schema
+                    let joinedAt: Date
+                    let created_at: Date?
+                    let updated_at: Date?
+                }
+            }
+            
+            let requestsWithParticipants = try decoder.decode([RequestWithParticipants].self, from: rawData)
+            
+            // Convert to domain models
+            var requests: [Request] = []
+            for dto in requestsWithParticipants {
+                // Convert participants
+                let participants = dto.request_participants?.map { participantDto in
+                    RequestParticipant(
+                        id: participantDto.id,
+                        requestId: participantDto.requestId,
+                        userId: participantDto.userId,
+                        status: ParticipantStatus(rawValue: participantDto.status) ?? .pending,
+                        area: participantDto.area,
+                        timeSlot: participantDto.timeSlotId.flatMap { TimeSlot(rawValue: $0) }, // Convert timeSlotId to TimeSlot
+                        joinedAt: participantDto.joinedAt
+                    )
+                } ?? []
+                
+                // Create the request with all data
                 let request = Request(
                     id: dto.id,
                     userId: dto.userId,
@@ -1062,14 +1135,32 @@ class RequestManager {
                     timeSlot: TimeSlot(rawValue: dto.timeSlot) ?? .morning,
                     timePeriod: dto.timePeriod,
                     location: dto.location,
-                    typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest, participants: []
-                    
+                    typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest,
+                    participants: participants,
+                    selectedUsersIds: dto.selectedUsersIds?.compactMap { UUID(uuidString: $0) }
                 )
+                
                 requests.append(request)
             }
+            
+            print("✅ Fetched \(requests.count) requests with their participants")
             return requests
+            
         } catch {
-            print("Error fetching requests: \(error)")
+            print("❌ Error fetching requests: \(error)")
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .dataCorrupted(let context):
+                    print("Data corrupted error:")
+                    print("Debug description: \(context.debugDescription)")
+                    print("Coding path: \(context.codingPath)")
+                    if let underlying = context.underlyingError {
+                        print("Underlying error: \(underlying)")
+                    }
+                default:
+                    print("Other decoding error: \(decodingError)")
+                }
+            }
             return []
         }
     }

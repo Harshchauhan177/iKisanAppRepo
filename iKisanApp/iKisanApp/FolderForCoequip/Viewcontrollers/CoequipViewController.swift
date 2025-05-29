@@ -151,16 +151,16 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
         
         let requests = dataController.getAllCoEquipRequests().filter { request in
             if CoequipSegmentedControl.selectedSegmentIndex == 0 {
-                // My Requests tab
+                // My Requests tab - show requests where user is the creator
                 return request.userId == currentUser.userID &&
                        request.typeOfRequest == .myRequest
             } else {
-                // Join Requests tab
-               
-                return request.participants?.contains { participant in
-                    participant.userId == currentUser.userID
-                } ?? false
-                
+                // Join Requests tab - show requests where user is a participant
+                // Include both pending and accepted requests
+                return (request.selectedUsersIds?.contains(currentUser.userID) ?? false) ||
+                       (request.participants?.contains { participant in
+                           participant.userId == currentUser.userID
+                       } ?? false)
             }
         }
         
@@ -195,9 +195,11 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
                        request.typeOfRequest == .myRequest
             } else {
                 // Join Requests - show requests where user is a participant
-                return request.participants?.contains { participant in
-                    participant.userId == currentUser.userID
-                } ?? false
+                // Include both pending and accepted requests
+                return (request.selectedUsersIds?.contains(currentUser.userID) ?? false) ||
+                       (request.participants?.contains { participant in
+                           participant.userId == currentUser.userID
+                       } ?? false)
             }
         }
         
@@ -218,13 +220,22 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
             let cell = tableView.dequeueReusableCell(withIdentifier: "AcceptRequestTableViewCell", for: indexPath) as! AcceptRequestTableViewCell
             
             // Find the participant for the current user
-            guard let participant = request.participants?.first(where: { $0.userId == currentUser.userID }) else {
-                // Handle case where participant is not found (e.g., return an empty cell or log an error)
-                return UITableViewCell()
+            if let participant = request.participants?.first(where: { $0.userId == currentUser.userID }) {
+                // Configure cell with participant if found
+                cell.configure(participant: participant, request: request, equipment: equipment)
+            } else {
+                // Create a pending participant if none exists
+                let pendingParticipant = RequestParticipant(
+                    id: UUID(),
+                    requestId: request.id,
+                    userId: currentUser.userID,
+                    status: .pending,
+                    area: nil,
+                    timeSlot: nil,
+                    joinedAt: Date()
+                )
+                cell.configure(participant: pendingParticipant, request: request, equipment: equipment)
             }
-            
-            // Pass the request, the specific participant, and the equipment to the configure function
-            cell.configure(participant: participant, request: request, equipment: equipment )
             cell.request = request
             cell.dataController = dataController
             cell.delegate = self

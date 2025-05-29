@@ -238,6 +238,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         
         let currentLocation = AuthManager.shared.currentUser?.address ?? self.location
         let requestId = UUID()
+        let selectedUserIds = selectedUsers.map { $0.userID }
     
         Task {
             do {
@@ -254,14 +255,17 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
                     timePeriod: TimeSlotLabel.text,
                     location: currentLocation,
                     typeOfRequest: .myRequest,
-                    participants: [] // Add this line
+                    participants: [], // Will be populated after creating participants
+                    selectedUsersIds: selectedUserIds // Add selected users here
                 )
     
-                // Wait for the request to be created and verify the response
+                // Create the request first
                 let response = try await dataController.createRequest(request)
                 
                 // Add a small delay to ensure the request is committed
                 try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+                
+                var participants: [RequestParticipant] = []
                 
                 // Create participants after ensuring request exists
                 for user in selectedUsers {
@@ -269,20 +273,26 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
                         id: UUID(),
                         requestId: requestId,
                         userId: user.userID,
-                        status: .pending, joinedAt: request.requestedDate
-                        
+                        status: .pending,
+                        area: nil,
+                        timeSlot: nil,
+                        joinedAt: request.requestedDate
                     )
                     
                     do {
                         try await dataController.createRequestParticipant(participant)
+                        participants.append(participant)
                     } catch {
                         print("❌ Error creating participant for user \(user.userID): \(error)")
                         // Continue with other participants even if one fails
                         continue
                     }
-
-                    
                 }
+                
+                // Update the request with the created participants
+                var updatedRequest = request
+                updatedRequest.participants = participants
+                try await dataController.updateRequest(updatedRequest)
                 
                 // Show success on main thread
                 await MainActor.run {
