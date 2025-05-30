@@ -126,7 +126,7 @@ struct RequestParticipant: Codable, Identifiable {
     let userId: UUID
     var status: ParticipantStatus
     var area: Double?           // Area entered by this participant
-    var timeSlot: TimeSlot?     // Time slot selected by this participant
+    var timeSlot: String?     // Time slot selected by this participant
     var joinedAt: Date
 }
 
@@ -134,6 +134,7 @@ enum ParticipantStatus: String, Codable {
     case pending
     case accepted
     case rejected
+    case done
 }
 // Also make sure RequestType is Codable
 enum RequestType: Codable {

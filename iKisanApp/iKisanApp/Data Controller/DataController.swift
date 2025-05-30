@@ -1118,7 +1118,7 @@ class RequestManager {
                         userId: participantDto.userId,
                         status: ParticipantStatus(rawValue: participantDto.status) ?? .pending,
                         area: participantDto.area,
-                        timeSlot: participantDto.timeSlotId.flatMap { TimeSlot(rawValue: $0) }, // Convert timeSlotId to TimeSlot
+                        timeSlot: participantDto.timeSlotId, // Convert timeSlotId to TimeSlot
                         joinedAt: participantDto.joinedAt
                     )
                 } ?? []
@@ -1614,6 +1614,7 @@ class RequestManager {
                 timePeriod: request.timePeriod,
                 location: request.location,
                 typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest"
+
                 
             )
             

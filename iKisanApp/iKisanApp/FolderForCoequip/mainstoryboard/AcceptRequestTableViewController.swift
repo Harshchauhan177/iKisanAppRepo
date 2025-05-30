@@ -148,6 +148,12 @@ class AcceptRequestTableViewController: UITableViewController {
             return
         }
         
+        // Get the last participant's time slot as the starting time for the new participant
+        if let lastParticipant = request.participants?.last,
+           let lastTimeSlot = lastParticipant.timeSlot {
+            startTime = extractLastTimeFromPeriod(lastTimeSlot)
+        }
+        
         // Validate time slot calculations
         if let areaValue = Double(area) {
             let durationInHours = areaValue / equipmentCapacityPerHour
@@ -167,14 +173,14 @@ class AcceptRequestTableViewController: UITableViewController {
             }
         }
 
-        // Create a new participant for the current user
+        // Create a new participant for the current user with done status
         let participant = RequestParticipant(
             id: UUID(),
             requestId: request.id,
             userId: currentUser.userID,
-            status: .accepted,
-            area: Double(area),
-            timeSlot: .morning,
+            status: .done, // Update status to done
+            area: Double(area) ?? 0.0,
+            timeSlot: timeSlot, // Use the calculated time slot
             joinedAt: Date()
         )
         
@@ -184,6 +190,11 @@ class AcceptRequestTableViewController: UITableViewController {
         participants.append(participant)
         updatedRequest.participants = participants
         updatedRequest.status = .pending
+        
+        // Add current user to accepted users
+        var acceptedUsers = updatedRequest.selectedUsersIds ?? []
+        acceptedUsers.append(currentUser.userID)
+        updatedRequest.selectedUsersIds = acceptedUsers
         
         // Update the request in the data controller
         dataController.updateRequest(updatedRequest)
