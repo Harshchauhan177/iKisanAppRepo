@@ -166,22 +166,26 @@ class AcceptRequestTableViewController: UITableViewController {
                 return
             }
         }
-        
-        let updatedRequest = Request(
-            id: request.id,
-            userId: request.userId,
-            equipmentId: request.equipmentId,
-            requestedDate: request.requestedDate,
-            status: .pending,
-            type: .coEquip,
-            area: Double(area) ?? 0.0,
+
+        // Create a new participant for the current user
+        let participant = RequestParticipant(
+            id: UUID(),
+            requestId: request.id,
+            userId: currentUser.userID,
+            status: .accepted,
+            area: Double(area),
             timeSlot: .morning,
-            timePeriod: timeSlot,
-            location: request.location,
-            typeOfRequest: .myRequest,
-            participants: []
+            joinedAt: Date()
         )
         
+        // Update the request with the new participant
+        var updatedRequest = request
+        var participants = updatedRequest.participants ?? []
+        participants.append(participant)
+        updatedRequest.participants = participants
+        updatedRequest.status = .pending
+        
+        // Update the request in the data controller
         dataController.updateRequest(updatedRequest)
         
         // Navigate back to CoequipViewController

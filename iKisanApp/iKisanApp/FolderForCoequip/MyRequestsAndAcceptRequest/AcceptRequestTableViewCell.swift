@@ -50,9 +50,10 @@ class AcceptRequestTableViewCell: UITableViewCell {
 
     
     @IBAction func acceptButtonTapped(_ sender: UIButton) {
-        // Only notify delegate, remove direct navigation
+        print("we have accepted")
         delegate?.acceptButtonTapped(in: self)
     }
+    
     
     @IBAction func rejectButtonTapped(_ sender: UIButton) {
         // Only notify delegate, remove direct deletion

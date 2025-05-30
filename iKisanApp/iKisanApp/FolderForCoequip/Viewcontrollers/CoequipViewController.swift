@@ -281,19 +281,25 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
     func acceptButtonTapped(in cell: AcceptRequestTableViewCell) {
         guard let indexPath = CoequipTableView.indexPath(for: cell),
               let dataController = dataController,
-              let currentUser = dataController.getCurrentUser() else { return }
+              let currentUser = dataController.getCurrentUser(),
+              let request = cell.request else { return }
         
-        let requests = dataController.getAllCoEquipRequests().filter { request in
-            request.userId == currentUser.userID &&
-            request.typeOfRequest == .acceptedRequest
+        // Get the current participant for this request
+        if let participant = request.participants?.first(where: { $0.userId == currentUser.userID }) {
+            // Update participant status
+            var updatedParticipant = participant
+            updatedParticipant.status = .accepted
+            
+            // Update the request with the new participant status
+            var updatedRequest = request
+            updatedRequest.status = .pending
+            
+            // Update in data controller
+            dataController.updateRequest(updatedRequest)
+            
+            // Perform segue to accept request view
+            performSegue(withIdentifier: "goToAcceptRequest", sender: updatedRequest)
         }
-        
-        guard indexPath.row < requests.count else { return }
-        
-        var request = requests[indexPath.row]
-        request.status = .pending
-        dataController.updateRequest(request)
-        performSegue(withIdentifier: "goToAcceptRequest", sender: request)
     }
     
     func rejectButtonTapped(in cell: AcceptRequestTableViewCell) {
