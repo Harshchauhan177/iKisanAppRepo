@@ -148,64 +148,75 @@ class AcceptRequestTableViewController: UITableViewController {
             return
         }
         
-        // Get the last participant's time slot as the starting time for the new participant
-        if let lastParticipant = request.participants?.last,
-           let lastTimeSlot = lastParticipant.timeSlot {
-            startTime = extractLastTimeFromPeriod(lastTimeSlot)
-        }
+        // Create participant data for database update with explicit type annotation
+        let participantData: [String: String] = [
+            "status": "done",
+            "area": String(Double(area) ?? 0.0),
+            "timeSlotId": timeSlot,
+            "updated_at": Date().ISO8601Format()
+        ]
         
-        // Validate time slot calculations
-        if let areaValue = Double(area) {
-            let durationInHours = areaValue / equipmentCapacityPerHour
-            let durationInMinutes = Int(durationInHours * 60)
-            let expectedEndTime = getEndTime(from: startTime, durationInMinutes: durationInMinutes)
-            
-            if timeSlot != "\(startTime) - \(expectedEndTime)" {
-                showAlert(title: "Invalid Time Slot", message: "Please enter the area correctly")
-                return
-            }
-        } else {
-            let areaCount = area.split(separator: " ").count
-            let expectedEndTime = getEndTime(from: startTime, durationInMinutes: areaCount * 30)
-            if timeSlot != "\(startTime) - \(expectedEndTime)" {
-                showAlert(title: "Invalid Time Slot", message: "Please enter the area correctly")
-                return
-            }
-        }
-
-        // Create a new participant for the current user with done status
-        let participant = RequestParticipant(
-            id: UUID(),
-            requestId: request.id,
-            userId: currentUser.userID,
-            status: .done, // Update status to done
-            area: Double(area) ?? 0.0,
-            timeSlot: timeSlot, // Use the calculated time slot
-            joinedAt: Date()
-        )
-        
-        // Update the request with the new participant
-        var updatedRequest = request
-        var participants = updatedRequest.participants ?? []
-        participants.append(participant)
-        updatedRequest.participants = participants
-        updatedRequest.status = .pending
-        
-        // Add current user to accepted users
-        var acceptedUsers = updatedRequest.selectedUsersIds ?? []
-        acceptedUsers.append(currentUser.userID)
-        updatedRequest.selectedUsersIds = acceptedUsers
-        
-        // Update the request in the data controller
-        dataController.updateRequest(updatedRequest)
-        
-        // Navigate back to CoequipViewController
-        if let navigationController = self.navigationController {
-            navigationController.popViewController(animated: true)
-            
-            // Find and reload CoequipViewController
-            if let coequipVC = navigationController.viewControllers.first(where: { $0 is CoequipViewController }) as? CoequipViewController {
-                coequipVC.loadInitialData()
+        // Update database first
+        Task {
+            do {
+                // Update the request_participants table
+                try await SupabaseManager.shared.client
+                    .database
+                    .from("request_participants")
+                    .update(participantData)
+                    .eq("requestId", value: request.id.uuidString)
+                    .eq("userId", value: currentUser.userID)
+                    .execute()
+                
+                // If database update successful, update local data
+                var updatedRequest = request
+                if let participantIndex = updatedRequest.participants?.firstIndex(where: { $0.userId == currentUser.userID }) {
+                    // Update existing participant
+                    updatedRequest.participants?[participantIndex].status = .done
+                    updatedRequest.participants?[participantIndex].area = Double(area) ?? 0.0
+                    updatedRequest.participants?[participantIndex].timeSlot = timeSlot
+                    
+                    // Update request status
+                    updatedRequest.status = .pending
+                    
+                    // Add current user to accepted users if not already present
+                    var acceptedUsers = updatedRequest.selectedUsersIds ?? []
+                    if !acceptedUsers.contains(currentUser.userID) {
+                        acceptedUsers.append(currentUser.userID)
+                        updatedRequest.selectedUsersIds = acceptedUsers
+                    }
+                    
+                    // Update local data
+                    dataController.updateRequest(updatedRequest)
+                    
+                    await MainActor.run {
+                        // Show success alert before navigating back
+                        let alert = UIAlertController(
+                            title: "Success",
+                            message: "Request accepted successfully!",
+                            preferredStyle: .alert
+                        )
+                        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                            // Navigate back to CoequipViewController after alert is dismissed
+                            if let navigationController = self?.navigationController {
+                                navigationController.popViewController(animated: true)
+                                
+                                if let coequipVC = navigationController.viewControllers.first(where: { $0 is CoequipViewController }) as? CoequipViewController {
+                                    coequipVC.loadInitialData()
+                                }
+                            }
+                        })
+                        present(alert, animated: true)
+                    }
+                } else {
+                    await MainActor.run {
+                        self.showAlert(title: "Error", message: "Could not find participant to update")
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.showAlert(title: "Error", message: "Failed to update request: \(error.localizedDescription)")
+                }
             }
         }
     }

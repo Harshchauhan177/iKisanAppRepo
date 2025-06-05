@@ -155,33 +155,15 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
                 return request.userId == currentUser.userID &&
                        request.typeOfRequest == .myRequest
             } else {
-                // Join Requests tab - show requests where user is a participant
-                // Include both pending and accepted requests
-                return (request.selectedUsersIds?.contains(currentUser.userID) ?? false) ||
-                       (request.participants?.contains { participant in
-                           participant.userId == currentUser.userID
-                       } ?? false)
+                // Join Requests tab - show only pending requests where user is a participant
+                return (request.participants?.contains { participant in
+                    participant.userId == currentUser.userID &&
+                    participant.status == .pending
+                } ?? false)
             }
         }
         
         return requests.count
-    }
-    
-    // Add this method to safely scroll to a row
-    private func scrollToRequest(_ request: Request) {
-        guard let dataController = self.dataController else { return }
-        
-        let requests = dataController.getAllCoEquipRequests().filter { 
-            $0.userId == dataController.getCurrentUser()?.userID && 
-            $0.typeOfRequest == (CoequipSegmentedControl.selectedSegmentIndex == 0 ? .myRequest : .acceptedRequest)
-        }
-        
-        if let index = requests.firstIndex(where: { $0.id == request.id }) {
-            let indexPath = IndexPath(row: index, section: 0)
-            if indexPath.row < CoequipTableView.numberOfRows(inSection: 0) {
-                CoequipTableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-            }
-        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -194,12 +176,11 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
                 return request.userId == currentUser.userID &&
                        request.typeOfRequest == .myRequest
             } else {
-                // Join Requests - show requests where user is a participant
-                // Include both pending and accepted requests
-                return (request.selectedUsersIds?.contains(currentUser.userID) ?? false) ||
-                       (request.participants?.contains { participant in
-                           participant.userId == currentUser.userID
-                       } ?? false)
+                // Join Requests - show only pending requests where user is a participant
+                return (request.participants?.contains { participant in
+                    participant.userId == currentUser.userID &&
+                    participant.status == .pending
+                } ?? false)
             }
         }
         

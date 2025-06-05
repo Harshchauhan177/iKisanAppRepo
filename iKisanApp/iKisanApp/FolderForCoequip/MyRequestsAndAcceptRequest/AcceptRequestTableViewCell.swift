@@ -43,8 +43,20 @@ class AcceptRequestTableViewCell: UITableViewCell {
         dateFormatter.dateFormat = "E, d MMM"
         dateLabel.text = dateFormatter.string(from: request.requestedDate)
 
+        // Update button states based on participant status
         acceptButton.isEnabled = participant.status == .pending
         rejectButton.isEnabled = participant.status == .pending
+        
+        // Hide buttons if the request is already accepted/done
+        acceptButton.isHidden = participant.status == .done
+        rejectButton.isHidden = participant.status == .done
+        
+        // Update cell appearance based on status
+        if participant.status == .done {
+            self.contentView.alpha = 0.7
+        } else {
+            self.contentView.alpha = 1.0
+        }
     }
 
 
