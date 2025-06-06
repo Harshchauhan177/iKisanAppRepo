@@ -80,8 +80,7 @@ protocol DataController {
     func deleteRequest(with id: UUID)
     func getEquipmentById(_ id: UUID) -> Equipment?
     func getUserById(_ id: UUID) -> User?
-   // func getCoEquipUsers() -> [User]
-    //func getCoEquipUsers() async -> [User]
+    //func getAcceptedUsersForRequest(_ request: Request)
     func getAllUsers() -> [User]
     func getEquipmentSuggestions() -> [String]
     func filterEquipment(by query: String) -> [Equipment]
@@ -149,6 +148,7 @@ enum EquipmentData {
 
 
 class IKisanDataController: DataController {
+   
    
     func createRequestParticipant(_ participant: RequestParticipant) async throws {
         // Validate required fields
@@ -220,20 +220,7 @@ class IKisanDataController: DataController {
         }
     
     
-//    func getCoEquipUsers() async -> [User] {
-//        do {
-//            let response: Void = try await SupabaseManager.shared.client
-//                .from("users")
-//                .select("*")
-//                .execute()
-//                .value
-//
-//            return response
-//        } catch {
-//            print("❌ Error fetching users: \(error)")
-//            return []
-//        }
-//    }
+
     
     
         

@@ -25,6 +25,11 @@ class MyRequestViewController1: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Register the nib file for the custom cell
+        let nib = UINib(nibName: "MyRequestInfoTableViewCell", bundle: nil)
+        listTableView.register(nib, forCellReuseIdentifier: "cell")
+        
         if let request = request,
            let equipment = dataController?.getEquipmentById(request.equipmentId) {
             // Check if the equipmentImage is a URL or a local asset name
@@ -37,17 +42,27 @@ class MyRequestViewController1: UIViewController {
             }
             equipmentTitleLabel.text = equipment.name
             hostNameLabel.text = equipment.providerName
-            currentAreaLabel.text = "\(request.area) acres"
+           // currentAreaLabel.text = "\(request.area) acres"
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, d MMM"
             let dateString = dateFormatter.string(from: request.requestedDate)
             dateLabel.text = "\(dateString)"
             let totalPrice = equipment.pricePerAcre 
             priceLabel.text = "₹ \(Int(totalPrice))\nDate: \(dateString)"
+            
+            // Initialize empty list since we can't get accepted users yet
+            acceptedRequestPeopleList = []
+            
+            // Get accepted users from request participants
+            if let participants = request.participants?.filter({ $0.status == .done }) {
+                // Convert participant user IDs to User objects
+                acceptedRequestPeopleList = participants.compactMap { participant in
+                    dataController?.getUserById(participant.userId)
+                }
+            }
+            
             listTableView.delegate = self
             listTableView.dataSource = self
-
-            
             listTableView.reloadData()
         }
         setupViewAppearance()
@@ -145,7 +160,7 @@ extension MyRequestViewController1: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MyRequestInfoTableViewCell
         let person = acceptedRequestPeopleList[indexPath.row]
-        cell.nameLabel.text = person.name
+        cell.configure(with: person)  // Use the configure method we defined in the cell
         return cell
     }
 }
