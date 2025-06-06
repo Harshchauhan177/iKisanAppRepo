@@ -55,6 +55,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController,
               let viewControllers = tabBarController.viewControllers else { return }
         
+        // First fetch reviews to make sure they're available throughout the app
+        Task {
+            print("SceneDelegate: Pre-fetching reviews at app startup")
+            // Use RequestManager directly instead of going through dataController
+            let reviews = await RequestManager.shared.fetchReviews()
+            // Update the static ReviewDataClass with the fetched reviews
+            ReviewDataClass.updateReviews(with: reviews)
+        }
+        
         for viewController in viewControllers {
             if let navController = viewController as? UINavigationController {
                 if let homeVC = navController.viewControllers.first as? HomeViewController {
