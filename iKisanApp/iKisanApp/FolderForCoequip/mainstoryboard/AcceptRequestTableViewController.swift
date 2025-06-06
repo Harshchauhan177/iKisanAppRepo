@@ -159,13 +159,25 @@ class AcceptRequestTableViewController: UITableViewController {
         // Update database first
         Task {
             do {
-                // Update the request_participants table
+                // First update the request_participants table
                 try await SupabaseManager.shared.client
                     .database
                     .from("request_participants")
                     .update(participantData)
                     .eq("requestId", value: request.id.uuidString)
                     .eq("userId", value: currentUser.userID)
+                    .execute()
+                
+                // Then update the requests table to add the current user to acceptedUser array
+                let updateData: [String: [String]] = [
+                    "acceptedUser": [currentUser.userID.uuidString]
+                ]
+                
+                try await SupabaseManager.shared.client
+                    .database
+                    .from("requests")
+                    .update(updateData)
+                    .eq("id", value: request.id.uuidString)
                     .execute()
                 
                 // If database update successful, update local data
