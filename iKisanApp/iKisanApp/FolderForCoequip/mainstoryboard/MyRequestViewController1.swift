@@ -26,8 +26,7 @@ class MyRequestViewController1: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Register the custom cell
-        let nib = UINib(nibName: "SelectPeopleListTableViewCell", bundle: nil)
+        let nib = UINib(nibName: "MyRequestInfoTableViewCell", bundle: nil)
         listTableView.register(nib, forCellReuseIdentifier: "cell")
         
         if let request = request,
@@ -75,23 +74,37 @@ class MyRequestViewController1: UIViewController {
                 acceptedRequestPeopleList.append(contentsOf: joinedPeople)
             }
             
-            // Initialize empty list
+            // Initialize empty list ONCE
             acceptedRequestPeopleList = []
             
-            // Debug print
             print("Request ID: \(request.id)")
             
             // Get accepted users from request participants
             if let participants = request.participants {
                 print("Found \(participants.count) participants")
-                // Only get users who have accepted (status is done)
-                let acceptedParticipants = participants.filter { $0.status.rawValue == "accepted" }
+                // Get users who have accepted status
+                let acceptedParticipants = participants.filter { $0.status == "accepted" }
                 print("Accepted participants: \(acceptedParticipants.count)")
                 
+                // Add accepted participants to the list
                 acceptedRequestPeopleList = acceptedParticipants.compactMap { participant in
                     let user = dataController?.getUserById(participant.userId)
                     print("Found user: \(user?.name ?? "nil")")
                     return user
+                }
+            }
+            
+            // Add accepted users from acceptedUsers column if they're not already in the list
+            if let acceptedUserIds = request.acceptedUsers {
+                print("Found \(acceptedUserIds.count) accepted users")
+                let additionalUsers = acceptedUserIds.compactMap { userId in
+                    dataController?.getUserById(userId)
+                }
+                // Only add users that aren't already in the list
+                for user in additionalUsers {
+                    if !acceptedRequestPeopleList.contains(where: { $0.userID == user.userID }) {
+                        acceptedRequestPeopleList.append(user)
+                    }
                 }
             }
             
@@ -196,7 +209,7 @@ extension MyRequestViewController1: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         print("Configuring cell at index: \(indexPath.row)")
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! SelectPeopleListTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MyRequestInfoTableViewCell
         let person = acceptedRequestPeopleList[indexPath.row]
         print("User name: \(person.name)")
         cell.configure(with: person)
