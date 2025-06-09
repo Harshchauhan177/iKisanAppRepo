@@ -26,8 +26,8 @@ class MyRequestViewController1: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Register the nib file for the custom cell
-        let nib = UINib(nibName: "MyRequestInfoTableViewCell", bundle: nil)
+        // Register the custom cell
+        let nib = UINib(nibName: "SelectPeopleListTableViewCell", bundle: nil)
         listTableView.register(nib, forCellReuseIdentifier: "cell")
         
         if let request = request,
@@ -60,6 +60,42 @@ class MyRequestViewController1: UIViewController {
                     dataController?.getUserById(participant.userId)
                 }
             }
+            
+            // Get accepted users from both selectedUsersIds and joinedFarmers
+            if let selectedUsers = request.selectedUsersIds {
+                acceptedRequestPeopleList = selectedUsers.compactMap { userId in
+                    dataController?.getUserById(userId)
+                }
+            }
+            
+            if let joinedUsers = request.joinedFarmers {
+                let joinedPeople = joinedUsers.compactMap { userId in
+                    dataController?.getUserById(userId)
+                }
+                acceptedRequestPeopleList.append(contentsOf: joinedPeople)
+            }
+            
+            // Initialize empty list
+            acceptedRequestPeopleList = []
+            
+            // Debug print
+            print("Request ID: \(request.id)")
+            
+            // Get accepted users from request participants
+            if let participants = request.participants {
+                print("Found \(participants.count) participants")
+                // Only get users who have accepted (status is done)
+                let acceptedParticipants = participants.filter { $0.status.rawValue == "accepted" }
+                print("Accepted participants: \(acceptedParticipants.count)")
+                
+                acceptedRequestPeopleList = acceptedParticipants.compactMap { participant in
+                    let user = dataController?.getUserById(participant.userId)
+                    print("Found user: \(user?.name ?? "nil")")
+                    return user
+                }
+            }
+            
+            print("Total accepted users: \(acceptedRequestPeopleList.count)")
             
             listTableView.delegate = self
             listTableView.dataSource = self
@@ -154,13 +190,20 @@ class MyRequestViewController1: UIViewController {
 
 extension MyRequestViewController1: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        print("Number of rows: \(acceptedRequestPeopleList.count)")
         return acceptedRequestPeopleList.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MyRequestInfoTableViewCell
+        print("Configuring cell at index: \(indexPath.row)")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! SelectPeopleListTableViewCell
         let person = acceptedRequestPeopleList[indexPath.row]
-        cell.configure(with: person)  // Use the configure method we defined in the cell
+        print("User name: \(person.name)")
+        cell.configure(with: person)
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 60
     }
 }
