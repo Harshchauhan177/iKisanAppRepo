@@ -256,7 +256,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
                     location: currentLocation,
                     typeOfRequest: .myRequest,
                     participants: [], // Will be populated after creating participants
-                    selectedUsersIds: selectedUserIds // Add selected users here
+                    acceptedUsers: nil
                 )
     
                 // Create the request first

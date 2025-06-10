@@ -192,10 +192,10 @@ class AcceptRequestTableViewController: UITableViewController {
                     updatedRequest.status = .pending
                     
                     // Add current user to accepted users if not already present
-                    var acceptedUsers = updatedRequest.selectedUsersIds ?? []
+                    var acceptedUsers = updatedRequest.acceptedUsers ?? []
                     if !acceptedUsers.contains(currentUser.userID) {
                         acceptedUsers.append(currentUser.userID)
-                        updatedRequest.selectedUsersIds = acceptedUsers
+                        updatedRequest.acceptedUsers = acceptedUsers
                     }
                     
                     // Update local data

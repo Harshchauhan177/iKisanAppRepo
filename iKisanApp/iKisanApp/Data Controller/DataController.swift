@@ -1124,7 +1124,7 @@ class RequestManager {
                     location: dto.location,
                     typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest,
                     participants: participants,
-                    selectedUsersIds: dto.selectedUsersIds?.compactMap { UUID(uuidString: $0) }
+                    acceptedUsers: dto.selectedUsersIds?.compactMap { UUID(uuidString: $0) }
                 )
                 
                 requests.append(request)

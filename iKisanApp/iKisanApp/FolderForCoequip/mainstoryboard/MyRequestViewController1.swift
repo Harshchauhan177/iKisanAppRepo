@@ -60,59 +60,57 @@ class MyRequestViewController1: UIViewController {
                 }
             }
             
-            // Get accepted users from both selectedUsersIds and joinedFarmers
-            if let selectedUsers = request.selectedUsersIds {
-                acceptedRequestPeopleList = selectedUsers.compactMap { userId in
-                    dataController?.getUserById(userId)
-                }
-            }
             
-            if let joinedUsers = request.joinedFarmers {
-                let joinedPeople = joinedUsers.compactMap { userId in
-                    dataController?.getUserById(userId)
-                }
-                acceptedRequestPeopleList.append(contentsOf: joinedPeople)
-            }
-            
-            // Initialize empty list ONCE
+           
+            // Initialize the list only once
             acceptedRequestPeopleList = []
+            print("Starting to gather users for Request ID: \(request.id)")
             
-            print("Request ID: \(request.id)")
-            
-            // Get accepted users from request participants
-            if let participants = request.participants {
-                print("Found \(participants.count) participants")
-                // Get users who have accepted status
-                let acceptedParticipants = participants.filter { $0.status == "accepted" }
-                print("Accepted participants: \(acceptedParticipants.count)")
-                
-                // Add accepted participants to the list
-                acceptedRequestPeopleList = acceptedParticipants.compactMap { participant in
-                    let user = dataController?.getUserById(participant.userId)
-                    print("Found user: \(user?.name ?? "nil")")
+            // First, check acceptedUser array from the database
+            if let acceptedUserIds = request.acceptedUsers { // Changed from acceptedUser to acceptedUsers
+                print("Processing accepted users from database: \(acceptedUserIds.count)")
+                let acceptedUsers = acceptedUserIds.compactMap { userId in
+                    let user = dataController?.getUserById(userId)
+                    print("Processing accepted user ID: \(userId)")
                     return user
                 }
+                acceptedRequestPeopleList.append(contentsOf: acceptedUsers)
+                print("After accepted users: \(acceptedRequestPeopleList.count) users")
             }
             
-            // Add accepted users from acceptedUsers column if they're not already in the list
-            if let acceptedUserIds = request.acceptedUsers {
-                print("Found \(acceptedUserIds.count) accepted users")
-                let additionalUsers = acceptedUserIds.compactMap { userId in
-                    dataController?.getUserById(userId)
-                }
-                // Only add users that aren't already in the list
-                for user in additionalUsers {
-                    if !acceptedRequestPeopleList.contains(where: { $0.userID == user.userID }) {
-                        acceptedRequestPeopleList.append(user)
+            // Then add any participants with accepted status
+            if let participants = request.participants {
+                print("Processing participants")
+                let acceptedParticipants = participants.filter { $0.status.rawValue == "accepted" }
+                let participantUsers = acceptedParticipants.compactMap { participant in
+                    let user = dataController?.getUserById(participant.userId)
+                    if !acceptedRequestPeopleList.contains(where: { $0.userID == user?.userID }) {
+                        return user
                     }
+                    return nil
                 }
+                acceptedRequestPeopleList.append(contentsOf: participantUsers)
             }
             
-            print("Total accepted users: \(acceptedRequestPeopleList.count)")
+            // Finally add any selected users not already included
+            if let selectedUsers = request.acceptedUsers{
+                let additionalUsers = selectedUsers.compactMap { userId in
+                    let user = dataController?.getUserById(userId)
+                    if !acceptedRequestPeopleList.contains(where: { $0.userID == user?.userID }) {
+                        return user
+                    }
+                    return nil
+                }
+                acceptedRequestPeopleList.append(contentsOf: additionalUsers)
+            }
+            
+            print("Final user count: \(acceptedRequestPeopleList.count)")
             
             listTableView.delegate = self
             listTableView.dataSource = self
             listTableView.reloadData()
+        } else {
+            print("Failed to load request or equipment data")
         }
         setupViewAppearance()
     }
