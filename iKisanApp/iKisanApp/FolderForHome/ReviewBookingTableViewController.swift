@@ -24,6 +24,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
     var pricePerHr: Double = 100
     var payableAmount: Double = 0
     var thisBooking: Booking?
+    var equipmentLocation: String? // New property to store equipment location
 
     var equipment: Equipment? {
         didSet {
@@ -358,11 +359,11 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
                     bookingLocation = Location(latitude: user.latitude, longitude: user.longitude, address: nil)
                 } else {
                     // Only as a last resort fallback to equipment location
-                    locationLabel.text = equipment.location
+                    locationLabel.text = equipmentLocation ?? equipment.location
                 }
             } else {
                 // Fallback to equipment location if no user info is available
-                locationLabel.text = equipment.location
+                locationLabel.text = equipmentLocation ?? equipment.location
             }
         }
         

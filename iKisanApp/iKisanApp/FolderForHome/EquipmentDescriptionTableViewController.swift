@@ -496,10 +496,14 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
                 guard let equipment = self.equipment else {
                     return
                 }
+                // Only pass the data model objects, not directly modifying UI elements
                 destinationVC.bookingSource = self.bookingSource
                 destinationVC.equipment = equipment
-                destinationVC.locationLabel.text = equipment.location
+                destinationVC.equipmentLocation = equipment.location
                 destinationVC.pricePerHr = equipment.pricePerHour
+                
+                // Let the destination view controller update its own UI elements
+                // in viewDidLoad or viewWillAppear
             }
         } else if segue.identifier == "MoreImageView" {
             if let destinationVC = segue.destination as? ImageViewCollectionViewController {
@@ -761,14 +765,28 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
                 
                 // Setup constraints
                 collectionView.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activate([
-                    collectionView.topAnchor.constraint(equalTo: self.reviewsHeaderView!.bottomAnchor),
-                    collectionView.leadingAnchor.constraint(equalTo: reviewsCell.contentView.leadingAnchor),
-                    collectionView.trailingAnchor.constraint(equalTo: reviewsCell.contentView.trailingAnchor),
-                    collectionView.bottomAnchor.constraint(equalTo: reviewsCell.contentView.bottomAnchor),
-                    // Increase the height constraint from 180 to 220
-                    collectionView.heightAnchor.constraint(equalToConstant: 220)
-                ])
+                
+                // Make sure reviewsHeaderView is not nil before using it
+                if let reviewsHeaderView = self.reviewsHeaderView {
+                    NSLayoutConstraint.activate([
+                        collectionView.topAnchor.constraint(equalTo: reviewsHeaderView.bottomAnchor),
+                        collectionView.leadingAnchor.constraint(equalTo: reviewsCell.contentView.leadingAnchor),
+                        collectionView.trailingAnchor.constraint(equalTo: reviewsCell.contentView.trailingAnchor),
+                        collectionView.bottomAnchor.constraint(equalTo: reviewsCell.contentView.bottomAnchor),
+                        // Increase the height constraint from 180 to 220
+                        collectionView.heightAnchor.constraint(equalToConstant: 220)
+                    ])
+                } else {
+                    // Fallback if reviewsHeaderView is nil
+                    NSLayoutConstraint.activate([
+                        collectionView.topAnchor.constraint(equalTo: reviewsCell.contentView.topAnchor, constant: 100),
+                        collectionView.leadingAnchor.constraint(equalTo: reviewsCell.contentView.leadingAnchor),
+                        collectionView.trailingAnchor.constraint(equalTo: reviewsCell.contentView.trailingAnchor),
+                        collectionView.bottomAnchor.constraint(equalTo: reviewsCell.contentView.bottomAnchor),
+                        collectionView.heightAnchor.constraint(equalToConstant: 220)
+                    ])
+                    print("WARNING: reviewsHeaderView is nil when setting up collection view constraints")
+                }
                 
                 collectionView.reloadData()
                 print("CollectionView reloaded with \(self.filteredReviews.count) reviews")
@@ -808,100 +826,36 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     @objc func presentReviewSheet() {
         guard let equipment = equipment else { return }
         
-        let alertController = UIAlertController(title: "Write a Review", message: "Share your experience with \(equipment.name)", preferredStyle: .alert)
+        // Create the write review view controller
+        let writeReviewVC = WriteReviewViewController()
+        writeReviewVC.equipment = equipment
         
-        // Add text fields for review title and description
-        alertController.addTextField { textField in
-            textField.placeholder = "Review Title"
+        // Get data controller reference for saving to backend
+        if let dataController = (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.dataController {
+            writeReviewVC.dataController = dataController
         }
         
-        alertController.addTextField { textField in
-            textField.placeholder = "Review Description"
-            textField.returnKeyType = .done
-        }
-        
-        // Add rating controller
-        let ratingController = UIViewController()
-        let ratingView = UIView(frame: CGRect(x: 0, y: 0, width: 270, height: 60))
-        
-        let starStackView = UIStackView(frame: CGRect(x: 20, y: 10, width: 230, height: 40))
-        starStackView.axis = .horizontal
-        starStackView.distribution = .fillEqually
-        starStackView.spacing = 10
-        
-        var starButtons: [UIButton] = []
-        var currentRating = 5 // Default rating
-        
-        // Create star buttons
-        for i in 1...5 {
-            let starButton = UIButton(type: .system)
-            starButton.setImage(UIImage(systemName: "star.fill"), for: .normal)
-            starButton.tintColor = i <= currentRating ? 
-                UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1) : 
-                UIColor.systemGray3
-            starButton.tag = i
-            starButton.addTarget(ratingController, action: #selector(UIViewController.starButtonTapped(_:)), for: .touchUpInside)
-            starStackView.addArrangedSubview(starButton)
-            starButtons.append(starButton)
-        }
-        
-        ratingView.addSubview(starStackView)
-        ratingController.view = ratingView
-        alertController.setValue(ratingController, forKey: "contentViewController")
-        
-        // Add action to the view controller for the star buttons
-        let originalStarTapped = class_getInstanceMethod(UIViewController.self, #selector(UIViewController.starButtonTapped(_:)))
-        let newStarTapped = class_getInstanceMethod(UIViewController.self, #selector(UIViewController.ratingStarButtonTapped(_:)))
-        if let originalMethod = originalStarTapped, let newMethod = newStarTapped {
-            method_exchangeImplementations(originalMethod, newMethod)
-        }
-        
-        // Add submit action
-        let submitAction = UIAlertAction(title: "Submit", style: .default) { [weak self] _ in
-            guard let self = self,
-                  let titleField = alertController.textFields?[0],
-                  let descriptionField = alertController.textFields?[1],
-                  let title = titleField.text, !title.isEmpty,
-                  let description = descriptionField.text, !description.isEmpty,
-                  let equipment = self.equipment else {
-                return
-            }
-            
-            // Get selected rating from ratingController
-            let rating = Double(ratingController.selectedRating)
-            
-            // Create new review
-            let newReview = ReviewData(
-                reviewHeading: title,
-                reviewDescription: description,
-                rating: rating,
-                equipmentID: equipment.equipmentID.uuidString,
-                equipmentName: equipment.name
-            )
-            
-            // Add to reviews
-            ReviewDataClass.reviews.append(newReview)
-            
-            // Refresh UI
+        // Set up callback for when review is submitted
+        writeReviewVC.onReviewSubmitted = { [weak self] newReview in
+            guard let self = self else { return }
+            // Refresh UI after review is submitted
             self.refreshReviews(for: equipment)
-            
-            // Swap back methods to avoid memory issues
-            if let originalMethod = originalStarTapped, let newMethod = newStarTapped {
-                method_exchangeImplementations(newMethod, originalMethod)
+        }
+        
+        // Create a navigation controller to wrap the review view controller
+        let navController = UINavigationController(rootViewController: writeReviewVC)
+        navController.modalPresentationStyle = .pageSheet
+        
+        if #available(iOS 15.0, *) {
+            // For iOS 15+ use sheet presentation controller for better appearance
+            if let sheet = navController.sheetPresentationController {
+                sheet.detents = [.medium()]
+                sheet.prefersGrabberVisible = true
             }
         }
         
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { _ in
-            // Swap back methods to avoid memory issues
-            if let originalMethod = originalStarTapped, let newMethod = newStarTapped {
-                method_exchangeImplementations(newMethod, originalMethod)
-            }
-        }
-        
-        alertController.addAction(submitAction)
-        alertController.addAction(cancelAction)
-        
-        present(alertController, animated: true)
+        // Present the navigation controller
+        present(navController, animated: true)
     }
     
     // MARK: - Table View Delegate Methods
@@ -931,36 +885,9 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     }
 }
 
-// Extension for the star rating
+// Extension for UI components
 extension UIViewController {
-    @objc func starButtonTapped(_ sender: UIButton) {
-        // This will be replaced
-    }
-    
-    @objc func ratingStarButtonTapped(_ sender: UIButton) {
-        let selectedRating = sender.tag
-        
-        // Update star appearances
-        if let ratingView = self.view,
-           let starStackView = ratingView.subviews.first as? UIStackView {
-            for subview in starStackView.arrangedSubviews {
-                if let starButton = subview as? UIButton {
-                    let isFilled = starButton.tag <= selectedRating
-                    starButton.tintColor = isFilled ? 
-                        UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1) : 
-                        UIColor.systemGray3
-                }
-            }
-        }
-        
-        // Store the selected rating for later use
-        objc_setAssociatedObject(self, "selectedRating", selectedRating, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-    }
-    
-    // Utility method to get the selected rating
-    var selectedRating: Int {
-        return objc_getAssociatedObject(self, "selectedRating") as? Int ?? 5
-    }
+    // Add any shared functionality here if needed
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout Extension
