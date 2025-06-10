@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUICore
 
 class ReviewsHeaderView: UIView {
     
@@ -32,8 +33,9 @@ class ReviewsHeaderView: UIView {
     }
     
     private func setupView() {
-        backgroundColor = .systemBackground
-        
+        //backgroundColor = .systemBackground
+        Color("#EBEBEB") // Use this in light mode
+            .background(Color(.systemBackground))
         // Title Label
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
@@ -47,9 +49,12 @@ class ReviewsHeaderView: UIView {
         
         // Rating Label
         ratingLabel.translatesAutoresizingMaskIntoConstraints = false
-        ratingLabel.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+        ratingLabel.font = UIFont.systemFont(ofSize: 36, weight: .bold)  // Increased font size
         ratingLabel.textColor = .label
         ratingLabel.text = "0.0"
+        ratingLabel.adjustsFontSizeToFitWidth = true  // Add this to ensure text fits
+        ratingLabel.minimumScaleFactor = 0.5  // Allow scaling down if needed
+        ratingLabel.textAlignment = .left  // Ensure left alignment
         ratingContainer.addSubview(ratingLabel)
         
         // Star Stack View
@@ -108,11 +113,13 @@ class ReviewsHeaderView: UIView {
             // Rating Container
             ratingContainer.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
             ratingContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            ratingContainer.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),  // Ensure minimum width
             
             // Rating Label
             ratingLabel.topAnchor.constraint(equalTo: ratingContainer.topAnchor),
             ratingLabel.leadingAnchor.constraint(equalTo: ratingContainer.leadingAnchor),
             ratingLabel.trailingAnchor.constraint(equalTo: ratingContainer.trailingAnchor),
+            ratingLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 60),  // Set minimum width for the rating label
             
             // Star Stack View
             starStackView.topAnchor.constraint(equalTo: ratingLabel.bottomAnchor, constant: 4),
@@ -154,7 +161,11 @@ class ReviewsHeaderView: UIView {
     
     // Update the rating display
     func configure(with rating: Double, canUserWriteReview: Bool, reviewsCount: Int = 0) {
+        // Always format with one decimal place for consistency
         ratingLabel.text = String(format: "%.1f", rating)
+        
+        // Set a larger content hugging priority to ensure the label gets enough space
+        ratingLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         
         // Update stars based on rating
         let fullStars = Int(rating)

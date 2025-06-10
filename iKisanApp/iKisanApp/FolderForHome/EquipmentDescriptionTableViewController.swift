@@ -110,6 +110,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupRatingLabel()
         setupReviewsSection()
         if let equipment = equipment {
             configure(with: equipment)
@@ -117,6 +118,23 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         
         // Initialize dataController if needed
         dataController = IKisanDataController()
+    }
+    
+    private func setupRatingLabel() {
+        // Configure the rating label to ensure it displays properly
+        if let ratingLabel = ratingOutOf5Label {
+            ratingLabel.font = UIFont.systemFont(ofSize: 36, weight: .bold)
+            ratingLabel.adjustsFontSizeToFitWidth = true
+            ratingLabel.minimumScaleFactor = 0.5
+            ratingLabel.textAlignment = .left
+            
+            // Set minimum width to ensure all digits are visible
+            if let superview = ratingLabel.superview {
+                let widthConstraint = ratingLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 80)
+                widthConstraint.priority = .defaultHigh
+                widthConstraint.isActive = true
+            }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -206,7 +224,8 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
             collectionView.collectionViewLayout = layout
             
             // Make sure collection view has proper styling
-            collectionView.backgroundColor = .systemBackground
+            collectionView.backgroundColor = UIColor(red: 235/255.0, green: 235/255.0, blue: 235/255.0, alpha: 1.0)
+            //collectionView.backgroundColor = .systemBackground
             collectionView.showsHorizontalScrollIndicator = false
             collectionView.isPagingEnabled = false
             collectionView.alwaysBounceHorizontal = true
@@ -728,6 +747,11 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
             print("Displaying \(self.filteredReviews.count) reviews")
             // Calculate average rating
             let averageRating = self.filteredReviews.reduce(0.0) { $0 + $1.rating } / Double(self.filteredReviews.count)
+            
+            // Update the rating display label as well
+            if let ratingOutOf5Label = self.ratingOutOf5Label {
+                ratingOutOf5Label.text = String(format: "%.1f", averageRating)
+            }
             
             // Configure reviews header view
             if let reviewsHeaderView = self.reviewsHeaderView {
