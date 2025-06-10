@@ -10,7 +10,33 @@ class SupabaseManager {
     public private(set) var client: SupabaseClient
     
     private init() {
+        print("🔌 Initializing SupabaseManager...")
+        print("🌐 URL: \(url)")
+        print("🔑 Key length: \(key.count) characters")
+        
         self.client = SupabaseClient(supabaseURL: URL(string: url)!, supabaseKey: key)
+        print("✅ SupabaseClient initialized")
+        
+        // Verify connection immediately
+        Task {
+            do {
+                print("🔄 Verifying database connection...")
+                let _: [UserDTO] = try await client
+                    .from("users")
+                    .select("*")
+                    .limit(1)
+                    .execute()
+                    .value
+                print("✅ Database connection verified successfully")
+            } catch {
+                print("❌ Database connection test failed: \(error)")
+                if let postgrestError = error as? PostgrestError {
+                    print("🔍 Connection error details:")
+                    print("  - Code: \(postgrestError.code ?? "nil")")
+                    print("  - Message: \(postgrestError.message ?? "nil")")
+                }
+            }
+        }
     }
 }
 
@@ -53,7 +79,10 @@ protocol DataController {
     func updateRequest(_ request: Request)
     func deleteRequest(with id: UUID)
     func getEquipmentById(_ id: UUID) -> Equipment?
-    func getCoEquipUsers() -> [User]
+    func getUserById(_ id: UUID) -> User?
+   // func getCoEquipUsers() -> [User]
+    //func getCoEquipUsers() async -> [User]
+    func getAllUsers() -> [User]
     func getEquipmentSuggestions() -> [String]
     func filterEquipment(by query: String) -> [Equipment]
     func getCategories() -> [String]
@@ -62,6 +91,7 @@ protocol DataController {
     func filterEquipment(bySearchText searchText: String) -> [Equipment]
     func isEquipmentAvailable(on date: Date, for equipment: Equipment) -> Bool
     func createRequest(_ request: Request)
+    func createRequest(_ request: Request, with selectedUsers: [User])
     func getTimeSlots(for area: Double) -> [TimeSlot]
     
     //For Prebooking
@@ -76,6 +106,13 @@ protocol DataController {
     func getPreBookings() -> [Booking]
     func getEquipment(byId: UUID) -> Equipment?
     func refreshFAQsFromDatabase() async
+    
+    // Add this new function
+    func getCurrentUserAddress() -> String?
+    func getCurrentUser() -> User?
+    
+    // Add the missing method declaration
+    func loadDataFromBackend() async
 }
 
 
@@ -108,10 +145,113 @@ enum EquipmentData {
     ]
 }
 
+
+
 class IKisanDataController: DataController {
     
+        func getCurrentUser() -> User? {
+            guard let currentUser = AuthManager.shared.currentUser else {
+                return nil
+            }
+            
+            // Convert AuthUser to User model
+            return User(
+                userID: currentUser.id,  // This is already a UUID, no conversion needed
+                name: currentUser.name,
+                email: currentUser.email,
+                phone: currentUser.phone,
+                location: Location(
+                    latitude: currentUser.latitude,
+                    longitude: currentUser.longitude,
+                    address: currentUser.address
+                ),
+                selectedCrops: currentUser.selectedCrops ?? [],  // Use empty array as default if nil
+                fieldArea: currentUser.fieldArea ?? 0.0,  // Use 0.0 as default if nil
+                groupID: currentUser.groupID
+            )
+        }
+    
+    
+//    func getCoEquipUsers() async -> [User] {
+//        do {
+//            let response: Void = try await SupabaseManager.shared.client
+//                .from("users")
+//                .select("*")
+//                .execute()
+//                .value
+//
+//            return response
+//        } catch {
+//            print("❌ Error fetching users: \(error)")
+//            return []
+//        }
+//    }
+    
+    
+        
+
+        func getAllUsers() -> [User] {
+        // Use the cached users if available, otherwise fetch from Supabase
+        if !cachedUsers.isEmpty {
+            return cachedUsers
+        }
+        
+        Task {
+            do {
+                let users: [UserDTO] = try await SupabaseManager.shared.client
+                    .from("users")
+                    .select("*")
+                    .execute()
+                    .value
+                    
+                // Map UserDTO to User model and cache them
+                self.cachedUsers = users.map { dto in
+                    User(userID: UUID(uuidString: dto.id) ?? UUID(),  // Convert String to UUID
+                         name: dto.name,
+                         email: dto.email,
+                         phone: dto.phone,
+                         location: Location(latitude: dto.latitude,
+                                          longitude: dto.longitude,
+                                          address: dto.address),
+                         selectedCrops: dto.selectedCrops.compactMap { UUID(uuidString: $0) },  // Convert [String] to [UUID]
+                         fieldArea: dto.fieldArea,
+                         groupID: nil)  // Set to nil since it's not in DTO
+                }
+            } catch {
+                print("Error fetching users: \(error)")
+            }
+        }
+        
+        return cachedUsers
+    }
+
+    func getUserById(_ id: UUID) -> User? {
+        // Check cached users first
+        if let user = cachedUsers.first(where: { $0.userID == id }) {
+            return user
+        }
+        
+        // If not found in cache, return nil
+        // The cache will be updated next time getAllUsers() is called
+        return nil
+    }
+        
+        // ... existing code ...
+    
+       
     // Add a property to store FAQs
     private var faqsList: [FAQ] = []
+    
+    // Add a property to store cached users
+    private var cachedUsers: [User] = []
+    
+    func getCurrentUserAddress() -> String? {
+        // Get the current user from cached users
+        if let currentUser = cachedUsers.first {
+            return currentUser.location.address
+        }
+        return nil
+    }
     
     // Static IDs for all entities
     // Crop IDs
@@ -206,7 +346,7 @@ class IKisanDataController: DataController {
         }
     }
     
-    private func loadDataFromBackend() async {
+    public func loadDataFromBackend() async {
         // Load all data from backend
         self.equipmentList = await requestManager.fetchEquipments()
         self.reviewList = await requestManager.fetchReviews()
@@ -214,9 +354,11 @@ class IKisanDataController: DataController {
         self.crops = await requestManager.fetchCrops()
         self.cropCategories = await requestManager.fetchCropCategories()
         
-        // Load requests
+        // Load requests and update the local arrays
         self.coEquipRequests = await requestManager.fetchRequests()
+        print("Debug: Fetched \(self.coEquipRequests.count) requests from database")
         self.acceptedRequests = self.coEquipRequests.filter { $0.status == .confirmed }
+        print("Debug: Filtered \(self.acceptedRequests.count) accepted requests")
         
         // Make a local copy of suggestions for quick access
         self.suggestionList = self.equipmentList.filter { $0.isRecommended }
@@ -427,6 +569,13 @@ class IKisanDataController: DataController {
     }
     
     func getAllCoEquipRequests() -> [Request] {
+        // Trigger a refresh of the requests
+        Task {
+            self.coEquipRequests = await requestManager.fetchRequests()
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .requestsUpdated, object: nil)
+            }
+        }
         return coEquipRequests
     }
     
@@ -435,13 +584,31 @@ class IKisanDataController: DataController {
     }
     
     func addNewCoEquipRequest(_ request: Request) {
+        print("🔄 Starting to add new request...")
+        print("📝 Request details:")
+        print("  - ID: \(request.id)")
+        print("  - User ID: \(request.userId)")
+        print("  - Equipment ID: \(request.equipmentId)")
+        print("  - Date: \(request.requestedDate)")
+        print("  - Area: \(request.area)")
+        print("  - Location: \(request.location)")
+        
         if !coEquipRequests.contains(where: { $0.id == request.id }) {
             coEquipRequests.append(request)
+            print("✅ Request added to local array")
             
             // Save to backend
             Task {
-                _ = await requestManager.createRequest(request)
+                print("📤 Saving request to Supabase...")
+                let success = await requestManager.createRequest(request)
+                if success {
+                    print("✅ Request successfully saved to Supabase")
+                } else {
+                    print("❌ Failed to save request to Supabase")
+                }
             }
+        } else {
+            print("⚠️ Request with ID \(request.id) already exists")
         }
     }
     
@@ -512,27 +679,13 @@ class IKisanDataController: DataController {
         return nil
     }
     
-    func getCoEquipUsers() -> [User] {
-        var users: [User] = []
-        
-        // Load users from backend if needed
-        if users.isEmpty {
-            Task {
-                users = await requestManager.fetchAllUsers()
-            }
-        }
-        
-        return users
-    }
     
+    
+
     func getEquipmentSuggestions() -> [String] {
-        return [
-            "Harvester", "Rice Harvester", "Wheat Harvester",
-            "Sugarcane Harvester", "Tractor", "Mini Tractor",
-            "Farm Tractor", "Plough", "Rotavator", "Cultivator",
-            "Sprayer", "Seeder", "Thresher", "Potato Harvester",
-            "Cotton Picker"
-        ]
+        // Get unique equipment names from the equipmentList
+        let suggestions = Set(equipmentList.map { $0.name })
+        return Array(suggestions).sorted()
     }
     
     func filterEquipment(by query: String) -> [Equipment] {
@@ -591,6 +744,31 @@ class IKisanDataController: DataController {
         Task {
             _ = await requestManager.createRequest(request)
     }
+    }
+    
+    func createRequest(_ request: Request, with selectedUsers: [User]) {
+        var updatedRequest = request
+        // Convert User array to UUID array
+        let selectedUserIds = selectedUsers.map { $0.userID }
+        updatedRequest.selectedUsers = selectedUserIds
+        updatedRequest.joinedFarmers = selectedUserIds
+        
+        Task {
+            do {
+                try await SupabaseManager.shared.client
+                    .from("requests")
+                    .insert(updatedRequest)
+                    .execute()
+                
+                // Update local cache
+                self.coEquipRequests.append(updatedRequest)
+                if updatedRequest.status == .confirmed {
+                    self.acceptedRequests.append(updatedRequest)
+                }
+            } catch {
+                print("Error creating request: \(error)")
+            }
+        }
     }
     
     func getTimeSlots(for area: Double) -> [TimeSlot] {
@@ -796,11 +974,40 @@ class RequestManager {
     
     func fetchRequests() async -> [Request] {
         do {
-            let data: [RequestDTO] = try await SupabaseManager.shared.client
+            // Get the raw data first
+            let rawData = try await SupabaseManager.shared.client
                 .from("requests")
                 .select("*")
                 .execute()
-                .value
+                .data
+            
+            // Create a decoder with proper date decoding strategy
+            let decoder = JSONDecoder()
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+                
+                // Try ISO8601 format first
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+                
+                // Fallback to your specific format if ISO8601 fails
+                let fallbackFormatter = DateFormatter()
+                fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                if let date = fallbackFormatter.date(from: dateString) {
+                    return date
+                }
+                // Replace this line:
+                throw DecodingError.dataCorruptedError(in: container,
+                debugDescription: "Cannot decode date string \(dateString)")
+
+            }
+            
+            // Manually decode the data
+            let data = try decoder.decode([RequestDTO].self, from: rawData)
             
             // Convert DTOs to domain models with relationships
             var requests: [Request] = []
@@ -864,14 +1071,37 @@ class RequestManager {
     
     func fetchAllUsers() async -> [User] {
         do {
-            let data: [UserDTO] = try await SupabaseManager.shared.client
+            print("🔄 Starting fetchAllUsers from Supabase...")
+            
+            // Verify auth state
+            if let session = try? await SupabaseManager.shared.client.auth.session {
+                print("✅ User is authenticated with ID: \(session.user.id)")
+            } else {
+                print("⚠️ No active session found")
+                return []
+            }
+            
+            print("📝 Querying 'users' table with select *")
+            
+            // Use PostgrestResponse to get typed response
+            let response: PostgrestResponse<[UserDTO]> = try await SupabaseManager.shared.client
                 .from("users")
                 .select("*")
                 .execute()
-                .value
             
-            return data.map { dto in
-                User(
+            // Debug the raw response
+            print("📊 Raw response type: \(type(of: response.data))")
+            
+            guard let users = try? response.value else {
+                print("❌ Failed to get users from response")
+                return []
+            }
+            
+            print("📊 Received \(users.count) users")
+            
+            // Convert DTOs to User models
+            let mappedUsers = users.map { dto in
+                let user = User(
                     userID: UUID(uuidString: dto.id) ?? UUID(),
                     name: dto.name,
                     email: dto.email,
@@ -883,11 +1113,30 @@ class RequestManager {
                     ),
                     selectedCrops: dto.selectedCrops.compactMap { UUID(uuidString: $0) },
                     fieldArea: dto.fieldArea,
-                    groupID: dto.groupId != nil ? UUID(uuidString: dto.groupId!) : nil
+                    groupID: dto.groupId.flatMap { UUID(uuidString: $0) }
                 )
+                print("👤 Mapped user: \(user.name) (ID: \(user.userID))")
+                return user
             }
+            
+            print("✅ Successfully mapped \(mappedUsers.count) users")
+            return mappedUsers
+            
         } catch {
-            print("Error fetching all users: \(error)")
+            print("❌ Error fetching users: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("🔍 PostgrestError details:")
+                print("  - Code: \(postgrestError.code ?? "nil")")
+                print("  - Message: \(postgrestError.message ?? "nil")")
+                print("  - Hint: \(postgrestError.hint ?? "nil")")
+                print("  - Details: \(postgrestError.detail ?? "nil")")
+                
+                // Check if this is an auth error
+                if postgrestError.code == "PGRST301" || 
+                    (postgrestError.message.contains("JWT") ?? false) {
+                    print("🔐 Authentication error detected. User may need to re-login.")
+                }
+            }
             return []
         }
     }
@@ -1187,6 +1436,9 @@ class RequestManager {
     
     func createRequest(_ request: Request) async -> Bool {
         do {
+            print("🔄 Creating request in Supabase...")
+            print("📝 Converting to DTO...")
+            
             let dto = RequestDTO(
                 id: request.id,
                 userId: request.userId,
@@ -1199,18 +1451,25 @@ class RequestManager {
                 timePeriod: request.timePeriod,
                 location: request.location,
                 typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
-                selectedUsersIds: request.selectedUsers.map { $0.userID.uuidString },
+                selectedUsersIds: request.selectedUsers.map { $0.uuidString }, // Fixed: UUIDs are already stored, just need uuidString
                 joinedFarmers: request.joinedFarmers
             )
             
-            try await SupabaseManager.shared.client
+            print("📤 Sending to Supabase...")
+            print("Table: requests")
+            print("Data: \(dto)")
+            
+            let response = try await SupabaseManager.shared.client
                 .from("requests")
                 .insert(dto)
                 .execute()
             
+            print("✅ Request successfully created in Supabase")
+            print("📊 Response: \(response)")
             return true
         } catch {
-            print("Error creating request: \(error)")
+            print("❌ Error creating request in Supabase: \(error)")
+            print("Error details: \(error.localizedDescription)")
             return false
         }
     }
@@ -1229,7 +1488,7 @@ class RequestManager {
                 timePeriod: request.timePeriod,
                 location: request.location,
                 typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
-                selectedUsersIds: request.selectedUsers.map { $0.userID.uuidString },
+                selectedUsersIds: request.selectedUsers.map { $0.uuidString }, // Fixed: UUIDs are already stored, just need uuidString
                 joinedFarmers: request.joinedFarmers
             )
             
@@ -1399,9 +1658,65 @@ struct RequestDTO: Codable {
         case timePeriod
         case location
         case typeOfRequest
-        // These aren't explicit columns, so they need special handling
         case selectedUsersIds
         case joinedFarmers
+    }
+    
+    // Add this initializer for encoding
+    init(id: UUID, userId: UUID, equipmentId: UUID, requestedDate: Date, status: String, 
+         type: String, area: Double, timeSlot: String, timePeriod: String?, location: String, 
+         typeOfRequest: String, selectedUsersIds: [String], joinedFarmers: [UUID]) {
+        self.id = id
+        self.userId = userId
+        self.equipmentId = equipmentId
+        self.requestedDate = requestedDate
+        self.status = status
+        self.type = type
+        self.area = area
+        self.timeSlot = timeSlot
+        self.timePeriod = timePeriod
+        self.location = location
+        self.typeOfRequest = typeOfRequest
+        self.selectedUsersIds = selectedUsersIds
+        self.joinedFarmers = joinedFarmers
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        userId = try container.decode(UUID.self, forKey: .userId)
+        equipmentId = try container.decode(UUID.self, forKey: .equipmentId)
+        
+        // Handle date decoding manually
+        let dateString = try container.decode(String.self, forKey: .requestedDate)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        if let date = formatter.date(from: dateString) {
+            requestedDate = date
+        } else {
+            // Try ISO8601 as fallback
+            let iso8601Formatter = ISO8601DateFormatter()
+            if let date = iso8601Formatter.date(from: dateString) {
+                requestedDate = date
+            } else {
+                throw DecodingError.dataCorruptedError(
+    forKey: .requestedDate,
+    in: container,
+    debugDescription: "Cannot decode date string \(dateString)"
+)
+            }
+        }
+        
+        // Decode remaining properties
+        status = try container.decode(String.self, forKey: .status)
+        type = try container.decode(String.self, forKey: .type)
+        area = try container.decode(Double.self, forKey: .area)
+        timeSlot = try container.decode(String.self, forKey: .timeSlot)
+        timePeriod = try container.decodeIfPresent(String.self, forKey: .timePeriod)
+        location = try container.decode(String.self, forKey: .location)
+        typeOfRequest = try container.decode(String.self, forKey: .typeOfRequest)
+        selectedUsersIds = try container.decode([String].self, forKey: .selectedUsersIds)
+        joinedFarmers = try container.decode([UUID].self, forKey: .joinedFarmers)
     }
 }
 
@@ -1413,9 +1728,42 @@ struct UserDTO: Codable {
     let latitude: Double
     let longitude: Double
     let address: String?
-    let selectedCrops: [String]
     let fieldArea: Double
     let groupId: String?
+    let selectedCrops: [String]
+    let created_at: Date?
+    let updated_at: Date?
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "userID"  // Match the exact column name in Supabase
+        case name
+        case email
+        case phone
+        case latitude
+        case longitude
+        case address
+        case fieldArea = "fieldArea"  // Match the exact case in Supabase
+        case groupId = "groupID"  // Match the exact case in Supabase
+        case selectedCrops = "selectedCrops"  // Match the exact case in Supabase
+        case created_at
+        case updated_at
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        email = try container.decode(String.self, forKey: .email)
+        phone = try container.decode(String.self, forKey: .phone)
+        latitude = try container.decode(Double.self, forKey: .latitude)
+        longitude = try container.decode(Double.self, forKey: .longitude)
+        address = try container.decodeIfPresent(String.self, forKey: .address)
+        fieldArea = try container.decode(Double.self, forKey: .fieldArea)
+        groupId = try container.decodeIfPresent(String.self, forKey: .groupId)
+        selectedCrops = try container.decodeIfPresent([String].self, forKey: .selectedCrops) ?? []
+        created_at = try container.decodeIfPresent(Date.self, forKey: .created_at)
+        updated_at = try container.decodeIfPresent(Date.self, forKey: .updated_at)
+    }
 }
 
 struct BookingDTO: Codable {
@@ -1486,6 +1834,8 @@ struct CropEquipmentMappingDTO: Codable {
 extension Notification.Name {
     static let requestDeleted = Notification.Name("requestDeleted")
     static let bookingAdded = Notification.Name("bookingAdded")
+    static let usersLoaded = Notification.Name("usersLoaded")
+    static let requestsUpdated = Notification.Name("requestsUpdated")
 }
 
 //
@@ -1509,4 +1859,6 @@ class ReviewDataClass {
         reviews = newReviews
     }
 }
+
+
 

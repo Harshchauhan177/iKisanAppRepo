@@ -1,8 +1,8 @@
 import UIKit
+import Foundation
+import SwiftUI
 
-
-class InfoTableViewController: UITableViewController,UITextFieldDelegate{
-    
+class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     
     @IBOutlet weak var ImageLabel: UIImageView!
     @IBOutlet weak var TitleLabel: UILabel!
@@ -12,13 +12,14 @@ class InfoTableViewController: UITableViewController,UITextFieldDelegate{
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var TimeSlotLabel: UILabel!
     @IBOutlet weak var FarmerListLabel: UILabel!
+    @IBOutlet weak var LocationLabel: UILabel!
     
-    
-    var location: String = "Some Location"
+    // Properties
+    var location: String = "Murshadpur, Greater Noida, U.P"
     var timeSlot: String = "08:00"
-    var date: Date? = Date()
+    var date: Date? = nil  // Don't set default date here, wait for proper initialization
     var cardData: Equipment?
-    let startTime = 8 * 60
+    //let startTime = 8 * 60 // Start at 8 AM
     var selectedUsers: [User] = []
     var isModifying = false
     var existingRequest: Request?
@@ -26,247 +27,225 @@ class InfoTableViewController: UITableViewController,UITextFieldDelegate{
     private var currentTimeSlot: TimeSlot = .morning
     private var timeSlots: [String] = []
     var updateCompletionHandler: ((Request) -> Void)?
+    var selectedDate: Date?
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        ImageLabel.layer.cornerRadius = 7
-        InputAreaLabel.delegate = self
-        if let data = cardData {
-            setupUI(with: data)
+    // Helper function to get current user location from AuthManager
+    private func getCurrentUserLocationFromAuthManager() -> String {
+        print("🔍 Getting user location - START")
+        
+        // Use the new DataController function
+        if let dataController = self.dataController,
+           let address = dataController.getCurrentUserAddress() {
+            print("📍 Using address from DataController: \(address)")
+            return address
         }
-        if isModifying, let request = existingRequest {
-            InputAreaLabel.text = String(request.area)
-            TimeSlotLabel.text = request.timePeriod
-            currentTimeSlot = request.timeSlot
-            updateFarmerList()
-            navigationItem.rightBarButtonItem?.title = "Update"
+        
+        // Fallback to default if no address found
+        let defaultLocation = "Murshadpur, Greater Noida, U.P"
+        print("📍 Using default hardcoded location: \(defaultLocation)")
+        return defaultLocation
+    }
+    
+    // Add new properties for time calculation
+    private let startTime = 8 * 60 // 8 AM in minutes
+    private let endTime = 18 * 60  // 6 PM in minutes
+    private let minutesPerHour = 60
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        if textField == InputAreaLabel {
+            calculateTimeSlot()
         }
-        InputAreaLabel.addTarget(self, action: #selector(areaInputChanged(_:)), for: .editingChanged)
-        updateFarmerList()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        updateFarmerList()
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        if textField == InputAreaLabel {
+            // Get the updated text that will be in the text field after this change
+            let currentText = textField.text ?? ""
+            let updatedText = (currentText as NSString).replacingCharacters(in: range, with: string)
+            
+            // Update on main thread
+            DispatchQueue.main.async {
+                self.InputAreaLabel.text = updatedText
+                if updatedText.isEmpty {
+                    // Reset time slot if input is empty
+                    self.TimeSlotLabel.text = "8 AM - 10 AM"
+                } else if let _ = Double(updatedText) {
+                    // Calculate time slot for valid number input
+                    self.calculateTimeSlot()
+                }
+            }
+        }
+        return true
     }
     
-    @IBAction func viewButtomTapped(_ sender: Any) {
-    }
-    
-    
-    @IBAction func AddFarmerButtonTapped(_ sender: Any) {
-        performSegue(withIdentifier: "goToList", sender: sender)
-    }
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        if let text = textField.text, let area = Double(text) {
-            calculateTimeSlot(for: area)
-        }
         textField.resignFirstResponder()
         return true
     }
-
-    private func calculateTimeSlot(for area: Double) {
-        let timeRequired = area * 0.5
-        timeSlots.removeAll()
-        var currentTime = startTime
-        while currentTime < (17 * 60) {
-            let endTime = min(currentTime + Int(timeRequired * 60), 17 * 60)
-            let timeSlotString = formatTimeSlot(start: currentTime, end: endTime)
-            timeSlots.append(timeSlotString)
-            currentTime += 30
-        }
-        if let firstSlot = timeSlots.first {
-            self.timeSlot = firstSlot
-            TimeSlotLabel.text = firstSlot
-            let hour = currentTime / 60
-            if hour < 12 {
-                currentTimeSlot = .morning
-            } else if hour < 15 {
-                currentTimeSlot = .afternoon
-            } else {
-                currentTimeSlot = .evening
-            }
-        }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        view.endEditing(true)
     }
-
-    private func formatTimeSlot(start: Int, end: Int) -> String {
-        let startHour = start / 60
-        let startMinute = start % 60
-        let endHour = end / 60
-        let endMinute = end % 60
+    
+    private func calculateTimeSlot() {
+        guard let areaText = InputAreaLabel.text,
+              let area = Double(areaText),
+              let equipment = cardData else {
+            return
+        }
         
-        return String(format: "%02d:%02d - %02d:%02d", startHour, startMinute, endHour, endMinute)
-    }
-
-    
-    @IBAction func unwindToInfoTableViewController(segue: UIStoryboardSegue) {
-        if let sourceVC = segue.source as? SelectPeopleViewController {
-            selectedUsers = sourceVC.selectedUsers
-            updateFarmerList()
-        }
-    }
-    
-    func updateFarmerList() {
-        if selectedUsers.isEmpty {
-            FarmerListLabel.text = "No farmers selected"
-            FarmerListLabel.textColor = .gray
+        // Get equipment capacity and convert to Double
+        let capacityPerHour = Double(equipment.capacity ?? "1") ?? 1.0
+        
+        // Calculate exact hours needed
+        let hoursNeeded = area / capacityPerHour
+        
+        // Convert hours to minutes and calculate end time
+        let minutesNeeded = hoursNeeded * 60.0 // Convert hours to minutes
+        let endTimeInMinutes = Double(startTime) + minutesNeeded
+        
+        // Ensure end time doesn't exceed 6 PM (18:00)
+        let finalEndTime = min(endTimeInMinutes, Double(endTime))
+        
+        // Format the time slot string with hours and minutes
+        let startHour = startTime / minutesPerHour
+        let endHour = Int(finalEndTime) / minutesPerHour
+        let endMinutes = Int(finalEndTime) % minutesPerHour
+        
+        if endMinutes == 0 {
+            TimeSlotLabel.text = String(format: "%02d:00 - %02d:00", startHour, endHour)
         } else {
-            let farmerNames = selectedUsers.map { user in
-                return user.name
-            }
-            let farmersText = farmerNames.joined(separator: ", ")
-            FarmerListLabel.text = farmersText
-            FarmerListLabel.textColor = .black
+            TimeSlotLabel.text = String(format: "%02d:00 - %02d:%02d", startHour, endHour, endMinutes)
         }
     }
     
-    func clearSelectedFarmers() {
-        selectedUsers.removeAll()
-        updateFarmerList()
-    }
-    
-    @IBAction func CreateButtonTapped(_ sender: Any) {
-        guard let dataController = self.dataController else {
-            showAlert(message: "System error: Data controller not found")
-            return
+    // Update viewDidLoad to setup text field delegate
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        if let address = dataController!.getCurrentUserAddress() {
+            // Set the address to your location field
+            LocationLabel.text = address
         }
-        guard let equipment = cardData,
-              let selectedDate = date,
-              let areaText = InputAreaLabel.text,
-              !areaText.isEmpty,
-              let area = Double(areaText) else {
-            showAlert(message: "Please fill in all required fields")
-            return
-        }
-        if isModifying {
-            guard let existingRequest = existingRequest else {
-                showAlert(message: "Error: Original request not found")
-                return
+        
+        // Configure UI with equipment data
+        if let equipment = cardData {
+            // Handle image loading
+            if equipment.equipmentImage.hasPrefix("http") {
+                // It's a URL, use ImageCache utility to load it
+                ImageLabel.loadImage(from: equipment.equipmentImage)
+            } else {
+                // Fallback to local asset loading
+                ImageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
             }
-            let updatedRequest = Request(
-                id: existingRequest.id,
-                userId: existingRequest.userId,
-                equipmentId: equipment.equipmentID,
-                requestedDate: selectedDate,
-                status: existingRequest.status,
-                type: existingRequest.type,
-                area: area,
-                timeSlot: currentTimeSlot,
-                timePeriod: timeSlot,
-                location: location, typeOfRequest: .myRequest,
-                selectedUsers: selectedUsers,
-                joinedFarmers: selectedUsers.map { $0.userID }
-            )
-            dataController.updateRequest(updatedRequest)
-            updateCompletionHandler?(updatedRequest)
-            let successAlert = UIAlertController(
-                title: "Success",
-                message: "Request updated successfully",
-                preferredStyle: .alert
-            )
             
-            successAlert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-                self?.navigationController?.popViewController(animated: true)
-            })
-            
-            present(successAlert, animated: true)
-            
+            TitleLabel.text = equipment.name
+            priceLabel.text = "₹\(equipment.pricePerAcre)/ac"
+            hostName.text = "Hosted by \(equipment.providerName ?? "Unknown")"
+        }
+        
+        // Set date if available
+        // Update date label with the passed date
+        if let selectedDate = date {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "E, d MMM"
+            dateLabel.text = dateFormatter.string(from: selectedDate)
         } else {
-            let newRequest = Request(
-                userId: currentUser.shared.user?.userID ?? UUID(),
-                equipmentId: equipment.equipmentID,
-                requestedDate: selectedDate,
-                status: .pending,
-                type: .coEquip,
-                area: area,
-                timeSlot: currentTimeSlot,
-                timePeriod: timeSlot,
-                location: location,
-                typeOfRequest: .myRequest, selectedUsers: selectedUsers,
-                joinedFarmers: selectedUsers.map { $0.userID }
-            )
-            dataController.addNewCoEquipRequest(newRequest)
-            let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
-            if let coequipVC = storyboard.instantiateViewController(withIdentifier: "CoequipViewController") as? CoequipViewController {
-                coequipVC.dataController = dataController
-                coequipVC.currentRequest = newRequest
-                showSuccessAndNavigateBack()
-            }
+        // If no date was passed, use today's date
+        let today = Date()
+        date = today
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "E, d MMM"
+        dateLabel.text = dateFormatter.string(from: today)
         }
-    }
-    private func showAlert(message: String) {
-        let alert = UIAlertController(
-            title: "Alert",
-            message: message,
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        
+        // Set location from user's address
+        if let address = AuthManager.shared.currentUser?.address, !address.isEmpty {
+            self.location = address
+            self.LocationLabel.text = address
+            print("📍 Location set to: \(address)")
+        } else {
+            self.location = "Murshadpur, Greater Noida, U.P"
+            self.LocationLabel.text = self.location
+            print("📍 Using default location: \(self.location)")
+        }
+        
+        // Setup text field delegate
+        InputAreaLabel.delegate = self
+        
+        print("Current user address: \(dataController?.getCurrentUserAddress() ?? "nil")")
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "goToCoequip",
-           let destinationVC = segue.destination as? CoequipViewController,
-           let request = sender as? Request {
-            destinationVC.currentRequest = request // Pass the request to CoequipViewController
+        if let infoVC = segue.destination as? InfoTableViewController {
+            infoVC.date = self.selectedDate
         }
     }
     
-    private func calculateTimePeriod(for area: Double) -> String {
-        let durationInMinutes = Int(area * 30)
-        let startTime = Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: Date())!
-        let endTime = startTime.addingTimeInterval(Double(durationInMinutes * 60))
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm"
-        return "\(dateFormatter.string(from: startTime)) - \(dateFormatter.string(from: endTime))"
+    @IBAction func bookEquipment(_ sender: UIButton) {
+        let infoVC = InfoTableViewController()
+        infoVC.date = self.selectedDate
+        navigationController?.pushViewController(infoVC, animated: true)
     }
     
-    private func showSuccessAndNavigateBack() {
-        let successAlert = UIAlertController(
-            title: "Success",
-            message: "Your co-equip request has been created successfully.",
-            preferredStyle: .alert
+    @IBAction func AddFarmerButtonTapped(_ sender: UIButton) {
+        let selectFarmerView = SelectFarmerView(dataController: self.dataController ?? IKisanDataController()) { selectedFarmers in
+            self.selectedUsers = selectedFarmers  // Store the selected farmers
+            self.FarmerListLabel.text = selectedFarmers.map { $0.name }.joined(separator: ", ")
+        }
+        let hostingController = UIHostingController(rootView: selectFarmerView)
+        hostingController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
+        self.present(hostingController, animated: true)
+    }
+    
+    @IBAction func CreateButtonTapped(_ sender: UIButton, forEvent event: UIEvent) {
+        guard let area = Double(InputAreaLabel.text ?? ""),
+              let equipment = cardData,
+              let selectedDate = date else {
+            // Show error alert
+            let alert = UIAlertController(title: "Error", message: "Please fill in all required fields", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        // Get current user ID and location from AuthManager
+        guard let dataController = dataController,
+              let currentUser = dataController.getCurrentUser() else {
+            // Show error alert for user not logged in
+            let alert = UIAlertController(title: "Error", message: "Please log in to create a request", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        // Get the most up-to-date location
+        let currentLocation = AuthManager.shared.currentUser?.address ?? self.location
+        
+        // Create new request with current location
+        let request = Request(
+            userId: currentUser.userID,
+            equipmentId: equipment.equipmentID,
+            requestedDate: selectedDate,
+            status: .pending,
+            type: .coEquip,
+            area: area,
+            timeSlot: currentTimeSlot,
+            timePeriod: TimeSlotLabel.text,
+            location: currentLocation,  // Use the current location
+            typeOfRequest: .myRequest,
+            selectedUsers: selectedUsers,
+            joinedFarmers: selectedUsers.map { $0.userID }
         )
-        successAlert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            self?.navigateToCoequip()
+        
+        // Save request using data controller
+        dataController.createRequest(request)
+        
+        let alert = UIAlertController(title: "Success", message: "Request created successfully", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            self.navigationController?.popToRootViewController(animated: true)
         })
-        present(successAlert, animated: true)
-    }
-    
-    private func navigateToCoequip() {
-        if let navigationController = self.navigationController {
-            if let coequipVC = navigationController.viewControllers.first(where: { $0 is CoequipViewController }) {
-                navigationController.popToViewController(coequipVC, animated: true)
-            } else {
-                navigationController.popToRootViewController(animated: true)
-            }
-        }
-    }
-    private func setupUI(with data: Equipment) {
-        TitleLabel.text = data.name
-        priceLabel.text = "₹ \(data.pricePerHour)"
-        hostName.text = "Ram Pal"//data.providerID.uuidString
-        ImageLabel.image = UIImage(named: data.equipmentImage)
-
-        if let currentDate = date {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "E, d MMM"
-            dateLabel.text = dateFormatter.string(from: currentDate)
-        }
-    }
-    @objc func areaInputChanged(_ textField: UITextField) {
-        if let text = textField.text, let area = Double(text) {
-            calculateTimeSlot(for: area)
-        }
-    }
-    func configure(with equipment: Equipment, dataController: DataController, date: Date = Date()) {
-        self.cardData = equipment
-        self.dataController = dataController
-        self.date = date
-        if isViewLoaded {
-            setupUI(with: equipment)
-            updateFarmerList()
-        }
+        present(alert, animated: true)
     }
 }
 

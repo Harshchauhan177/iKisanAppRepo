@@ -22,10 +22,18 @@ class AcceptRequestTableViewCell: UITableViewCell {
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        imageLabel.layer.cornerRadius = 7
+        imageLabel.layer.cornerRadius = 10
     }
     func configure(with request: Request, equipment: Equipment) {
-        self.request = request
+       
+        if equipment.equipmentImage.hasPrefix("http") {
+            // It's a URL, use our ImageCache utility to load it
+            imageLabel.loadImage(from: equipment.equipmentImage)
+        } else {
+            // Fallback to local asset loading for backward compatibility
+            imageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
+        }
+      
         titleLabel.text = equipment.name
         priceLabel.text = "₹ \(equipment.pricePerHour)"
         hostLabel.text = equipment.providerID.uuidString
@@ -36,10 +44,25 @@ class AcceptRequestTableViewCell: UITableViewCell {
     }
     
     @IBAction func acceptButtonTapped(_ sender: UIButton) {
+        // Only notify delegate, remove direct navigation
         delegate?.acceptButtonTapped(in: self)
     }
     
     @IBAction func rejectButtonTapped(_ sender: UIButton) {
+        // Only notify delegate, remove direct deletion
         delegate?.rejectButtonTapped(in: self)
+        
+    }
+    
+    // Helper method to find the view controller
+    private func findViewController() -> UIViewController? {
+        var responder: UIResponder? = self
+        while let nextResponder = responder?.next {
+            if let viewController = nextResponder as? UIViewController {
+                return viewController
+            }
+            responder = nextResponder
+        }
+        return nil
     }
 }

@@ -19,7 +19,9 @@ class MyRequestViewController1: UIViewController {
     @IBOutlet weak var modifyRequestLabel: UIButton!
     @IBOutlet weak var deleteRequestLabel: UIButton!
     
-    var acceptedRequestPeopleList: [User] = []
+    // Keep track of both UUIDs and Users
+    private var selectedUserIds: [UUID] = []
+    private var acceptedRequestPeopleList: [User] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,7 +46,16 @@ class MyRequestViewController1: UIViewController {
             priceLabel.text = "₹ \(Int(totalPrice))\nDate: \(dateString)"
             listTableView.delegate = self
             listTableView.dataSource = self
-            acceptedRequestPeopleList = request.selectedUsers
+            // Store the UUIDs
+            selectedUserIds = request.selectedUsers
+            
+            // Convert UUIDs to Users using getAllUsers
+            if let dataController = self.dataController {
+                acceptedRequestPeopleList = request.selectedUsers.compactMap { userId in
+                    dataController.getAllUsers().first { $0.userID == userId }
+                }
+            }
+            
             listTableView.reloadData()
         }
         setupViewAppearance()
@@ -110,7 +121,7 @@ class MyRequestViewController1: UIViewController {
             infoTableVC.cardData = equipment
             infoTableVC.dataController = dataController
             infoTableVC.date = request.requestedDate
-            infoTableVC.selectedUsers = request.selectedUsers
+            infoTableVC.selectedUsers = acceptedRequestPeopleList // Pass [User] as expected
             infoTableVC.location = request.location
             infoTableVC.updateCompletionHandler = { [weak self] updatedRequest in
                 self?.dataController?.updateRequest(updatedRequest)
