@@ -827,16 +827,13 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     private func showAllReviews() {
         guard let equipment = equipment, !filteredReviews.isEmpty else { return }
         
-        // For now, just show an alert with the number of reviews
-        // In a real implementation, you'd create a dedicated reviews list view controller
-        let alertController = UIAlertController(
-            title: "All Reviews",
-            message: "This would show all \(filteredReviews.count) reviews for \(equipment.name) in a full-screen view.",
-            preferredStyle: .alert
-        )
+        // Create and configure the all reviews view controller
+        let allReviewsVC = AllReviewsViewController()
+        allReviewsVC.equipment = equipment
+        allReviewsVC.reviews = filteredReviews
         
-        alertController.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alertController, animated: true)
+        // Present the view controller
+        navigationController?.pushViewController(allReviewsVC, animated: true)
     }
     
     // Refresh table view layout to adjust cell heights

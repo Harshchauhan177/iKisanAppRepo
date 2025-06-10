@@ -186,8 +186,8 @@ class ReviewsHeaderView: UIView {
         // Update reviews count label
         reviewsCountLabel.text = "\(reviewsCount) \(reviewsCount == 1 ? "review" : "reviews")"
         
-        // Show the see all button if there are multiple reviews
-        seeAllReviewsButton.isHidden = reviewsCount <= 3
+        // Show the see all button if there are any reviews
+        seeAllReviewsButton.isHidden = reviewsCount < 1
         
         // Show/hide write review button based on authorization
         writeReviewButton.isHidden = !canUserWriteReview
