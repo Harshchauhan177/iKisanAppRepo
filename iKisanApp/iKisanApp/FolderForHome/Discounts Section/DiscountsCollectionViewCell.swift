@@ -55,9 +55,8 @@ class DiscountsCollectionViewCell: UICollectionViewCell {
         setNeedsLayout()
     }
     
-    func updateDiscountsData(with equipment: Equipment) {
+    func updateDiscountsData(with equipment: Equipment, reviews: [ReviewData]) {
         // Safely unwrap all IBOutlet properties with optional binding
-        // This prevents crashes when interface elements aren't properly connected
         
         // Handle equipment image
         if let imgView = equipmentImage {
@@ -80,23 +79,25 @@ class DiscountsCollectionViewCell: UICollectionViewCell {
             priceLabel.text = "₹\(equipment.pricePerHour)"
         }
         
-        // Handle rating display
+        // Filter reviews for this specific equipment and calculate average rating
+        let equipmentReviews = reviews.filter { review in
+            if let reviewEquipmentID = review.equipmentID {
+                return reviewEquipmentID.lowercased() == equipment.equipmentID.uuidString.lowercased()
+            }
+            return review.equipmentName?.lowercased() == equipment.name.lowercased()
+        }
+        
+        let averageRating = equipmentReviews.isEmpty ? 0.0 : 
+            equipmentReviews.reduce(0.0) { $0 + $1.rating } / Double(equipmentReviews.count)
+            
         if let ratingLabel = rating {
-            ratingLabel.text = "⭐️\(equipment.rating)"
+            ratingLabel.text = String(format: "⭐️%.1f", averageRating)
         }
         
         // Handle fader view (if needed)
         if let fader = faderView {
-            fader.backgroundColor = UIColor(white: 0, alpha: 0.3) // Semi-transparent overlay
+            fader.backgroundColor = UIColor(white: 0, alpha: 0.3)
         }
-        
-//        let price = "\(equipment.realPricePerHour)"
-//        let attributes: [NSAttributedString.Key: Any] = [
-//            .strikethroughStyle: NSUnderlineStyle.single.rawValue,
-//            .strikethroughColor: UIColor.white
-//        ]
-//        let attributedPrice = NSAttributedString(string: price, attributes: attributes)
-//        realPrice.attributedText = attributedPrice
     }
     
     deinit {

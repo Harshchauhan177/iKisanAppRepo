@@ -256,7 +256,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
             (realPriceHrLabel, 14, .regular, .subheadline),
             (discountedPriceAcLabel, 16, .semibold, .headline),
             (realPriceAcLabel, 14, .regular, .subheadline),
-            (coEquipDetailLabel, 14, .regular, .body),
+            (coEquipDetailLabel, 14, .bold, .body),
             (locationLabel, 14, .regular, .body),
             (ratingLabel, 14, .regular, .body),
             (moreLabel, 12, .regular, .caption1),
@@ -371,7 +371,7 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         
         coEquipDetailLabel.text = coEquipDetail
         locationLabel.text = location
-        ratingLabel.text = rating
+            // ratingLabel.text = ratingOutOf5
         
         // Set the provider name
         hostedByLabel.text = "Hosted by: \(providerName ?? "Provider information unavailable")"
@@ -752,6 +752,10 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
             if let ratingOutOf5Label = self.ratingOutOf5Label {
                 ratingOutOf5Label.text = String(format: "%.1f", averageRating)
             }
+            if let ratingLabel = self.ratingLabel {
+                ratingLabel.text = String(format: "%.1f", averageRating)
+            }
+            
             
             // Configure reviews header view
             if let reviewsHeaderView = self.reviewsHeaderView {

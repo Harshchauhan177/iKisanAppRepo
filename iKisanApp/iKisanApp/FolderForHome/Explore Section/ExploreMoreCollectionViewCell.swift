@@ -129,20 +129,19 @@ class ExploreMoreCollectionViewCell: UICollectionViewCell {
             priceLabel.text = "₹\(equipment.pricePerHour)"
         }
         
-        // Create attributed string for real price with strikethrough
-        let price = "\(equipment.realPricePerHour)"
-        let attributes: [NSAttributedString.Key: Any] = [
-            .strikethroughStyle: NSUnderlineStyle.single.rawValue,
-            .strikethroughColor: UIColor.white
-        ]
-        let attributedPrice = NSAttributedString(string: price, attributes: attributes)
+        // Filter and calculate average rating from reviews
+        let equipmentReviews = ReviewDataClass.reviews.filter { review in
+            if let reviewEquipmentID = review.equipmentID {
+                return reviewEquipmentID.lowercased() == equipment.equipmentID.uuidString.lowercased()
+            }
+            return review.equipmentName?.lowercased() == equipment.name.lowercased()
+        }
         
-//        if let realPrice = realPriceLabel {
-//            realPrice.attributedText = attributedPrice
-//        }
-        
+        let averageRating = equipmentReviews.isEmpty ? equipment.rating : 
+            equipmentReviews.reduce(0.0) { $0 + $1.rating } / Double(equipmentReviews.count)
+            
         if let rating = ratingLabel {
-            rating.text = "⭐️\(equipment.rating)"
+            rating.text = String(format: "⭐️%.1f", averageRating)
         }
         
         // Apply the button accessibility fix again after data update

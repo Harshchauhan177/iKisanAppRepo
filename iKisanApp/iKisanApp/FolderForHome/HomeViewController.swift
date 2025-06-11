@@ -515,7 +515,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             cell.layer.cornerRadius = 10
             //applyShadowStyling(to: cell)
             let equipment = allEquipment[indexPath.row]
-            cell.updateDiscountsData(with: equipment)
+            cell.updateDiscountsData(with: equipment, reviews: reviews)
             return cell
             
         case 1:
