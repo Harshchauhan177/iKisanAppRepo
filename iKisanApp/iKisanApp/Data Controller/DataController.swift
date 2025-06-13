@@ -80,8 +80,7 @@ protocol DataController {
     func deleteRequest(with id: UUID)
     func getEquipmentById(_ id: UUID) -> Equipment?
     func getUserById(_ id: UUID) -> User?
-   // func getCoEquipUsers() -> [User]
-    //func getCoEquipUsers() async -> [User]
+    //func getAcceptedUsersForRequest(_ request: Request)
     func getAllUsers() -> [User]
     func getEquipmentSuggestions() -> [String]
     func filterEquipment(by query: String) -> [Equipment]
@@ -93,7 +92,8 @@ protocol DataController {
     func createRequest(_ request: Request)
     func createRequest(_ request: Request, with selectedUsers: [User])
     func getTimeSlots(for area: Double) -> [TimeSlot]
-    
+    //func createRequestParticipant(_ participant: RequestParticipant)
+    func createRequestParticipant(_ participant: RequestParticipant) async throws
     //For Prebooking
     // Add these new methods to the existing protocol
     func getRecommendedEquipments() -> [Equipment]
@@ -148,6 +148,54 @@ enum EquipmentData {
 
 
 class IKisanDataController: DataController {
+   
+   
+    func createRequestParticipant(_ participant: RequestParticipant) async throws {
+        // Validate required fields
+        guard participant.id != nil,
+              participant.requestId != nil,
+              participant.userId != nil else {
+            throw NSError(domain: "DataController", code: 400, userInfo: [NSLocalizedDescriptionKey: "Missing required fields for request participant"])
+        }
+        
+        do {
+            let response = try await SupabaseManager.shared.client
+                .from("request_participants")
+                .insert(participant)
+                .execute()
+            
+            print("✅ Request participant created successfully")
+            
+            // Update the selectedUsersIds array in the requests table using proper JSON format
+            try await SupabaseManager.shared.client
+                .from("requests")
+                .update([
+                    "selectedUsersIds": [participant.userId.uuidString]
+                ])
+                .eq("id", value: participant.requestId.uuidString)
+                .execute()
+            
+            print("✅ Request selectedUsersIds updated successfully")
+            
+        } catch let error as PostgrestError {
+            print("❌ Error creating request participant: \(error.message)")
+            if error.message.contains("unique_request_user") {
+                throw NSError(domain: "DataController", code: 409, userInfo: [NSLocalizedDescriptionKey: "This user is already a participant in this request"])
+            } else if error.message.contains("request_participants_requestId_fkey") {
+                throw NSError(domain: "DataController", code: 404, userInfo: [NSLocalizedDescriptionKey: "Invalid request ID reference"])
+            } else if error.message.contains("request_participants_userId_fkey") {
+                throw NSError(domain: "DataController", code: 404, userInfo: [NSLocalizedDescriptionKey: "Invalid user ID reference"])
+            }
+            throw error
+        } catch {
+            print("❌ Error creating request participant: \(error.localizedDescription)")
+            throw error
+        }
+    }
+
+
+    
+    
     
         func getCurrentUser() -> User? {
             guard let currentUser = AuthManager.shared.currentUser else {
@@ -172,20 +220,7 @@ class IKisanDataController: DataController {
         }
     
     
-//    func getCoEquipUsers() async -> [User] {
-//        do {
-//            let response: Void = try await SupabaseManager.shared.client
-//                .from("users")
-//                .select("*")
-//                .execute()
-//                .value
-//
-//            return response
-//        } catch {
-//            print("❌ Error fetching users: \(error)")
-//            return []
-//        }
-//    }
+
     
     
         
@@ -750,8 +785,7 @@ class IKisanDataController: DataController {
         var updatedRequest = request
         // Convert User array to UUID array
         let selectedUserIds = selectedUsers.map { $0.userID }
-        updatedRequest.selectedUsers = selectedUserIds
-        updatedRequest.joinedFarmers = selectedUserIds
+        
         
         Task {
             do {
@@ -974,46 +1008,109 @@ class RequestManager {
     
     func fetchRequests() async -> [Request] {
         do {
-            // Get the raw data first
+            print("🔄 Fetching requests from database...")
+            
+            // Get the raw data with participants
             let rawData = try await SupabaseManager.shared.client
                 .from("requests")
-                .select("*")
+                .select("""
+                    *,
+                    request_participants (
+                        id,
+                        requestId,
+                        userId,
+                        status,
+                        area,
+                        timeSlotId,
+                        joinedAt,
+                        created_at,
+                        updated_at
+                    )
+                """)
                 .execute()
                 .data
             
             // Create a decoder with proper date decoding strategy
             let decoder = JSONDecoder()
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            
             decoder.dateDecodingStrategy = .custom { decoder in
                 let container = try decoder.singleValueContainer()
                 let dateString = try container.decode(String.self)
                 
-                // Try ISO8601 format first
-                if let date = formatter.date(from: dateString) {
-                    return date
+                // Create date formatter for the simple format
+                let formatter = DateFormatter()
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                
+                // Try parsing with different formats
+                let formats = [
+                    "yyyy-MM-dd'T'HH:mm:ss",       // Basic format: 2025-05-29T09:54:35
+                    "yyyy-MM-dd'T'HH:mm:ssZ",      // With timezone: 2025-05-29T09:54:35Z
+                    "yyyy-MM-dd'T'HH:mm:ss.SSSZ"   // With milliseconds and timezone
+                ]
+                
+                for format in formats {
+                    formatter.dateFormat = format
+                    if let date = formatter.date(from: dateString) {
+                        return date
+                    }
                 }
                 
-                // Fallback to your specific format if ISO8601 fails
-                let fallbackFormatter = DateFormatter()
-                fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-                if let date = fallbackFormatter.date(from: dateString) {
-                    return date
-                }
-                // Replace this line:
-                throw DecodingError.dataCorruptedError(in: container,
-                debugDescription: "Cannot decode date string \(dateString)")
-
+                print("❌ Failed to parse date string: \(dateString)")
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Cannot decode date string \(dateString)"
+                )
             }
             
-            // Manually decode the data
-            let data = try decoder.decode([RequestDTO].self, from: rawData)
-            
-            // Convert DTOs to domain models with relationships
-            var requests: [Request] = []
-            for dto in data {
-                let selectedUsers = await fetchUsersById(userIds: dto.selectedUsersIds)
+            // Decode the requests with their participants
+            struct RequestWithParticipants: Codable {
+                let id: UUID
+                let userId: UUID
+                let equipmentId: UUID
+                let requestedDate: Date
+                let status: String
+                let type: String
+                let area: Double
+                let timeSlot: String
+                let timePeriod: String?
+                let location: String
+                let typeOfRequest: String
+                let selectedUsersIds: [String]?
+                let request_participants: [ParticipantDTO]?
                 
+                struct ParticipantDTO: Codable {
+                    let id: UUID
+                    let requestId: UUID
+                    let userId: UUID
+                    let status: String
+                    let area: Double?
+                    let timeSlotId: String? // Changed from timeSlot to timeSlotId to match DB schema
+                    let joinedAt: Date
+                    let created_at: Date?
+                    let updated_at: Date?
+                }
+            }
+            
+            let requestsWithParticipants = try decoder.decode([RequestWithParticipants].self, from: rawData)
+            
+            // Convert to domain models
+            var requests: [Request] = []
+            for dto in requestsWithParticipants {
+                // Convert participants
+                let participants = dto.request_participants?.map { participantDto in
+                    RequestParticipant(
+                        id: participantDto.id,
+                        requestId: participantDto.requestId,
+                        userId: participantDto.userId,
+                        status: ParticipantStatus(rawValue: participantDto.status) ?? .pending,
+                        area: participantDto.area,
+                        timeSlot: participantDto.timeSlotId, // Convert timeSlotId to TimeSlot
+                        joinedAt: participantDto.joinedAt
+                    )
+                } ?? []
+                
+                // Create the request with all data
                 let request = Request(
                     id: dto.id,
                     userId: dto.userId,
@@ -1026,14 +1123,31 @@ class RequestManager {
                     timePeriod: dto.timePeriod,
                     location: dto.location,
                     typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest,
-                    selectedUsers: selectedUsers,
-                    joinedFarmers: dto.joinedFarmers
+                    participants: participants,
+                    acceptedUsers: dto.selectedUsersIds?.compactMap { UUID(uuidString: $0) }
                 )
+                
                 requests.append(request)
             }
+            
+            print("✅ Fetched \(requests.count) requests with their participants")
             return requests
+            
         } catch {
-            print("Error fetching requests: \(error)")
+            print("❌ Error fetching requests: \(error)")
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .dataCorrupted(let context):
+                    print("Data corrupted error:")
+                    print("Debug description: \(context.debugDescription)")
+                    print("Coding path: \(context.codingPath)")
+                    if let underlying = context.underlyingError {
+                        print("Underlying error: \(underlying)")
+                    }
+                default:
+                    print("Other decoding error: \(decodingError)")
+                }
+            }
             return []
         }
     }
@@ -1450,9 +1564,8 @@ class RequestManager {
                 timeSlot: request.timeSlot.rawValue,
                 timePeriod: request.timePeriod,
                 location: request.location,
-                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
-                selectedUsersIds: request.selectedUsers.map { $0.uuidString }, // Fixed: UUIDs are already stored, just need uuidString
-                joinedFarmers: request.joinedFarmers
+                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest"
+                
             )
             
             print("📤 Sending to Supabase...")
@@ -1473,7 +1586,7 @@ class RequestManager {
             return false
         }
     }
-    
+   
     func updateRequest(_ request: Request) async -> Bool {
         do {
             let dto = RequestDTO(
@@ -1487,9 +1600,9 @@ class RequestManager {
                 timeSlot: request.timeSlot.rawValue,
                 timePeriod: request.timePeriod,
                 location: request.location,
-                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest",
-                selectedUsersIds: request.selectedUsers.map { $0.uuidString }, // Fixed: UUIDs are already stored, just need uuidString
-                joinedFarmers: request.joinedFarmers
+                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest"
+
+                
             )
             
             try await SupabaseManager.shared.client
@@ -1643,8 +1756,7 @@ struct RequestDTO: Codable {
     let timePeriod: String?
     let location: String
     let typeOfRequest: String
-    let selectedUsersIds: [String]
-    let joinedFarmers: [UUID]
+    
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -1658,14 +1770,14 @@ struct RequestDTO: Codable {
         case timePeriod
         case location
         case typeOfRequest
-        case selectedUsersIds
-        case joinedFarmers
+        
+       
     }
     
     // Add this initializer for encoding
     init(id: UUID, userId: UUID, equipmentId: UUID, requestedDate: Date, status: String, 
          type: String, area: Double, timeSlot: String, timePeriod: String?, location: String, 
-         typeOfRequest: String, selectedUsersIds: [String], joinedFarmers: [UUID]) {
+         typeOfRequest: String) {
         self.id = id
         self.userId = userId
         self.equipmentId = equipmentId
@@ -1677,8 +1789,6 @@ struct RequestDTO: Codable {
         self.timePeriod = timePeriod
         self.location = location
         self.typeOfRequest = typeOfRequest
-        self.selectedUsersIds = selectedUsersIds
-        self.joinedFarmers = joinedFarmers
     }
     
     init(from decoder: Decoder) throws {
@@ -1715,8 +1825,7 @@ struct RequestDTO: Codable {
         timePeriod = try container.decodeIfPresent(String.self, forKey: .timePeriod)
         location = try container.decode(String.self, forKey: .location)
         typeOfRequest = try container.decode(String.self, forKey: .typeOfRequest)
-        selectedUsersIds = try container.decode([String].self, forKey: .selectedUsersIds)
-        joinedFarmers = try container.decode([UUID].self, forKey: .joinedFarmers)
+       
     }
 }
 

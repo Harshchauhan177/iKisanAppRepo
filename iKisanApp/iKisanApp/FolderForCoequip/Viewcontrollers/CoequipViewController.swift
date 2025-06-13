@@ -34,15 +34,22 @@ class CoequipViewController: UIViewController {
             await MainActor.run {
                 self.updateUI()
                 if let currentRequest = self.currentRequest {
-                    // Get the filtered requests that match the current user and type
+                    // Get requests based on request_participants table
                     let requests = self.dataController.getAllCoEquipRequests().filter { request in
-                        request.userId == currentUser.userID &&
-                        request.typeOfRequest == (self.CoequipSegmentedControl.selectedSegmentIndex == 0 ? .myRequest : .acceptedRequest)
+                        if self.CoequipSegmentedControl.selectedSegmentIndex == 0 {
+                            // My Requests - show requests where user is the creator
+                            return request.userId == currentUser.userID &&
+                                   request.typeOfRequest == .myRequest
+                        } else {
+                            // Join Requests - show requests where user is a participant
+                            return request.participants?.contains { participant in
+                                participant.userId == currentUser.userID
+                            } ?? false
+                        }
                     }
                     
                     if let index = requests.firstIndex(where: { $0.id == currentRequest.id }) {
                         let indexPath = IndexPath(row: index, section: 0)
-                        // Add safety check before scrolling
                         if indexPath.row < self.CoequipTableView.numberOfRows(inSection: 0) {
                             self.CoequipTableView.scrollToRow(at: indexPath, at: .middle, animated: true)
                         }
@@ -139,36 +146,24 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let dataController = self.dataController else { return 0 }
+        guard let dataController = self.dataController,
+              let currentUser = dataController.getCurrentUser() else { return 0 }
         
-        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
-            return dataController.getAllCoEquipRequests().filter { 
-                $0.userId == dataController.getCurrentUser()?.userID && 
-                $0.typeOfRequest == .myRequest 
-            }.count
-        } else {
-            return dataController.getAllCoEquipRequests().filter {
-                $0.userId == dataController.getCurrentUser()?.userID &&
-                $0.typeOfRequest == .acceptedRequest
-            }.count
-        }
-    }
-    
-    // Add this method to safely scroll to a row
-    private func scrollToRequest(_ request: Request) {
-        guard let dataController = self.dataController else { return }
-        
-        let requests = dataController.getAllCoEquipRequests().filter { 
-            $0.userId == dataController.getCurrentUser()?.userID && 
-            $0.typeOfRequest == (CoequipSegmentedControl.selectedSegmentIndex == 0 ? .myRequest : .acceptedRequest)
-        }
-        
-        if let index = requests.firstIndex(where: { $0.id == request.id }) {
-            let indexPath = IndexPath(row: index, section: 0)
-            if indexPath.row < CoequipTableView.numberOfRows(inSection: 0) {
-                CoequipTableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+        let requests = dataController.getAllCoEquipRequests().filter { request in
+            if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+                // My Requests tab - show requests where user is the creator
+                return request.userId == currentUser.userID &&
+                       request.typeOfRequest == .myRequest
+            } else {
+                // Join Requests tab - show only pending requests where user is a participant
+                return (request.participants?.contains { participant in
+                    participant.userId == currentUser.userID &&
+                    participant.status == .pending
+                } ?? false)
             }
         }
+        
+        return requests.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -176,8 +171,17 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
               let currentUser = dataController.getCurrentUser() else { return UITableViewCell() }
         
         let requests = dataController.getAllCoEquipRequests().filter { request in
-            request.userId == currentUser.userID &&
-            request.typeOfRequest == (CoequipSegmentedControl.selectedSegmentIndex == 0 ? .myRequest : .acceptedRequest)
+            if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+                // My Requests - show requests where user is the creator
+                return request.userId == currentUser.userID &&
+                       request.typeOfRequest == .myRequest
+            } else {
+                // Join Requests - show only pending requests where user is a participant
+                return (request.participants?.contains { participant in
+                    participant.userId == currentUser.userID &&
+                    participant.status == .pending
+                } ?? false)
+            }
         }
         
         // Safety check to prevent index out of range
@@ -195,7 +199,24 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
             return cell
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: "AcceptRequestTableViewCell", for: indexPath) as! AcceptRequestTableViewCell
-            cell.configure(with: request, equipment: equipment)
+            
+            // Find the participant for the current user
+            if let participant = request.participants?.first(where: { $0.userId == currentUser.userID }) {
+                // Configure cell with participant if found
+                cell.configure(participant: participant, request: request, equipment: equipment)
+            } else {
+                // Create a pending participant if none exists
+                let pendingParticipant = RequestParticipant(
+                    id: UUID(),
+                    requestId: request.id,
+                    userId: currentUser.userID,
+                    status: .pending,
+                    area: nil,
+                    timeSlot: nil,
+                    joinedAt: Date()
+                )
+                cell.configure(participant: pendingParticipant, request: request, equipment: equipment)
+            }
             cell.request = request
             cell.dataController = dataController
             cell.delegate = self
@@ -241,19 +262,25 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
     func acceptButtonTapped(in cell: AcceptRequestTableViewCell) {
         guard let indexPath = CoequipTableView.indexPath(for: cell),
               let dataController = dataController,
-              let currentUser = dataController.getCurrentUser() else { return }
+              let currentUser = dataController.getCurrentUser(),
+              let request = cell.request else { return }
         
-        let requests = dataController.getAllCoEquipRequests().filter { request in
-            request.userId == currentUser.userID &&
-            request.typeOfRequest == .acceptedRequest
+        // Get the current participant for this request
+        if let participant = request.participants?.first(where: { $0.userId == currentUser.userID }) {
+            // Update participant status
+            var updatedParticipant = participant
+            updatedParticipant.status = .accepted
+            
+            // Update the request with the new participant status
+            var updatedRequest = request
+            updatedRequest.status = .pending
+            
+            // Update in data controller
+            dataController.updateRequest(updatedRequest)
+            
+            // Perform segue to accept request view
+            performSegue(withIdentifier: "goToAcceptRequest", sender: updatedRequest)
         }
-        
-        guard indexPath.row < requests.count else { return }
-        
-        var request = requests[indexPath.row]
-        request.status = .pending
-        dataController.updateRequest(request)
-        performSegue(withIdentifier: "goToAcceptRequest", sender: request)
     }
     
     func rejectButtonTapped(in cell: AcceptRequestTableViewCell) {

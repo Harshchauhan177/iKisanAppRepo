@@ -71,7 +71,7 @@ struct Equipment: Codable, Sendable {
     }
 }
 
-struct Request: Codable {
+struct Request: Codable, Identifiable {
     let id: UUID
     var userId: UUID
     var equipmentId: UUID
@@ -83,22 +83,24 @@ struct Request: Codable {
     var timePeriod: String?
     var location: String
     var typeOfRequest: RequestType
-    var selectedUsers: [UUID] // Changed from [User] to [UUID]
-    var joinedFarmers: [UUID]
+    var participants: [RequestParticipant]?
+    var acceptedUsers: [UUID]?
     
-    init(id: UUID = UUID(),
-         userId: UUID,
-         equipmentId: UUID,
-         requestedDate: Date,
-         status: BookingStatus,
-         type: BookingType,
-         area: Double,
-         timeSlot: TimeSlot,
-         timePeriod: String?,
-         location: String,
-         typeOfRequest: RequestType,
-         selectedUsers: [User],
-         joinedFarmers: [UUID]) {
+    init(
+        id: UUID = UUID(),
+        userId: UUID,
+        equipmentId: UUID,
+        requestedDate: Date,
+        status: BookingStatus,
+        type: BookingType,
+        area: Double,
+        timeSlot: TimeSlot,
+        timePeriod: String?,
+        location: String,
+        typeOfRequest: RequestType,
+        participants: [RequestParticipant],
+        acceptedUsers: [UUID]? = nil
+    ) {
         self.id = id
         self.userId = userId
         self.equipmentId = equipmentId
@@ -110,15 +112,32 @@ struct Request: Codable {
         self.timePeriod = timePeriod
         self.location = location
         self.typeOfRequest = typeOfRequest
-        self.selectedUsers = selectedUsers.map { $0.userID } // Convert User array to UUID array
-        self.joinedFarmers = joinedFarmers
+        self.participants = participants
+        self.acceptedUsers = acceptedUsers
     }
 }
 
+struct RequestParticipant: Codable, Identifiable {
+    let id: UUID
+    let requestId: UUID
+    let userId: UUID
+    var status: ParticipantStatus
+    var area: Double?           // Area entered by this participant
+    var timeSlot: String?     // Time slot selected by this participant
+    var joinedAt: Date
+}
+
+enum ParticipantStatus: String, Codable {
+    case pending
+    case accepted
+    case rejected
+    case done
+}
 // Also make sure RequestType is Codable
 enum RequestType: Codable {
     case myRequest
     case acceptedRequest
+    case sentRequest
 }
 struct Availability: Codable {
     var startDate: Date

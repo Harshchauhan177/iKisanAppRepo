@@ -98,7 +98,7 @@
                                     <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 </buttonConfiguration>
                                 <connections>
-                                    <action selector="acceptButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="Nup-RU-ju1"/>
+                                    <action selector="acceptButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="EN8-OY-qfz"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SzY-JF-RxU">
@@ -130,7 +130,7 @@
             </tableViewCellContentView>
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
             <connections>
-                <outlet property="acceptButton" destination="K97-ob-crE" id="apw-1H-bjV"/>
+                <outlet property="acceptButton" destination="K97-ob-crE" id="NCR-9Z-dyE"/>
                 <outlet property="dateLabel" destination="mQa-zM-mLU" id="g07-z7-kx5"/>
                 <outlet property="hostLabel" destination="Kqp-Ud-YTa" id="m96-27-yET"/>
                 <outlet property="imageLabel" destination="K0l-Gj-yQq" id="unM-8F-Nnq"/>

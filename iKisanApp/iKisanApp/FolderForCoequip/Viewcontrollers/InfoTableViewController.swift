@@ -122,13 +122,34 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     // Update viewDidLoad to setup text field delegate
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        if let address = dataController!.getCurrentUserAddress() {
-            // Set the address to your location field
-            LocationLabel.text = address
+        ImageLabel.layer.cornerRadius = 10
+        // Fetch and set user's address
+        Task {
+            do {
+                if let address = try await AuthManager.shared.fetchCurrentUserAddress() {
+                    // Update UI on main thread
+                    DispatchQueue.main.async {
+                        self.location = address
+                        self.LocationLabel.text = address
+                        print("📍 Location set from Supabase: \(address)")
+                    }
+                } else if let address = dataController?.getCurrentUserAddress() {
+                    self.location = address
+                    self.LocationLabel.text = address
+                    print("📍 Location set from DataController: \(address)")
+                } else {
+                    self.location = "Murshadpur, Greater Noida, U.P"
+                    self.LocationLabel.text = self.location
+                    print("📍 Using default location: \(self.location)")
+                }
+            } catch {
+                print("Error fetching address: \(error)")
+                // Fallback to default location
+                self.location = "Murshadpur, Greater Noida, U.P"
+                self.LocationLabel.text = self.location
+            }
         }
-        
-        // Configure UI with equipment data
+    
         if let equipment = cardData {
             // Handle image loading
             if equipment.equipmentImage.hasPrefix("http") {
@@ -144,8 +165,6 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             hostName.text = "Hosted by \(equipment.providerName ?? "Unknown")"
         }
         
-        // Set date if available
-        // Update date label with the passed date
         if let selectedDate = date {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, d MMM"
@@ -209,43 +228,97 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             return
         }
         
-        // Get current user ID and location from AuthManager
         guard let dataController = dataController,
               let currentUser = dataController.getCurrentUser() else {
-            // Show error alert for user not logged in
             let alert = UIAlertController(title: "Error", message: "Please log in to create a request", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             present(alert, animated: true)
             return
         }
         
-        // Get the most up-to-date location
         let currentLocation = AuthManager.shared.currentUser?.address ?? self.location
-        
-        // Create new request with current location
-        let request = Request(
-            userId: currentUser.userID,
-            equipmentId: equipment.equipmentID,
-            requestedDate: selectedDate,
-            status: .pending,
-            type: .coEquip,
-            area: area,
-            timeSlot: currentTimeSlot,
-            timePeriod: TimeSlotLabel.text,
-            location: currentLocation,  // Use the current location
-            typeOfRequest: .myRequest,
-            selectedUsers: selectedUsers,
-            joinedFarmers: selectedUsers.map { $0.userID }
-        )
-        
-        // Save request using data controller
-        dataController.createRequest(request)
-        
-        let alert = UIAlertController(title: "Success", message: "Request created successfully", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            self.navigationController?.popToRootViewController(animated: true)
-        })
-        present(alert, animated: true)
+        let requestId = UUID()
+        let selectedUserIds = selectedUsers.map { $0.userID }
+    
+        Task {
+            do {
+                // Create the main request first
+                let request = Request(
+                    id: requestId,
+                    userId: currentUser.userID,
+                    equipmentId: equipment.equipmentID,
+                    requestedDate: selectedDate,
+                    status: .pending,
+                    type: .coEquip,
+                    area: area,
+                    timeSlot: currentTimeSlot,
+                    timePeriod: TimeSlotLabel.text,
+                    location: currentLocation,
+                    typeOfRequest: .myRequest,
+                    participants: [], // Will be populated after creating participants
+                    acceptedUsers: nil
+                )
+    
+                // Create the request first
+                let response = try await dataController.createRequest(request)
+                
+                // Add a small delay to ensure the request is committed
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+                
+                var participants: [RequestParticipant] = []
+                
+                // Create participants after ensuring request exists
+                for user in selectedUsers {
+                    let participant = RequestParticipant(
+                        id: UUID(),
+                        requestId: requestId,
+                        userId: user.userID,
+                        status: .pending,
+                        area: nil,
+                        timeSlot: nil,
+                        joinedAt: request.requestedDate
+                    )
+                    
+                    do {
+                        try await dataController.createRequestParticipant(participant)
+                        participants.append(participant)
+                    } catch {
+                        print("❌ Error creating participant for user \(user.userID): \(error)")
+                        // Continue with other participants even if one fails
+                        continue
+                    }
+                }
+                
+                // Update the request with the created participants
+                var updatedRequest = request
+                updatedRequest.participants = participants
+                try await dataController.updateRequest(updatedRequest)
+                
+                // Show success on main thread
+                await MainActor.run {
+                    let alert = UIAlertController(
+                        title: "Success",
+                        message: "Request and participants created successfully",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                        self.navigationController?.popToRootViewController(animated: true)
+                    })
+                    self.present(alert, animated: true)
+                }
+                
+            } catch {
+                await MainActor.run {
+                    let alert = UIAlertController(
+                        title: "Error",
+                        message: "Failed to create request: \(error.localizedDescription)",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(alert, animated: true)
+                }
+            }
+        }
     }
 }
 
