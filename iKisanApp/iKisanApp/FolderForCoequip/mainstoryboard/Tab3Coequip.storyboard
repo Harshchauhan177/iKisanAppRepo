@@ -246,37 +246,42 @@
                                 </constraints>
                                 <color key="sectionIndexBackgroundColor" red="0.92156863209999995" green="0.92156863209999995" blue="0.92156863209999995" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="cell" id="UlI-FZ-Vda" customClass="MyRequestInfoTableViewCell" customModule="iKisanApp" customModuleProvider="target">
-                                        <rect key="frame" x="20" y="55.333332061767578" width="353" height="43.666667938232422"/>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="cell" id="7dh-Nc-9ph" customClass="MyRequestInfoTableViewCell" customModule="iKisanApp" customModuleProvider="target">
+                                        <rect key="frame" x="20" y="55.333332061767578" width="353" height="30.333333969116211"/>
                                         <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="UlI-FZ-Vda" id="IlJ-eu-6Cn">
-                                            <rect key="frame" x="0.0" y="0.0" width="353" height="43.666667938232422"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="7dh-Nc-9ph" id="Fod-iI-KE0">
+                                            <rect key="frame" x="0.0" y="0.0" width="353" height="30.333333969116211"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Harsh Singh" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Nmu-gU-5MS">
-                                                    <rect key="frame" x="52.000000000000007" y="11.666666666666666" width="92.666666666666686" height="20.333333333333336"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                    <nil key="textColor"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.circle" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="e4C-jc-6z5">
-                                                    <rect key="frame" x="16" y="10.666666666666666" width="24" height="22.666666666666671"/>
-                                                    <constraints>
-                                                        <constraint firstAttribute="height" constant="24" id="RRc-27-NBz"/>
-                                                        <constraint firstAttribute="width" constant="24" id="xBr-fX-9xa"/>
-                                                    </constraints>
-                                                </imageView>
+                                                <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="23" translatesAutoresizingMaskIntoConstraints="NO" id="btB-sK-GdM">
+                                                    <rect key="frame" x="0.0" y="0.0" width="353" height="30.333333333333329"/>
+                                                    <subviews>
+                                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="RU1-5G-3lk">
+                                                            <rect key="frame" x="0.0" y="0.33333333333333393" width="30" height="30"/>
+                                                            <constraints>
+                                                                <constraint firstAttribute="height" constant="30" id="DwP-r4-gTz"/>
+                                                                <constraint firstAttribute="width" constant="30" id="xdI-2Z-QYy"/>
+                                                            </constraints>
+                                                        </imageView>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="js2-RI-IBs">
+                                                            <rect key="frame" x="53" y="5" width="300" height="20.333333333333332"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                            <nil key="textColor"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                    </subviews>
+                                                </stackView>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstItem="e4C-jc-6z5" firstAttribute="centerY" secondItem="IlJ-eu-6Cn" secondAttribute="centerY" id="1yN-l0-k3A"/>
-                                                <constraint firstItem="Nmu-gU-5MS" firstAttribute="leading" secondItem="e4C-jc-6z5" secondAttribute="trailing" constant="12" id="8pi-5w-nlS"/>
-                                                <constraint firstItem="Nmu-gU-5MS" firstAttribute="centerY" secondItem="IlJ-eu-6Cn" secondAttribute="centerY" id="P2f-3P-FFM"/>
-                                                <constraint firstItem="e4C-jc-6z5" firstAttribute="leading" secondItem="IlJ-eu-6Cn" secondAttribute="leading" constant="16" id="SxC-gG-uGk"/>
+                                                <constraint firstAttribute="bottom" secondItem="btB-sK-GdM" secondAttribute="bottom" id="P0h-au-Cuf"/>
+                                                <constraint firstAttribute="trailing" secondItem="btB-sK-GdM" secondAttribute="trailing" id="b4V-qe-bXu"/>
+                                                <constraint firstItem="btB-sK-GdM" firstAttribute="top" secondItem="Fod-iI-KE0" secondAttribute="top" id="sbs-Fp-Iah"/>
+                                                <constraint firstItem="btB-sK-GdM" firstAttribute="leading" secondItem="Fod-iI-KE0" secondAttribute="leading" id="zJn-g2-kKR"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                         <connections>
-                                            <outlet property="imageLabel" destination="e4C-jc-6z5" id="6Zq-n3-fjg"/>
-                                            <outlet property="nameLabel" destination="Nmu-gU-5MS" id="ciY-f7-GYD"/>
+                                            <outlet property="imageLabel" destination="RU1-5G-3lk" id="gbb-gN-QQB"/>
+                                            <outlet property="nameLabel" destination="js2-RI-IBs" id="gJ9-eR-YKg"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>

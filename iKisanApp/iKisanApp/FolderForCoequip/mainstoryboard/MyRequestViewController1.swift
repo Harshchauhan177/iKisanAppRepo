@@ -23,25 +23,27 @@ class MyRequestViewController1: UIViewController {
     private var selectedUserIds: [UUID] = []
     private var acceptedRequestPeopleList: [User] = []
     
+    // Add property to store user areas
+    private var userAreas: [UUID: Double] = [:]
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("ViewDidLoad started")
+        print("Request details: \(String(describing: request))")
         
-        let nib = UINib(nibName: "MyRequestInfoTableViewCell", bundle: nil)
-        listTableView.register(nib, forCellReuseIdentifier: "cell")
+        // Setup table view and register nib
+        setupTableView()
         
         if let request = request,
            let equipment = dataController?.getEquipmentById(request.equipmentId) {
-            // Check if the equipmentImage is a URL or a local asset name
+            // Setup equipment details
             if equipment.equipmentImage.hasPrefix("http") {
-                // It's a URL, use our ImageCache utility to load it
                 equipmentImageLabel.loadImage(from: equipment.equipmentImage)
             } else {
-                // Fallback to local asset loading for backward compatibility
                 equipmentImageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
             }
             equipmentTitleLabel.text = equipment.name
             hostNameLabel.text = equipment.providerName
-           // currentAreaLabel.text = "\(request.area) acres"
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, d MMM"
             let dateString = dateFormatter.string(from: request.requestedDate)
@@ -49,70 +51,59 @@ class MyRequestViewController1: UIViewController {
             let totalPrice = equipment.pricePerAcre 
             priceLabel.text = "₹ \(Int(totalPrice))\nDate: \(dateString)"
             
-            // Initialize empty list since we can't get accepted users yet
-            acceptedRequestPeopleList = []
+            // Clear and populate accepted users list
+            acceptedRequestPeopleList.removeAll()
             
-            // Get accepted users from request participants
-            if let participants = request.participants?.filter({ $0.status == .done }) {
-                // Convert participant user IDs to User objects
-                acceptedRequestPeopleList = participants.compactMap { participant in
-                    dataController?.getUserById(participant.userId)
-                }
-            }
-            
-            
-           
-            // Initialize the list only once
-            acceptedRequestPeopleList = []
-            print("Starting to gather users for Request ID: \(request.id)")
-            
-            // First, check acceptedUser array from the database
-            if let acceptedUserIds = request.acceptedUsers { // Changed from acceptedUser to acceptedUsers
-                print("Processing accepted users from database: \(acceptedUserIds.count)")
-                let acceptedUsers = acceptedUserIds.compactMap { userId in
-                    let user = dataController?.getUserById(userId)
-                    print("Processing accepted user ID: \(userId)")
-                    return user
-                }
-                acceptedRequestPeopleList.append(contentsOf: acceptedUsers)
-                print("After accepted users: \(acceptedRequestPeopleList.count) users")
-            }
-            
-            // Then add any participants with accepted status
-            if let participants = request.participants {
-                print("Processing participants")
-                let acceptedParticipants = participants.filter { $0.status.rawValue == "accepted" }
-                let participantUsers = acceptedParticipants.compactMap { participant in
-                    let user = dataController?.getUserById(participant.userId)
-                    if !acceptedRequestPeopleList.contains(where: { $0.userID == user?.userID }) {
-                        return user
+            // Get accepted users from the request
+            if let acceptedUserIds = request.acceptedUsers {
+                print("Processing accepted users: \(acceptedUserIds)")
+                
+                for userId in acceptedUserIds {
+                    print("Looking up user with ID: \(userId)")
+                    if let user = dataController?.getUserById(userId) {
+                        print("Found user: \(user.name)")
+                        acceptedRequestPeopleList.append(user)
                     }
-                    return nil
                 }
-                acceptedRequestPeopleList.append(contentsOf: participantUsers)
+                
+                print("Total accepted users found: \(acceptedRequestPeopleList.count)")
             }
             
-            // Finally add any selected users not already included
-            if let selectedUsers = request.acceptedUsers{
-                let additionalUsers = selectedUsers.compactMap { userId in
-                    let user = dataController?.getUserById(userId)
-                    if !acceptedRequestPeopleList.contains(where: { $0.userID == user?.userID }) {
-                        return user
-                    }
-                    return nil
-                }
-                acceptedRequestPeopleList.append(contentsOf: additionalUsers)
+            // Reload table view on main thread
+            DispatchQueue.main.async {
+                self.listTableView.reloadData()
             }
-            
-            print("Final user count: \(acceptedRequestPeopleList.count)")
-            
-            listTableView.delegate = self
-            listTableView.dataSource = self
-            listTableView.reloadData()
         } else {
             print("Failed to load request or equipment data")
         }
+        
         setupViewAppearance()
+    }
+    
+    private func setupTableView() {
+        print("Setting up table view")
+        
+        // Ensure table view outlet is connected
+        guard listTableView != nil else {
+            print("Error: listTableView outlet is not connected!")
+            return
+        }
+        
+        // Register the nib file
+        let nibName = "MyRequestInfoTableViewCell"
+        let nib = UINib(nibName: nibName, bundle: nil)
+        
+        // Verify nib loaded successfully
+        guard Bundle.main.path(forResource: nibName, ofType: "nib") != nil else {
+            print("Error: Could not find \(nibName).nib file!")
+            return
+        }
+        
+        listTableView.register(nib, forCellReuseIdentifier: "cell")
+        listTableView.delegate = self
+        listTableView.dataSource = self
+        
+        print("Table view setup completed")
     }
     
     private func setupViewAppearance() {
@@ -201,16 +192,16 @@ class MyRequestViewController1: UIViewController {
 
 extension MyRequestViewController1: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print("Number of rows: \(acceptedRequestPeopleList.count)")
-        return acceptedRequestPeopleList.count
+        let count = acceptedRequestPeopleList.count
+        print("Number of rows in table: \(count)")
+        return count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        print("Configuring cell at index: \(indexPath.row)")
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MyRequestInfoTableViewCell
-        let person = acceptedRequestPeopleList[indexPath.row]
-        print("User name: \(person.name)")
-        cell.configure(with: person)
+        let user = acceptedRequestPeopleList[indexPath.row]
+        print("Configuring cell for user: \(user.name)")
+        cell.configure(with: user)
         return cell
     }
     
