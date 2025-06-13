@@ -1,7 +1,12 @@
 import UIKit
 import SwiftUI
+import AuthenticationServices
+import Combine
 
 class LoginViewController: UIViewController {
+    
+    // MARK: - Properties
+    private let appleSignInViewModel = SignInWithAppleViewModel()
     
     // MARK: - UI Components
     private let containerStackView: UIStackView = {
@@ -120,6 +125,13 @@ class LoginViewController: UIViewController {
         return stackView
     }()
     
+    private let appleSignInButton: ASAuthorizationAppleIDButton = {
+        let button = ASAuthorizationAppleIDButton(type: .signIn, style: .black)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.cornerRadius = 8
+        return button
+    }()
+    
     private let forgotPasswordButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Forgot Password?", for: .normal)
@@ -155,6 +167,7 @@ class LoginViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         configureActions()
+        setupAppleSignInObservers()
     }
     
     // MARK: - UI Setup
@@ -175,6 +188,7 @@ class LoginViewController: UIViewController {
         formStackView.addArrangedSubview(passwordTextField)
         formStackView.addArrangedSubview(loginButton)
         
+        buttonsStackView.addArrangedSubview(appleSignInButton)
         buttonsStackView.addArrangedSubview(forgotPasswordButton)
         buttonsStackView.addArrangedSubview(createAccountButton)
         
@@ -199,6 +213,11 @@ class LoginViewController: UIViewController {
             loginButton.leadingAnchor.constraint(equalTo: formStackView.leadingAnchor),
             loginButton.trailingAnchor.constraint(equalTo: formStackView.trailingAnchor),
             
+            // Apple Sign In button constraints
+            appleSignInButton.heightAnchor.constraint(equalToConstant: 44),
+            appleSignInButton.leadingAnchor.constraint(equalTo: buttonsStackView.leadingAnchor),
+            appleSignInButton.trailingAnchor.constraint(equalTo: buttonsStackView.trailingAnchor),
+            
             // Activity indicator constraints
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
@@ -214,7 +233,45 @@ class LoginViewController: UIViewController {
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
         forgotPasswordButton.addTarget(self, action: #selector(forgotPasswordButtonTapped), for: .touchUpInside)
         createAccountButton.addTarget(self, action: #selector(createAccountButtonTapped), for: .touchUpInside)
+        appleSignInButton.addTarget(self, action: #selector(appleSignInButtonTapped), for: .touchUpInside)
     }
+    
+    // MARK: - Apple Sign In Observers
+    private func setupAppleSignInObservers() {
+        // Observe authentication state changes
+        appleSignInViewModel.$isAuthenticated
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isAuthenticated in
+                if isAuthenticated {
+                    self?.navigateAfterAppleSignIn()
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Observe error messages
+        appleSignInViewModel.$errorMessage
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] errorMessage in
+                if let errorMessage = errorMessage {
+                    self?.showAlert(title: "Apple Sign In Error", message: errorMessage)
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Observe loading state
+        appleSignInViewModel.$isLoading
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isLoading in
+                if isLoading {
+                    self?.activityIndicator.startAnimating()
+                } else {
+                    self?.activityIndicator.stopAnimating()
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Action Methods
     @objc private func loginButtonTapped() {
@@ -263,33 +320,9 @@ class LoginViewController: UIViewController {
         }
     }
     
-//    @objc private func forgotPasswordButtonTapped() {
-//        let alertController = UIAlertController(title: "Reset Password", 
-//                                              message: "Enter your email address to receive a password reset link", 
-//                                              preferredStyle: .alert)
-//        
-//        alertController.addTextField { textField in
-//            textField.placeholder = "Email"
-//            textField.keyboardType = .emailAddress
-//            textField.autocapitalizationType = .none
-//        }
-//        
-//        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
-//        let resetAction = UIAlertAction(title: "Reset", style: .default) { [weak self] _ in
-//            guard let email = alertController.textFields?.first?.text, !email.isEmpty else {
-//                self?.showAlert(title: "Error", message: "Please enter your email address")
-//                return
-//            }
-//            
-//            // Send reset password request
-//            self?.resetPassword(email: email)
-//        }
-//        
-//        alertController.addAction(cancelAction)
-//        alertController.addAction(resetAction)
-//        
-//        present(alertController, animated: true)
-//    }
+    @objc private func appleSignInButtonTapped() {
+        appleSignInViewModel.signIn()
+    }
 
     @objc private func forgotPasswordButtonTapped() {
         // Push the SwiftUI OTP‐reset flow
@@ -297,7 +330,6 @@ class LoginViewController: UIViewController {
         navigationController?.pushViewController(forgotVC, animated: true)
     }
 
-    
     private func resetPassword(email: String) {
         activityIndicator.startAnimating()
         
@@ -329,6 +361,39 @@ class LoginViewController: UIViewController {
         // Users can select crops from their profile if needed
         
         // Use the storyboard to get the properly configured MainTabBarController
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController {
+            // Configure the tab bar with data controller
+            let dataController = IKisanDataController()
+            
+            // Set the data controller for each view controller in the tab bar
+            if let mainTabBarController = tabBarController as? MainTabBarController {
+                mainTabBarController.dataController = dataController
+            }
+            
+            // Configure individual view controllers
+            if let viewControllers = tabBarController.viewControllers {
+                for viewController in viewControllers {
+                    if let navController = viewController as? UINavigationController {
+                        if let homeVC = navController.viewControllers.first as? HomeViewController {
+                            homeVC.dataController = dataController
+                        } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
+                            agriAssistVC.dataController = dataController
+                        } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
+                            coequipVC.dataController = dataController
+                        }
+                    }
+                }
+            }
+            
+            // Set as root view controller
+            UIApplication.shared.windows.first?.rootViewController = tabBarController
+            UIApplication.shared.windows.first?.makeKeyAndVisible()
+        }
+    }
+    
+    private func navigateAfterAppleSignIn() {
+        // Navigate to main app after successful Apple Sign In
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController {
             // Configure the tab bar with data controller

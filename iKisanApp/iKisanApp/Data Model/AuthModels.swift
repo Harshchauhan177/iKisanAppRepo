@@ -289,7 +289,7 @@ class AuthManager {
 //            throw AuthError.resetPasswordFailed
 //        }
 //    }
-    /// Send a recovery OTP to the user’s email
+    /// Send a recovery OTP to the user's email
     func resetPassword(email: String) async throws {
         do {
             // call without the `email:` label
@@ -549,6 +549,67 @@ class AuthManager {
         } catch {
             print("Error updating field area: \(error)")
             throw error
+        }
+    }
+    
+    // MARK: - Apple Sign In Support
+    
+    /// Handle Apple Sign In session and create/update user in the database
+    func handleAppleSignInSession(_ session: Session, name: String, email: String) async throws -> AuthUser {
+        do {
+            // First, try to fetch existing user from the users table
+            let result = try await supabase.client
+                .from("users")
+                .select()
+                .eq("userID", value: session.user.id.uuidString)
+                .single()
+                .execute()
+            
+            // User exists, decode and return
+            let userData = result.data
+            let appUser = try JSONDecoder().decode(AuthUser.self, from: userData)
+            
+            // Update local user
+            self.currentUser = appUser
+            saveUserToUserDefaults(appUser)
+            
+            return appUser
+        } catch {
+            // User doesn't exist, create new user record
+            print("User not found in database, creating new user record...")
+            
+            let newUser = NewUserRequest(
+                userID: session.user.id.uuidString,
+                name: name,
+                email: email,
+                phone: "", // Empty phone for Apple Sign In users
+                latitude: 0.0,
+                longitude: 0.0,
+                fieldArea: 0.0
+            )
+            
+            // Insert new user record
+            try await supabase.client
+                .from("users")
+                .insert(newUser)
+                .execute()
+            
+            // Fetch the newly created user
+            let result = try await supabase.client
+                .from("users")
+                .select()
+                .eq("userID", value: session.user.id.uuidString)
+                .single()
+                .execute()
+            
+            let userData = result.data
+            let appUser = try JSONDecoder().decode(AuthUser.self, from: userData)
+            
+            // Save user locally
+            self.currentUser = appUser
+            saveUserToUserDefaults(appUser)
+            
+            return appUser
         }
     }
 
