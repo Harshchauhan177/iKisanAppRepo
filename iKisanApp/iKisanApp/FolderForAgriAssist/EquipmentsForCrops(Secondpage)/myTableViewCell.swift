@@ -78,17 +78,7 @@ class myTableViewCell: UITableViewCell,UICollectionViewDataSource,UICollectionVi
         }
         
         print("Configuring cell for equipment: \(equipment.name)")
-        cell.myEquipmentsName.text = equipment.name
-        if let image = UIImage(named: equipment.imageName) {
-            cell.myEquipmentImage.image = image
-        } else {
-            print("Warning: Image not found for \(equipment.imageName)")
-            cell.myEquipmentImage.image = UIImage(named: "placeholder_image")
-        }
-        cell.myEquipmentImage.layer.cornerRadius = cell.myEquipmentImage.frame.width / 2
-        cell.myEquipmentImage.clipsToBounds = true
-        cell.myEquipmentImage.layer.borderWidth = 2.0
-        cell.myEquipmentImage.layer.borderColor = UIColor.gray.cgColor
+        cell.configure(with: equipment)
         
         return cell
     }
