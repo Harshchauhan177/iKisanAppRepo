@@ -4,13 +4,24 @@ import CoreLocation
 struct SelectFarmerView: View {
     let dataController: DataController
     let onFarmerSelection: ([User]) -> Void
-    @State private var selectedFarmers: Set<User> = []
+    let initialSelectedFarmers: Set<User>
+    
+    @State private var selectedFarmers: Set<User>
     @State private var searchText = ""
     @State private var users: [User] = []
     @State private var isLoading = true
     @State private var selectedFilter = FilterOption.all
     @State private var currentUserLocation: CLLocation?
     @Environment(\.dismiss) private var dismiss
+    
+    init(dataController: DataController, 
+         initialSelectedFarmers: Set<User> = Set(),
+         onFarmerSelection: @escaping ([User]) -> Void) {
+        self.dataController = dataController
+        self.onFarmerSelection = onFarmerSelection
+        self.initialSelectedFarmers = initialSelectedFarmers
+        _selectedFarmers = State(initialValue: initialSelectedFarmers)
+    }
 
     enum FilterOption: String, CaseIterable {
         case all = "All"
@@ -122,18 +133,22 @@ struct SelectFarmerView: View {
             }
         }
         .task {
-            do {
-                // Get current user's location
-                if let currentUser = AuthManager.shared.currentUser,
-                   let location = currentUser.location {
-                    currentUserLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+            if users.isEmpty {
+                do {
+                    // Get current user's location
+                    if let currentUser = AuthManager.shared.currentUser,
+                       let location = currentUser.location {
+                        currentUserLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+                    }
+                    
+                    // Get all users
+                    users = await dataController.getAllUsers()
+                    isLoading = false
+                } catch {
+                    print("Error loading users: \(error)")
+                    isLoading = false
                 }
-                
-                // Get all users
-                users = await dataController.getAllUsers()
-                isLoading = false
-            } catch {
-                print("Error loading users: \(error)")
+            } else {
                 isLoading = false
             }
         }

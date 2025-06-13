@@ -235,13 +235,18 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     }
     
     @IBAction func AddFarmerButtonTapped(_ sender: UIButton) {
-        let selectFarmerView = SelectFarmerView(dataController: self.dataController ?? IKisanDataController()) { selectedFarmers in
-            self.selectedUsers = selectedFarmers  // Store the selected farmers
-            self.FarmerListLabel.text = selectedFarmers.map { $0.name }.joined(separator: ", ")
-        }
+        let selectFarmerView = SelectFarmerView(
+            dataController: self.dataController ?? IKisanDataController(),
+            initialSelectedFarmers: Set(selectedUsers), // Pass currently selected farmers
+            onFarmerSelection: { [weak self] selectedFarmers in
+                guard let self = self else { return }
+                self.selectedUsers = selectedFarmers
+                self.FarmerListLabel.text = selectedFarmers.map { $0.name }.joined(separator: ", ")
+            }
+        )
         let hostingController = UIHostingController(rootView: selectFarmerView)
-        hostingController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
-        self.present(hostingController, animated: true)
+        hostingController.modalPresentationStyle = .fullScreen
+        present(hostingController, animated: true)
     }
     
     @IBAction func CreateButtonTapped(_ sender: UIButton, forEvent event: UIEvent) {
