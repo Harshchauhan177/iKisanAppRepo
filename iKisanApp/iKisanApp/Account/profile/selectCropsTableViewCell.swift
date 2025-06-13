@@ -28,9 +28,20 @@ class selectCropsTableViewCell: UITableViewCell {
         cropImageView.layer.masksToBounds = true
     }
     
-    func configure(with crop: AgriCrop) {
+    func configure(with crop: Crop) {
         cropNameLabel.text = crop.name
-        cropImageView.image = UIImage(named: crop.imageName)
+        // Use the existing ImageCache utility to load and cache the image
+        if !crop.imageURL.isEmpty {
+            cropImageView.loadImage(from: crop.imageURL, placeholder: UIImage(systemName: "leaf"))
+        } else {
+            cropImageView.image = UIImage(systemName: "leaf")
+        }
+    }
+    
+
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
     }
     
     

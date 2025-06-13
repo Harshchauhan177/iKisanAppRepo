@@ -515,7 +515,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             cell.layer.cornerRadius = 10
             //applyShadowStyling(to: cell)
             let equipment = allEquipment[indexPath.row]
-            cell.updateDiscountsData(with: equipment)
+            cell.updateDiscountsData(with: equipment, reviews: reviews)
             return cell
             
         case 1:
@@ -562,6 +562,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             cell.layer.cornerRadius = 13
             //applyShadowStyling(to: cell)
             let equipment = allEquipment[indexPath.row]
+            // Set the delegate to self so button taps are received
+            cell.delegate = self
             cell.updateExploreMoreData(with: equipment)
             return cell
 
@@ -817,14 +819,33 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
     func didTapViewButton(on cell: ExploreMoreCollectionViewCell) {
-        if let indexPath = collectionView.indexPath(for: cell) {
+        guard let indexPath = collectionView.indexPath(for: cell) else {
+            print("Error: Could not find indexPath for ExploreMoreCollectionViewCell")
+            return
         }
+        
+        // Get the equipment data for the tapped cell
+        let dataSection = getDataSection(for: indexPath.section)
+        guard dataSection == 3, indexPath.row < allEquipment.count else {
+            print("Error: Invalid section or index in didTapViewButton for ExploreMoreCollectionViewCell")
+            return
+        }
+        
+        let equipment = allEquipment[indexPath.row]
+        
+        // Navigate to Review Booking View
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
         if let viewController = storyboard.instantiateViewController(withIdentifier: "ReviewBookingTableViewController") as? ReviewBookingTableViewController {
-            //viewController.modalTransitionStyle = .crossDissolve
-            viewController.modalPresentationStyle = .fullScreen // Optional: Set presentation style
-            //present(viewController, animated: true, completion: nil)
+            // Pass the equipment data to the ReviewBookingTableViewController
+            viewController.equipment = equipment
+            
+            // Set the booking source to .home so it redirects back to Home tab after booking
+            viewController.bookingSource = .home
+            
+            viewController.modalPresentationStyle = .fullScreen
             navigationController?.pushViewController(viewController, animated: true)
+            
+            print("Navigating to ReviewBookingTableViewController with source=home")
         }
     }
     

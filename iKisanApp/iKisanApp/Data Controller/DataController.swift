@@ -50,11 +50,14 @@ protocol DataController {
     func getEquipment(sortedBy: SortOption) -> [Equipment]
     func searchEquipment(query: String) -> [Equipment]
     func getUpcomingBookings() -> [Booking]
-    func addBooking(_ booking: Booking)
+    func addBooking(_ booking: Booking) -> Bool
+    func isEquipmentAvailable(equipmentID: UUID, date: Date, timeSlot: TimeSlot) -> Bool
+    func getAvailableTimeSlots(equipmentID: UUID, date: Date) -> [TimeSlot]
     func refreshBookingsFromDatabase() async
     
     // AgriAssist Related Functions
     func getAllCrops() -> [AgriCrop]
+    func getAllCropsForSelection() -> [Crop]
     func getCropCategory(forCrop cropId: UUID) -> CropCategory?
     func getEquipmentCategories(forCrop cropId: UUID) -> [EquipmentCategory]
     func getEquipmentAgri(forCategory categoryId: UUID) -> [EquipmentAgri]
@@ -354,6 +357,7 @@ class IKisanDataController: DataController {
     private var suggestionList: [Equipment] = []
     private var bookingsList: [Booking] = []
     private var crops: [AgriCrop] = []
+    private var cropsForSelection: [Crop] = []
     private var cropCategories: [CropCategory] = []
     private let sectionHeaders = ["Equipment Type Details", "Related Equipment"]
     private var coEquipRequests: [Request] = []
@@ -372,6 +376,18 @@ class IKisanDataController: DataController {
         if let savedCrops = UserDefaults.standard.array(forKey: selectedCropsKey) as? [String] {
             selectedCrops = Set(savedCrops)
             print("Loaded selected crops: \(selectedCrops)")
+        }
+        
+        // Eagerly fetch crops from Supabase when controller is initialized
+        Task {
+            print("Fetching crops from Supabase...")
+            let fetchedCrops = await requestManager.fetchCrops()
+            await MainActor.run {
+                self.crops = fetchedCrops
+                print("Fetched \(fetchedCrops.count) crops from Supabase")
+                // Notify any UI that needs updating
+                NotificationCenter.default.post(name: NSNotification.Name("CropsUpdated"), object: nil)
+            }
         }
         
         // Setup initial data
@@ -451,22 +467,35 @@ class IKisanDataController: DataController {
         return bookingsList.filter { $0.bookingDate > currentDate }
     }
     
-    func addBooking(_ booking: Booking) {
+    func addBooking(_ booking: Booking) -> Bool {
         // Ensure we have a logged in user
         guard let currentUser = AuthManager.shared.currentUser else {
             print("Error: No logged in user found")
-            return
+            return false
         }
         
         // Verify the equipment exists
         guard let equipment = getEquipment(byId: booking.equipmentID) else {
             print("Error: Equipment with ID \(booking.equipmentID) not found")
-            return
+            return false
+        }
+        
+        // Check if the equipment is already booked for this date and time slot
+        if !isEquipmentAvailable(equipmentID: booking.equipmentID, date: booking.bookingDate, timeSlot: booking.timeSlot) {
+            print("Error: Equipment \(equipment.name) is already booked for \(booking.bookingDate) during \(booking.timeSlot.rawValue)")
+            return false
         }
         
         print("Creating booking for equipment: \(equipment.name) with ID: \(equipment.equipmentID)")
         
-        // Create a new booking with the current user's ID
+        // Log location data to verify it's being passed correctly
+        if let location = booking.bookingLocation {
+            print("Booking location data: lat=\(location.latitude), lon=\(location.longitude), address=\(location.address ?? "none")")
+        } else {
+            print("Warning: No location data provided with this booking")
+        }
+        
+        // Create a new booking with the current user's ID AND preserve the location data
         let bookingWithUserId = Booking(
             bookingID: booking.bookingID,
             userID: currentUser.id, // Use the current user's ID
@@ -476,7 +505,8 @@ class IKisanDataController: DataController {
             fieldArea: booking.fieldArea,
             status: booking.status,
             timeSlot: booking.timeSlot,
-            source: booking.source
+            source: booking.source,
+            bookingLocation: booking.bookingLocation // Include the location data
         )
         
         bookingsList.append(bookingWithUserId)
@@ -485,6 +515,8 @@ class IKisanDataController: DataController {
         Task {
             await RequestManager.shared.createBooking(bookingWithUserId)
         }
+        
+        return true
     }
     
     func refreshBookingsFromDatabase() async {
@@ -499,9 +531,107 @@ class IKisanDataController: DataController {
         }
     }
     
+    func isEquipmentAvailable(equipmentID: UUID, date: Date, timeSlot: TimeSlot) -> Bool {
+        // Get all bookings for this equipment
+        let existingBookings = bookingsList.filter { booking in
+            // Only consider confirmed or pending bookings
+            let relevantStatus = [BookingStatus.confirmed, BookingStatus.pending].contains(booking.status)
+            
+            // Check if this booking is for the same equipment
+            let sameEquipment = booking.equipmentID == equipmentID
+            
+            // Check if the booking is for the same date (ignoring time)
+            let sameDate = Calendar.current.isDate(booking.bookingDate, inSameDayAs: date)
+            
+            // Check if the booking is for the same time slot
+            let sameTimeSlot = booking.timeSlot == timeSlot
+            
+            // Return true if all conditions are met (meaning the equipment is already booked)
+            return relevantStatus && sameEquipment && sameDate && sameTimeSlot
+        }
+        
+        // If there are no existing bookings that match our criteria, the equipment is available
+        return existingBookings.isEmpty
+    }
+    
+    func getAvailableTimeSlots(equipmentID: UUID, date: Date) -> [TimeSlot] {
+        // Start with all possible time slots
+        var availableSlots: [TimeSlot] = [.morning, .afternoon, .evening]
+        
+        // Get all bookings for this equipment on this date
+        let bookedSlots = bookingsList.filter { booking in
+            // Only consider confirmed or pending bookings
+            let relevantStatus = [BookingStatus.confirmed, BookingStatus.pending].contains(booking.status)
+            
+            // Check if this booking is for the same equipment
+            let sameEquipment = booking.equipmentID == equipmentID
+            
+            // Check if the booking is for the same date (ignoring time)
+            let sameDate = Calendar.current.isDate(booking.bookingDate, inSameDayAs: date)
+            
+            return relevantStatus && sameEquipment && sameDate
+        }.map { $0.timeSlot }
+        
+        // Remove booked slots from available slots
+        for slot in bookedSlots {
+            if let index = availableSlots.firstIndex(of: slot) {
+                availableSlots.remove(at: index)
+            }
+        }
+        
+        return availableSlots
+    }
+    
     // MARK: - AgriAssist Functions
     
+    func getAllCropsForSelection() -> [Crop] {
+        // If crops for selection array is empty, try to fetch them synchronously
+        if cropsForSelection.isEmpty {
+            // Create a task to fetch crops
+            Task {
+                let fetchedCrops = await requestManager.fetchCropsForSelection()
+                if !fetchedCrops.isEmpty {
+                    // Update crops on the main thread
+                    await MainActor.run {
+                        self.cropsForSelection = fetchedCrops
+                        // Notify any UI that needs updating
+                        NotificationCenter.default.post(name: NSNotification.Name("CropsForSelectionUpdated"), object: nil)
+                    }
+                }
+            }
+            
+            // Return existing crops for selection if available, otherwise convert from current crops temporarily
+            if !cropsForSelection.isEmpty {
+                return cropsForSelection
+            } else if !crops.isEmpty {
+                // Temporarily convert AgriCrop to Crop until data is loaded
+                return crops.map { Crop(id: $0.id, name: $0.name, imageURL: $0.imageName) }
+            }
+            return []
+        }
+        
+        return cropsForSelection
+    }
+    
     func getAllCrops() -> [AgriCrop] {
+        // If crops array is empty, try to fetch them synchronously
+        if crops.isEmpty {
+            // Create a task to fetch crops
+            Task {
+                let fetchedCrops = await requestManager.fetchCrops()
+                if !fetchedCrops.isEmpty {
+                    // Update crops on the main thread
+                    await MainActor.run {
+                        self.crops = fetchedCrops
+                        // Notify any UI that needs updating
+                        NotificationCenter.default.post(name: NSNotification.Name("CropsUpdated"), object: nil)
+                    }
+                }
+            }
+            
+            // Return current crops (might still be empty)
+            return crops
+        }
         return crops
     }
     
@@ -933,6 +1063,48 @@ class IKisanDataController: DataController {
     func getSelectedCrops() -> Set<String> {
         return selectedCrops
     }
+    
+    // Key for storing crop field areas in UserDefaults
+    private let cropFieldAreasKey = "userCropFieldAreas"
+    
+    // Save field area for a specific crop
+    func saveCropFieldArea(cropName: String, area: String) {
+        // Get existing field areas or create a new dictionary
+        var fieldAreas = UserDefaults.standard.dictionary(forKey: cropFieldAreasKey) as? [String: String] ?? [:]
+        
+        // Update the field area for this crop
+        fieldAreas[cropName] = area
+        
+        // Save the updated dictionary
+        UserDefaults.standard.set(fieldAreas, forKey: cropFieldAreasKey)
+        print("Saved field area \(area) for crop: \(cropName)")
+    }
+    
+    // Save multiple crop field areas at once
+    func saveCropFieldAreas(areas: [String: String]) {
+        // Get existing field areas or create a new dictionary
+        var fieldAreas = UserDefaults.standard.dictionary(forKey: cropFieldAreasKey) as? [String: String] ?? [:]
+        
+        // Merge the new areas with existing ones
+        for (crop, area) in areas {
+            fieldAreas[crop] = area
+        }
+        
+        // Save the updated dictionary
+        UserDefaults.standard.set(fieldAreas, forKey: cropFieldAreasKey)
+        print("Saved field areas for \(areas.count) crops")
+    }
+    
+    // Get field area for a specific crop
+    func getCropFieldArea(cropName: String) -> String? {
+        let fieldAreas = UserDefaults.standard.dictionary(forKey: cropFieldAreasKey) as? [String: String] ?? [:]
+        return fieldAreas[cropName]
+    }
+    
+    // Get all stored crop field areas
+    func getAllCropFieldAreas() -> [String: String] {
+        return UserDefaults.standard.dictionary(forKey: cropFieldAreasKey) as? [String: String] ?? [:]
+    }
 }
 
 class currentUser {
@@ -1338,35 +1510,55 @@ class RequestManager {
         }
     }
     
+    func fetchCropsForSelection() async -> [Crop] {
+        do {
+            // Use the 'crops' table as specified by the user
+            let data: [AgriCropDTO] = try await SupabaseManager.shared.client
+                .from("crops")
+                .select("*")
+                .execute()
+                .value
+            
+            return data.map { dto in
+                Crop(
+                    id: UUID(uuidString: dto.cropID) ?? UUID(),
+                    name: dto.name,
+                    imageURL: dto.imageURL ?? "" // Using empty string as fallback if imageURL is nil
+                )
+            }
+        } catch {
+            print("Error fetching crops for selection from Supabase: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            // Return empty array instead of fallback data to ensure only backend data is used
+            return []
+        }
+    }
+    
     func fetchCrops() async -> [AgriCrop] {
         do {
-            // Use the correct camelCase table name "agriCrops" instead of "agri_crops"
+            // Use the 'crops' table as specified by the user
             let data: [AgriCropDTO] = try await SupabaseManager.shared.client
-                .from("agriCrops")
+                .from("crops")
                 .select("*")
                 .execute()
                 .value
             
             return data.map { dto in
                 AgriCrop(
-                    id: UUID(uuidString: dto.id) ?? UUID(),
+                    id: UUID(uuidString: dto.cropID) ?? UUID(),
                     name: dto.name,
-                    imageName: dto.imageName
+                    imageName: dto.imageURL ?? "" // Using empty string as fallback if imageURL is nil
                 )
             }
         } catch {
-            print("Error fetching crops: \(error)")
-            
-            // FALLBACK DATA: Used only when backend request fails
-            let fallbackCrops: [AgriCrop] = [
-                AgriCrop(id: UUID(uuidString: "F621E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Rice", imageName: "Rice"),
-                AgriCrop(id: UUID(uuidString: "F622E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Wheat", imageName: "Wheat"),
-                AgriCrop(id: UUID(uuidString: "F623E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Oats", imageName: "Oats"),
-                AgriCrop(id: UUID(uuidString: "F624E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Cotton", imageName: "Cotton"),
-                AgriCrop(id: UUID(uuidString: "F625E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Tea", imageName: "Tea"),
-                AgriCrop(id: UUID(uuidString: "F626E1F8-C36C-495A-93FC-0C247A3E6E5F")!, name: "Maize", imageName: "Maize")
-            ]
-            return fallbackCrops
+            print("Error fetching crops from Supabase: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            // Return empty array instead of fallback data to ensure only backend data is used
+            return []
         }
     }
     
@@ -1395,27 +1587,12 @@ class RequestManager {
             
             return categories
         } catch {
-            print("Error fetching equipment categories: \(error)")
-            
-            // FALLBACK DATA: Used only when backend request fails
-            let fallbackCategories: [EquipmentCategory] = [
-                EquipmentCategory(
-                    id: UUID(uuidString: "A621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                    title: "Cultivators",
-                    equipmentList: []
-                ),
-                EquipmentCategory(
-                    id: UUID(uuidString: "A622E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                    title: "Harvesters",
-                    equipmentList: []
-                ),
-                EquipmentCategory(
-                    id: UUID(uuidString: "A623E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                    title: "Seeders",
-                    equipmentList: []
-                )
-            ]
-            return fallbackCategories
+            print("Error fetching equipment categories from Supabase: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            // Return empty array instead of fallback data to ensure only backend data is used
+            return []
         }
     }
     
@@ -1465,22 +1642,12 @@ class RequestManager {
                 )
             }
         } catch {
-            print("Error fetching FAQs: \(error)")
-            
-            // FALLBACK DATA: Used only when backend request fails
-            let fallbackFAQs: [FAQ] = [
-                FAQ(id: UUID(),
-                    question: "How does prebooking work?",
-                    answer: "Select equipment, choose dates, and confirm booking."),
-                FAQ(id: UUID(),
-                    question: "What if equipment is unavailable?",
-                    answer: "You'll be notified and can choose alternate dates."),
-                FAQ(id: UUID(),
-                    question: "Can I cancel or modify a booking?",
-                    answer: "Yes, you can modify or cancel up to 24 hours before the booking.")
-            ]
-            
-            return fallbackFAQs
+            print("Error fetching FAQs from Supabase: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            // Return empty array instead of fallback data to ensure only backend data is used
+            return []
         }
     }
     
@@ -1490,6 +1657,18 @@ class RequestManager {
         do {
             // Log the raw UUID values before conversion
             print("Raw UUIDs - Booking ID: \(booking.bookingID), User ID: \(booking.userID), Equipment ID: \(booking.equipmentID)")
+            
+            // Extract location data if available
+            let latitude = booking.bookingLocation?.latitude
+            let longitude = booking.bookingLocation?.longitude
+            let address = booking.bookingLocation?.address
+            
+            // Log location data
+            if let lat = latitude, let lon = longitude {
+                print("Including location data in booking: lat=\(lat), lon=\(lon), address=\(address ?? "none")")
+            } else {
+                print("No location data to include in booking")
+            }
             
             // Convert all UUIDs to lowercase strings
             let dto = BookingDTO(
@@ -1501,7 +1680,10 @@ class RequestManager {
                 fieldArea: booking.fieldArea,
                 status: booking.status.rawValue,
                 timeSlot: booking.timeSlot.rawValue,
-                source: booking.source == .home ? "home" : "prebooking"
+                source: booking.source == .home ? "home" : "prebooking",
+                latitude: latitude,
+                longitude: longitude,
+                address: address
             )
             
             print("Creating booking in database - ID: \(dto.id), User: \(dto.userId), Equipment: \(dto.equipmentId)")
@@ -1635,9 +1817,9 @@ class RequestManager {
     
     func fetchCropCategories() async -> [CropCategory] {
         do {
-            // First fetch the crops using the correct table name
+            // First fetch the crops from the 'crops' table
             let cropsData: [AgriCropDTO] = try await SupabaseManager.shared.client
-                .from("agriCrops")
+                .from("crops")
                 .select("*")
                 .execute()
                 .value
@@ -1654,7 +1836,7 @@ class RequestManager {
                 let cropEquipmentData: [CropEquipmentMappingDTO] = try await SupabaseManager.shared.client
                     .from("cropEquipmentRecommendations")
                     .select("*")
-                    .eq("cropID", value: cropDTO.id)
+                    .eq("cropID", value: cropDTO.cropID)
                     .execute()
                     .value
                 
@@ -1668,7 +1850,7 @@ class RequestManager {
                 
                 // Create the crop category
                 let cropCategory = CropCategory(
-                    id: UUID(uuidString: cropDTO.id) ?? UUID(),
+                    id: UUID(uuidString: cropDTO.cropID) ?? UUID(),
                     cropName: cropDTO.name,
                     equipmentsForCrops: "Equipments For \(cropDTO.name)",
                     equipments: cropEquipmentCategories
@@ -1679,46 +1861,12 @@ class RequestManager {
             
             return cropCategories
         } catch {
-            print("Error fetching crop categories: \(error)")
-            
-            // FALLBACK DATA: Used only when backend request fails
-            let fallbackCategories: [CropCategory] = [
-                CropCategory(
-                    id: UUID(uuidString: "F621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                    cropName: "Rice",
-                    equipmentsForCrops: "Equipments For Rice",
-                    equipments: [
-                        EquipmentCategory(
-                            id: UUID(uuidString: "A621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                            title: "Cultivators",
-                            equipmentList: []
-                        ),
-                        EquipmentCategory(
-                            id: UUID(uuidString: "A622E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                            title: "Harvesters",
-                            equipmentList: []
-                        )
-                    ]
-                ),
-                CropCategory(
-                    id: UUID(uuidString: "F622E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                    cropName: "Wheat",
-                    equipmentsForCrops: "Equipments For Wheat",
-                    equipments: [
-                        EquipmentCategory(
-                            id: UUID(uuidString: "A623E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                            title: "Seeders",
-                            equipmentList: []
-                        ),
-                        EquipmentCategory(
-                            id: UUID(uuidString: "A624E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
-                            title: "Harrow",
-                            equipmentList: []
-                        )
-                    ]
-                )
-            ]
-            return fallbackCategories
+            print("Error fetching crop categories from Supabase: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            // Return empty array instead of fallback data to ensure only backend data is used
+            return []
         }
     }
 }
@@ -1885,6 +2033,9 @@ struct BookingDTO: Codable {
     let status: String
     let timeSlot: String
     let source: String
+    let latitude: Double?
+    let longitude: Double?
+    let address: String?
     
     enum CodingKeys: String, CodingKey {
         case id = "bookingID"
@@ -1896,13 +2047,25 @@ struct BookingDTO: Codable {
         case status
         case timeSlot
         case source
+        case latitude
+        case longitude
+        case address
     }
 }
 
 struct AgriCropDTO: Codable {
-    let id: String
+    let cropID: String
     let name: String
-    let imageName: String
+    let season: String // Using String instead of enum to avoid additional decoding issues
+    let imageURL: String?
+    
+    // Define CodingKeys to map between JSON and property names
+    enum CodingKeys: String, CodingKey {
+        case cropID = "cropID"
+        case name
+        case season
+        case imageURL = "imageURL"
+    }
 }
 
 struct EquipmentCategoryDTO: Codable {

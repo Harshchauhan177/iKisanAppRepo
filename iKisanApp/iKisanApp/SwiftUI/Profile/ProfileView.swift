@@ -243,11 +243,21 @@ struct AlertItem: Identifiable {
 
 // MARK: - Destination Views
 
-struct SelectCropsView: View {
-    var body: some View {
-        Text("Select Crops View")
-            .navigationTitle("Select Crops")
-            .navigationBarTitleDisplayMode(.inline)
+// UIViewControllerRepresentable to wrap the UIKit SelectCropsViewController
+struct SelectCropsView: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> SelectCropsViewController {
+        // Create the SelectCropsViewController
+        let viewController = SelectCropsViewController()
+        
+        // Configure for profile mode - this ensures it's recognized as coming from profile
+        // and will display currently selected crops
+        viewController.isFromProfile = true
+        
+        return viewController
+    }
+    
+    func updateUIViewController(_ uiViewController: SelectCropsViewController, context: Context) {
+        // Nothing to update here
     }
 }
 

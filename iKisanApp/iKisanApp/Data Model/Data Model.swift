@@ -202,12 +202,13 @@ struct Location: Codable {
 
 //MARK: Model for Crop
 
-struct Crop {
-    let cropID: UUID
-    var name: String
-    var season: Season
-    var equipmentRecommendations: [UUID]
-}
+//struct Crop {
+//    let cropID: UUID
+//    var name: String
+//    var season: Season
+//    var equipmentRecommendations: [UUID]
+//    var imageURL: String?
+//}
 
 enum Season: String {
     case kharif = "Kharif"
@@ -242,6 +243,90 @@ struct Booking: Codable {
     var status: BookingStatus
     var timeSlot: TimeSlot
     let source: BookingSource//
+    var latitude: Double = 0.0
+    var longitude: Double = 0.0
+    var address: String?
+    
+    // Computed property to get booking location as a Location object
+    var bookingLocation: Location? {
+        get {
+            // Only return a location if we have valid coordinates or an address
+            if latitude != 0.0 || longitude != 0.0 || (address != nil && !address!.isEmpty) {
+                return Location(latitude: latitude, longitude: longitude, address: address)
+            }
+            return nil
+        }
+        set {
+            if let newLocation = newValue {
+                self.latitude = newLocation.latitude
+                self.longitude = newLocation.longitude
+                self.address = newLocation.address
+            } else {
+                self.latitude = 0.0
+                self.longitude = 0.0
+                self.address = nil
+            }
+        }
+    }
+    
+    // Default initializer
+    init(bookingID: UUID = UUID(), 
+         userID: UUID, 
+         equipmentID: UUID, 
+         bookingType: BookingType, 
+         bookingDate: Date, 
+         fieldArea: Double, 
+         status: BookingStatus, 
+         timeSlot: TimeSlot, 
+         source: BookingSource, 
+         latitude: Double = 0.0,
+         longitude: Double = 0.0,
+         address: String? = nil) {
+        self.bookingID = bookingID
+        self.userID = userID
+        self.equipmentID = equipmentID
+        self.bookingType = bookingType
+        self.bookingDate = bookingDate
+        self.fieldArea = fieldArea
+        self.status = status
+        self.timeSlot = timeSlot
+        self.source = source
+        self.latitude = latitude
+        self.longitude = longitude
+        self.address = address
+    }
+    
+    // Convenience initializer with a Location object
+    init(bookingID: UUID = UUID(), 
+         userID: UUID, 
+         equipmentID: UUID, 
+         bookingType: BookingType, 
+         bookingDate: Date, 
+         fieldArea: Double, 
+         status: BookingStatus, 
+         timeSlot: TimeSlot, 
+         source: BookingSource, 
+         bookingLocation: Location? = nil) {
+        self.bookingID = bookingID
+        self.userID = userID
+        self.equipmentID = equipmentID
+        self.bookingType = bookingType
+        self.bookingDate = bookingDate
+        self.fieldArea = fieldArea
+        self.status = status
+        self.timeSlot = timeSlot
+        self.source = source
+        
+        if let location = bookingLocation {
+            self.latitude = location.latitude
+            self.longitude = location.longitude
+            self.address = location.address
+        } else {
+            self.latitude = 0.0
+            self.longitude = 0.0
+            self.address = nil
+        }
+    }
 }
 
 enum TimeSlot: String, Codable {
@@ -269,6 +354,13 @@ struct AgriCrop: Codable, Sendable {
     var id: UUID = .init()
     var name: String
     var imageName: String
+}
+
+// Crop struct specifically for Select Crops functionality
+struct Crop {
+    let id: UUID
+    let name: String
+    let imageURL: String
 }
 
 struct CropCategory {
