@@ -504,6 +504,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         
         // Refresh data when view appears
         loadData()
+        
+        // Force a complete layout refresh by recreating the layout
+        collectionView.setCollectionViewLayout(generateLayout(), animated: false)
+        collectionView.collectionViewLayout.invalidateLayout()
     }
     
     //MARK: Search Bar Implementation
@@ -726,21 +730,21 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                 section = self.generateDiscountSection()
             }
             
-            // Consistent header size across all sections
-            let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(44))
+            // Create standard header with proper dimensions for all sections
+            let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(50))
             let header = NSCollectionLayoutBoundarySupplementaryItem(
                 layoutSize: headerSize,
                 elementKind: UICollectionView.elementKindSectionHeader,
                 alignment: .top
             )
             
-            // Set consistent insets for all headers
-            header.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 0, trailing: 0)
+            // No content insets for header - we'll handle this in the header view itself
+            header.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
             
             section.boundarySupplementaryItems = [header]
             
-            // Add consistent top and bottom section spacing
-            section.contentInsets.top = 8
+            // No top inset on sections as header will handle spacing
+            section.contentInsets.top = 0
             section.contentInsets.bottom = 16
             
             return section
@@ -772,9 +776,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     func generateUpcomingBookingsSection() -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.9), heightDimension: .absolute(115))
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92), heightDimension: .absolute(115))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8)
+        group.contentInsets = .init(top: 0, leading: 0, bottom: 0, trailing: 8)
         
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = .init(top: 0, leading: 16, bottom: 0, trailing: 16)
@@ -787,9 +791,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     func generateSuggestionSection() -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.9), heightDimension: .absolute(200))
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92), heightDimension: .absolute(200))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8)
+        group.contentInsets = .init(top: 0, leading: 0, bottom: 0, trailing: 8)
         
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = .init(top: 0, leading: 16, bottom: 0, trailing: 16)
@@ -824,28 +828,34 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             
             let dataSection = getDataSection(for: indexPath.section)
             
-            print("Setting up header for section \(indexPath.section), dataSection: \(dataSection)")
-            
             // Common font configuration for consistent appearance
             let headerFont = UIFont.systemFont(ofSize: 20, weight: .bold)
             
+            // Reset any previous constraints that might interfere
+            header.headerLabel.removeFromSuperview()
+            header.button.removeFromSuperview()
+            
+            // Re-add subviews
+            header.addSubview(header.headerLabel)
+            header.addSubview(header.button)
+            
+            // Configure header with consistent alignment
+            header.headerLabel.translatesAutoresizingMaskIntoConstraints = false
+            header.button.translatesAutoresizingMaskIntoConstraints = false
+            header.headerLabel.font = headerFont
+            
+            // Set content based on section
             switch dataSection {
             case 0:
                 header.headerLabel.text = "Discounts"
-                header.headerLabel.font = headerFont
                 header.button.isHidden = true
             case 1:
                 header.headerLabel.text = "Upcoming Bookings"
-                header.headerLabel.font = headerFont
                 header.button.setTitle("View All", for: .normal)
                 header.button.isHidden = false
                 header.button.addTarget(self, action: #selector(sectionButtonTapped(_:)), for: .touchUpInside)
-                
-                // Debug - print the current upcoming bookings count
-                print("Upcoming Bookings section header shown. Current bookings count: \(upcomingBookings.count)")
             case 2:
                 header.headerLabel.text = "Suggestions"
-                header.headerLabel.font = headerFont
                 header.button.isHidden = true
             case 3:
                 // Change header text based on content source
@@ -854,12 +864,26 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                 } else {
                     header.headerLabel.text = "Explore More"
                 }
-                header.headerLabel.font = headerFont
                 header.button.isHidden = true
             default:
                 header.headerLabel.text = ""
                 header.button.isHidden = true
             }
+            
+            // Apply consistent constraints - importantly, align with card content below
+            NSLayoutConstraint.activate([
+                // Header label constraints - aligned to the left edge with the same leading as cards
+                header.headerLabel.topAnchor.constraint(equalTo: header.topAnchor, constant: 8),
+                header.headerLabel.bottomAnchor.constraint(equalTo: header.bottomAnchor, constant: -8),
+                header.headerLabel.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: 0),
+                header.headerLabel.trailingAnchor.constraint(lessThanOrEqualTo: header.button.leadingAnchor, constant: -8),
+                
+                // Button constraints - aligned to the right
+                header.button.centerYAnchor.constraint(equalTo: header.centerYAnchor),
+                header.button.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -16),
+                header.button.heightAnchor.constraint(equalToConstant: 30),
+                header.button.widthAnchor.constraint(greaterThanOrEqualToConstant: 60)
+            ])
             
             return header
         }
@@ -1088,6 +1112,13 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             collectionView.collectionViewLayout.invalidateLayout()
             collectionView.reloadData()
         }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        // Ensure section headers are properly aligned with their content
+        collectionView.layoutIfNeeded()
     }
 //
 //    // Test method to verify discount calculation
