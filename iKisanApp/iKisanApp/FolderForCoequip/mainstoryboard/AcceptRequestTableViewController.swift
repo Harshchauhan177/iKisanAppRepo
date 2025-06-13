@@ -282,6 +282,19 @@ class AcceptRequestTableViewController: UITableViewController {
     }
     
     @IBAction func viewButtonTapped(_ sender: Any) {
+        guard let request = request,
+              let equipment = dataController?.getEquipmentById(request.equipmentId) else {
+            showAlert(title: "Error", message: "Equipment data not available")
+            return
+        }
+        
+        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+        if let equipmentDescVC = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
+            equipmentDescVC.equipment = equipment
+            equipmentDescVC.bookingSource = .coEquip
+            equipmentDescVC.selectedDate = request.requestedDate
+            navigationController?.pushViewController(equipmentDescVC, animated: true)
+        }
     }
     
     func showAlert(title: String, message: String) {
@@ -290,4 +303,6 @@ class AcceptRequestTableViewController: UITableViewController {
         alertController.addAction(okAction)
         present(alertController, animated: true, completion: nil)
     }
+    
+    
 }

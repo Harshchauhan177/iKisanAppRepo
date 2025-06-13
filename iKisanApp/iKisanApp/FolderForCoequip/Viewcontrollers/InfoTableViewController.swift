@@ -14,6 +14,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     @IBOutlet weak var FarmerListLabel: UILabel!
     @IBOutlet weak var LocationLabel: UILabel!
     
+    @IBOutlet weak var ViewButtonTapped: UIButton!
     // Properties
     var location: String = "Murshadpur, Greater Noida, U.P"
     var timeSlot: String = "08:00"
@@ -200,6 +201,32 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             infoVC.date = self.selectedDate
         }
     }
+    
+    
+    
+    @IBAction func ViewButton(_ sender: Any) {
+        guard let equipment = cardData else {
+            let alert = UIAlertController(
+                title: "Error",
+                message: "Equipment data not available",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+        if let equipmentDescVC = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
+            equipmentDescVC.equipment = equipment
+            equipmentDescVC.bookingSource = .coEquip
+            equipmentDescVC.selectedDate = date
+            navigationController?.pushViewController(equipmentDescVC, animated: true)
+        }
+    }
+    
+    
+    
     
     @IBAction func bookEquipment(_ sender: UIButton) {
         let infoVC = InfoTableViewController()

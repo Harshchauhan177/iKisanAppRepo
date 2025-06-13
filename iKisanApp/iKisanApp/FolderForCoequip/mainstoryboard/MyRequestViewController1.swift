@@ -19,6 +19,7 @@ class MyRequestViewController1: UIViewController {
     @IBOutlet weak var modifyRequestLabel: UIButton!
     @IBOutlet weak var deleteRequestLabel: UIButton!
     
+    
     // Keep track of both UUIDs and Users
     private var selectedUserIds: [UUID] = []
     private var acceptedRequestPeopleList: [User] = []
@@ -149,6 +150,23 @@ class MyRequestViewController1: UIViewController {
         }
     }
     
+    
+    @IBAction func viewButtonTapped(_ sender: Any) {
+        guard let request = request,
+              let equipment = dataController?.getEquipmentById(request.equipmentId) else {
+            showAlert(message: "Equipment data not available")
+            return
+        }
+        
+        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+        if let equipmentDescVC = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
+            equipmentDescVC.equipment = equipment
+            equipmentDescVC.bookingSource = .coEquip
+            equipmentDescVC.selectedDate = request.requestedDate
+            navigationController?.pushViewController(equipmentDescVC, animated: true)
+        }
+    }
+    
     @IBAction func ModifyButtonTapped(_ sender: Any) {
         guard let request = request,
               let dataController = dataController else {
@@ -208,4 +226,6 @@ extension MyRequestViewController1: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 60
     }
+    
+    
 }

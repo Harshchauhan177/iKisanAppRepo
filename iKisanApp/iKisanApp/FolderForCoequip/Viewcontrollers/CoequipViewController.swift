@@ -7,6 +7,8 @@ class CoequipViewController: UIViewController {
     
     var dataController: DataController!
     var currentRequest: Request?
+    private var myRequests: [Request] = []  // Cache for my requests
+    private var joinRequests: [Request] = [] // Cache for join requests
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,21 +34,11 @@ class CoequipViewController: UIViewController {
             await dataController.loadDataFromBackend()
             
             await MainActor.run {
+                self.updateCachedRequests()
                 self.updateUI()
+                
                 if let currentRequest = self.currentRequest {
-                    // Get requests based on request_participants table
-                    let requests = self.dataController.getAllCoEquipRequests().filter { request in
-                        if self.CoequipSegmentedControl.selectedSegmentIndex == 0 {
-                            // My Requests - show requests where user is the creator
-                            return request.userId == currentUser.userID &&
-                                   request.typeOfRequest == .myRequest
-                        } else {
-                            // Join Requests - show requests where user is a participant
-                            return request.participants?.contains { participant in
-                                participant.userId == currentUser.userID
-                            } ?? false
-                        }
-                    }
+                    let requests = self.CoequipSegmentedControl.selectedSegmentIndex == 0 ? self.myRequests : self.joinRequests
                     
                     if let index = requests.firstIndex(where: { $0.id == currentRequest.id }) {
                         let indexPath = IndexPath(row: index, section: 0)
@@ -59,6 +51,29 @@ class CoequipViewController: UIViewController {
         }
     }
     
+    private func updateCachedRequests() {
+        guard let currentUser = dataController.getCurrentUser() else { return }
+        
+        let allRequests = dataController.getAllCoEquipRequests()
+        
+        // Update my requests - sorted by creation date, newest first
+        myRequests = allRequests
+            .filter { request in
+                request.userId == currentUser.userID &&
+                request.typeOfRequest == .myRequest
+            }
+            .sorted { $0.requestedDate > $1.requestedDate }
+        
+        // Update join requests - sorted by creation date, newest first
+        joinRequests = allRequests
+            .filter { request in
+                request.participants?.contains { participant in
+                    participant.userId == currentUser.userID &&
+                    participant.status == .pending
+                } ?? false
+            }
+            .sorted { $0.requestedDate > $1.requestedDate }
+    }
 
     @objc private func handleRequestUpdate(_ notification: Notification) {
         DispatchQueue.main.async {
@@ -77,6 +92,7 @@ class CoequipViewController: UIViewController {
         CoequipSegmentedControl.selectedSegmentIndex = 0
     }
     @IBAction func segmentedControlValueChanged(_ sender: UISegmentedControl) {
+        updateCachedRequests()
         CoequipTableView.reloadData()
     }
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -97,25 +113,27 @@ class CoequipViewController: UIViewController {
             }
     }
 
+    private func updateUI() {
+        updateCachedRequests()
+        CoequipTableView.reloadData()
+    }
 
-     func loadInitialData() {
-        guard let dataController = dataController else {
-            return
-        }
-        let requests = dataController.getAllCoEquipRequests()
+    func loadInitialData() {
+        guard let dataController = dataController else { return }
+        updateCachedRequests()
+        
         if let currentRequest = currentRequest {
+            let requests = CoequipSegmentedControl.selectedSegmentIndex == 0 ? myRequests : joinRequests
             if !requests.contains(where: { $0.id == currentRequest.id }) {
                 self.currentRequest = nil
             }
         }
+        
         DispatchQueue.main.async {
             self.CoequipTableView.reloadData()
         }
     }
 
-    private func updateUI() {
-        CoequipTableView.reloadData()
-    }
     func removeRequest(with id: UUID) {
         guard let dataController = dataController else { return }
         dataController.deleteRequest(with: id)
@@ -141,48 +159,15 @@ class CoequipViewController: UIViewController {
 }
 
 extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
-    
-    
-    
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let dataController = self.dataController,
-              let currentUser = dataController.getCurrentUser() else { return 0 }
-        
-        let requests = dataController.getAllCoEquipRequests().filter { request in
-            if CoequipSegmentedControl.selectedSegmentIndex == 0 {
-                // My Requests tab - show requests where user is the creator
-                return request.userId == currentUser.userID &&
-                       request.typeOfRequest == .myRequest
-            } else {
-                // Join Requests tab - show only pending requests where user is a participant
-                return (request.participants?.contains { participant in
-                    participant.userId == currentUser.userID &&
-                    participant.status == .pending
-                } ?? false)
-            }
-        }
-        
-        return requests.count
+        return CoequipSegmentedControl.selectedSegmentIndex == 0 ? myRequests.count : joinRequests.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let dataController = self.dataController,
               let currentUser = dataController.getCurrentUser() else { return UITableViewCell() }
         
-        let requests = dataController.getAllCoEquipRequests().filter { request in
-            if CoequipSegmentedControl.selectedSegmentIndex == 0 {
-                // My Requests - show requests where user is the creator
-                return request.userId == currentUser.userID &&
-                       request.typeOfRequest == .myRequest
-            } else {
-                // Join Requests - show only pending requests where user is a participant
-                return (request.participants?.contains { participant in
-                    participant.userId == currentUser.userID &&
-                    participant.status == .pending
-                } ?? false)
-            }
-        }
+        let requests = CoequipSegmentedControl.selectedSegmentIndex == 0 ? myRequests : joinRequests
         
         // Safety check to prevent index out of range
         guard indexPath.row < requests.count else { return UITableViewCell() }
@@ -202,10 +187,8 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
             
             // Find the participant for the current user
             if let participant = request.participants?.first(where: { $0.userId == currentUser.userID }) {
-                // Configure cell with participant if found
                 cell.configure(participant: participant, request: request, equipment: equipment)
             } else {
-                // Create a pending participant if none exists
                 let pendingParticipant = RequestParticipant(
                     id: UUID(),
                     requestId: request.id,
