@@ -953,7 +953,7 @@
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                 </imageView>
-                                                <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Enter your area" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="7dJ-mf-9D1">
+                                                <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Enter your area" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="7dJ-mf-9D1">
                                                     <rect key="frame" x="21.999999999999993" y="38" width="126.33333333333331" height="39"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
@@ -1088,105 +1088,6 @@
             </objects>
             <point key="canvasLocation" x="8954.961832061068" y="-856.33802816901414"/>
         </scene>
-        <!--Select People-->
-        <scene sceneID="we3-5u-Vjj">
-            <objects>
-                <viewController storyboardIdentifier="SelectPeopleViewController" id="eKY-ja-h1T" customClass="SelectPeopleViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="fIs-sD-eoQ">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="Vkj-MN-UqS">
-                                <rect key="frame" x="0.0" y="59" width="335" height="57"/>
-                                <color key="barTintColor" red="0.92156863209999995" green="0.92156863209999995" blue="0.92156863209999995" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                <textInputTraits key="textInputTraits"/>
-                            </searchBar>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ki0-UF-brg">
-                                <rect key="frame" x="338" y="59" width="50" height="57"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="50" id="Mah-XR-4mL"/>
-                                    <constraint firstAttribute="height" constant="57" id="VuA-u3-HIG"/>
-                                    <constraint firstAttribute="width" secondItem="ki0-UF-brg" secondAttribute="height" multiplier="50:57" id="gCH-E5-f56"/>
-                                </constraints>
-                                <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" image="line.horizontal.3.decrease.circle.fill" catalog="system"/>
-                                <connections>
-                                    <action selector="filterButtonTapped:" destination="eKY-ja-h1T" eventType="touchUpInside" id="ooR-GY-AEh"/>
-                                </connections>
-                            </button>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" allowsMultipleSelection="YES" rowHeight="61" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="Zfo-5C-fKc">
-                                <rect key="frame" x="0.0" y="130" width="393" height="688"/>
-                                <color key="backgroundColor" red="0.92156863209999995" green="0.92156863209999995" blue="0.92156863209999995" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="UserCell" rowHeight="61" id="rqg-Jd-uNy" customClass="SelectPeopleListTableViewCell" customModule="iKisanApp" customModuleProvider="target">
-                                        <rect key="frame" x="20" y="55.333332061767578" width="353" height="61"/>
-                                        <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="rqg-Jd-uNy" id="0xA-8w-jTN">
-                                            <rect key="frame" x="0.0" y="0.0" width="353" height="61"/>
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <subviews>
-                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="person.circle" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="Av3-fk-SOR">
-                                                    <rect key="frame" x="19" y="10" width="40" height="40"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                                </imageView>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CcT-C9-HYs">
-                                                    <rect key="frame" x="80" y="13" width="198" height="34"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                    <nil key="textColor"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                            </subviews>
-                                        </tableViewCellContentView>
-                                        <connections>
-                                            <outlet property="ImageLabel" destination="Av3-fk-SOR" id="lQ3-vD-30A"/>
-                                            <outlet property="nameLabel" destination="CcT-C9-HYs" id="Rg5-Ef-vKm"/>
-                                        </connections>
-                                    </tableViewCell>
-                                </prototypes>
-                                <connections>
-                                    <outlet property="dataSource" destination="eKY-ja-h1T" id="Eo5-qG-Pi0"/>
-                                    <outlet property="delegate" destination="eKY-ja-h1T" id="GMd-Bp-jO4"/>
-                                </connections>
-                            </tableView>
-                        </subviews>
-                        <viewLayoutGuide key="safeArea" id="Ig9-gR-L8Q"/>
-                        <color key="backgroundColor" red="0.92156863209999995" green="0.92156863209999995" blue="0.92156863209999995" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                        <constraints>
-                            <constraint firstItem="Ig9-gR-L8Q" firstAttribute="bottom" secondItem="Zfo-5C-fKc" secondAttribute="bottom" id="Bec-3w-oMl"/>
-                            <constraint firstItem="ki0-UF-brg" firstAttribute="leading" secondItem="Vkj-MN-UqS" secondAttribute="trailing" constant="3" id="DNT-hf-Qx5"/>
-                            <constraint firstItem="Zfo-5C-fKc" firstAttribute="leading" secondItem="Ig9-gR-L8Q" secondAttribute="leading" id="FiS-mn-mKb"/>
-                            <constraint firstItem="Vkj-MN-UqS" firstAttribute="bottom" secondItem="ki0-UF-brg" secondAttribute="bottom" id="Jh1-s5-yN8"/>
-                            <constraint firstItem="Vkj-MN-UqS" firstAttribute="top" secondItem="Ig9-gR-L8Q" secondAttribute="top" id="b8c-7T-MlV"/>
-                            <constraint firstItem="Zfo-5C-fKc" firstAttribute="top" secondItem="Vkj-MN-UqS" secondAttribute="bottom" constant="14" id="eqk-0D-IUi"/>
-                            <constraint firstItem="Ig9-gR-L8Q" firstAttribute="trailing" secondItem="ki0-UF-brg" secondAttribute="trailing" constant="5" id="f06-Q6-7P3"/>
-                            <constraint firstItem="Vkj-MN-UqS" firstAttribute="leading" secondItem="Ig9-gR-L8Q" secondAttribute="leading" id="nYy-q6-4hi"/>
-                            <constraint firstItem="Vkj-MN-UqS" firstAttribute="centerY" secondItem="ki0-UF-brg" secondAttribute="centerY" id="pFf-2f-BSs"/>
-                            <constraint firstItem="Zfo-5C-fKc" firstAttribute="trailing" secondItem="Ig9-gR-L8Q" secondAttribute="trailing" id="v5y-1V-VqQ"/>
-                        </constraints>
-                    </view>
-                    <navigationItem key="navigationItem" title="Select People" id="pgt-GE-Tci">
-                        <barButtonItem key="rightBarButtonItem" systemItem="done" id="BrI-PE-DQ6">
-                            <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                            <connections>
-                                <action selector="DoneButtonTapped:" destination="eKY-ja-h1T" id="4qE-Rq-ORD"/>
-                                <segue destination="kZd-OM-Zyz" kind="unwind" unwindAction="unwindToInfoTableViewControllerWithSegue:" id="0FE-H7-txz"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
-                    <connections>
-                        <outlet property="ListTableViewCell" destination="Zfo-5C-fKc" id="mNT-ih-w82"/>
-                        <outlet property="filterButtonLabel" destination="ki0-UF-brg" id="7zk-hg-yfd"/>
-                        <outlet property="searchBarLabel" destination="Vkj-MN-UqS" id="wz6-xW-Dsb"/>
-                    </connections>
-                </viewController>
-                <exit id="kZd-OM-Zyz" userLabel="Exit" sceneMemberID="exit"/>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="BDS-Z3-hOB" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="10831" y="-856"/>
-        </scene>
         <!--CoEquip-->
         <scene sceneID="vqU-gp-hko">
             <objects>
@@ -1215,11 +1116,9 @@
         <image name="106" width="192" height="166"/>
         <image name="calendar" catalog="system" width="128" height="107"/>
         <image name="clock.arrow.trianglehead.counterclockwise.rotate.90" catalog="system" width="128" height="119"/>
-        <image name="line.horizontal.3.decrease.circle.fill" catalog="system" width="128" height="123"/>
         <image name="mappin.and.ellipse" catalog="system" width="110" height="128"/>
         <image name="person.3" catalog="system" width="128" height="66"/>
         <image name="person.3.fill" catalog="system" width="128" height="66"/>
-        <image name="person.circle" catalog="system" width="128" height="123"/>
         <image name="plus" catalog="system" width="128" height="113"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>

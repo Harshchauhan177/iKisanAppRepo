@@ -238,35 +238,7 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         
         present(calendarVC, animated: true)
     }
-    
-//    @objc private func doneButtonTapped() {
-//        dismiss(animated: true) {
-//            // Update the date label with selected date or today's date
-//            let dateToUse = self.selectedCalendarDate ?? Date()
-//            let dateFormatter = DateFormatter()
-//            dateFormatter.dateFormat = "dd MMM yyyy"
-//            self.dateLabel.text = dateFormatter.string(from: dateToUse)
-//        }
-//    }
-    // UICalendarSelectionSingleDateDelegate method
-//    func dateSelection(_ selection: UICalendarSelectionSingleDate, didSelectDate dateComponents: DateComponents?) {
-//        guard let dateComponents = dateComponents,
-//              let date = Calendar.current.date(from: dateComponents) else { return }
-//        selectedCalendarDate = date
-//        selectedDateForInfo = date  // Store the selected date
-//        
-//        // Dismiss the calendar view controller
-//        dismiss(animated: true) {
-//            // Update the date label with the selected date
-//            let dateFormatter = DateFormatter()
-//            dateFormatter.dateFormat = "dd MMM yyyy"
-//            self.dateLabel.text = dateFormatter.string(from: date)
-//            
-//            // Filter equipment based on availability
-//            self.filteredCard = self.card.filter { self.isEquipmentAvailable(on: date, for: $0) }
-//            self.cardCollectionView.reloadData()
-//        }
-//    }
+
     
     func calendarView(_ calendarView: UICalendarView, decorationFor dateComponents: DateComponents) -> UICalendarView.Decoration? {
         return nil
@@ -410,9 +382,6 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
                 equipmentDescVC.equipment = selectedCard
                 equipmentDescVC.bookingSource = isFromHomeViewController ? .coEquip : .home
                 equipmentDescVC.loadViewIfNeeded()
-                
-                // Pass the selected date
-                //equipmentDescVC.selectedDate = selectedCalendarDate ?? Date()
                 equipmentDescVC.selectedDate = selectedCalendarDate ?? Date()
                 
                 navigationController?.pushViewController(equipmentDescVC, animated: true)

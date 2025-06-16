@@ -32,6 +32,7 @@ class AcceptRequestTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.title = "Search Equipment"
         imageLabel.layer.cornerRadius = 7
         // Fetch and set user's address
         Task {
@@ -87,6 +88,7 @@ class AcceptRequestTableViewController: UITableViewController {
         
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(backTapped))
         self.navigationItem.hidesBackButton = true
+        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
     }
     
     @objc func backTapped() {
