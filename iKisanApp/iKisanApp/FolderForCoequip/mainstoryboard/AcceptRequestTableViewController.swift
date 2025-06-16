@@ -32,7 +32,7 @@ class AcceptRequestTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        imageLabel.layer.cornerRadius = 7
         // Fetch and set user's address
         Task {
             do {
@@ -84,6 +84,13 @@ class AcceptRequestTableViewController: UITableViewController {
             print("Using last time from request as start time: \(startTime)")
         }
         intputArea.addTarget(self, action: #selector(areaInputChanged), for: .editingChanged)
+        
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(backTapped))
+        self.navigationItem.hidesBackButton = true
+    }
+    
+    @objc func backTapped() {
+        navigationController?.popViewController(animated: true)
     }
     
     // Helper function to parse capacity string (e.g., "5 acres/hour")

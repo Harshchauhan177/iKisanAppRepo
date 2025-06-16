@@ -24,8 +24,9 @@ class MyRequestViewController1: UIViewController {
     private var selectedUserIds: [UUID] = []
     private var acceptedRequestPeopleList: [User] = []
     
-    // Add property to store user areas
+    // Add property to store user areas and time slots
     private var userAreas: [UUID: Double] = [:]
+    private var userTimeSlots: [UUID: String] = [:]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,6 +56,19 @@ class MyRequestViewController1: UIViewController {
             // Clear and populate accepted users list
             acceptedRequestPeopleList.removeAll()
             
+            // Calculate total area from participants
+            var totalArea: Double = 0
+            if let participants = request.participants {
+                for participant in participants {
+                    if let area = participant.area {
+                        totalArea += area
+                    }
+                }
+            }
+            
+            // Update current area label
+            currentAreaLabel.text = String(format: "%.2f acres", totalArea)
+            
             // Get accepted users from the request
             if let acceptedUserIds = request.acceptedUsers {
                 print("Processing accepted users: \(acceptedUserIds)")
@@ -64,6 +78,16 @@ class MyRequestViewController1: UIViewController {
                     if let user = dataController?.getUserById(userId) {
                         print("Found user: \(user.name)")
                         acceptedRequestPeopleList.append(user)
+                        
+                        // Store user's area and time slot
+                        if let participant = request.participants?.first(where: { $0.userId == userId }) {
+                            if let area = participant.area {
+                                userAreas[userId] = area
+                            }
+                            if let timeSlot = participant.timeSlot {
+                                userTimeSlots[userId] = timeSlot
+                            }
+                        }
                     }
                 }
                 
@@ -111,7 +135,6 @@ class MyRequestViewController1: UIViewController {
         firstViewLabel.layer.cornerRadius = 7
         secondViewLabel.layer.cornerRadius = 7
         equipmentImageLabel.layer.cornerRadius = 7
-        modifyRequestLabel.layer.cornerRadius = 7
         deleteRequestLabel.layer.cornerRadius = 7
     }
     
@@ -167,33 +190,7 @@ class MyRequestViewController1: UIViewController {
         }
     }
     
-    @IBAction func ModifyButtonTapped(_ sender: Any) {
-        guard let request = request,
-              let dataController = dataController else {
-            showAlert(message: "Error: Request data not found")
-            return
-        }
-        guard let equipment = dataController.getEquipmentById(request.equipmentId) else {
-            showAlert(message: "Error: Equipment data not found")
-            return
-        }
-        let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
-        if let infoTableVC = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
-            infoTableVC.isModifying = true
-            infoTableVC.existingRequest = request
-            infoTableVC.cardData = equipment
-            infoTableVC.dataController = dataController
-            infoTableVC.date = request.requestedDate
-            infoTableVC.selectedUsers = acceptedRequestPeopleList // Pass [User] as expected
-            infoTableVC.location = request.location
-            infoTableVC.updateCompletionHandler = { [weak self] updatedRequest in
-                self?.dataController?.updateRequest(updatedRequest)
-                self?.request = updatedRequest
-                self?.viewDidLoad()
-            }
-            navigationController?.pushViewController(infoTableVC, animated: true)
-        }
-    }
+
     private func showAlert(message: String) {
         let alert = UIAlertController(
             title: "Alert",
@@ -219,12 +216,17 @@ extension MyRequestViewController1: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MyRequestInfoTableViewCell
         let user = acceptedRequestPeopleList[indexPath.row]
         print("Configuring cell for user: \(user.name)")
-        cell.configure(with: user)
+        
+        // Get user's area and time slot if available
+        let area = userAreas[user.userID]
+        let timeSlot = userTimeSlots[user.userID]
+        
+        cell.configure(with: user, area: area, timeSlot: timeSlot)
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 60
+        return 80
     }
     
     

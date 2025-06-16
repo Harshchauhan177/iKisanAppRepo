@@ -79,7 +79,7 @@ struct Request: Codable, Identifiable {
     var status: BookingStatus
     var type: BookingType
     var area: Double
-    let timeSlot: TimeSlot
+    var timeSlot: TimeSlot
     var timePeriod: String?
     var location: String
     var typeOfRequest: RequestType

@@ -4,6 +4,8 @@ class MyRequestInfoTableViewCell: UITableViewCell {
 
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var imageLabel: UIImageView!
+    @IBOutlet weak var areaLabel: UILabel!
+    @IBOutlet weak var timeSlotLabel: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -40,14 +42,38 @@ class MyRequestInfoTableViewCell: UITableViewCell {
         nameLabel.textColor = .label
         nameLabel.numberOfLines = 1
         
+        // Configure area label
+        areaLabel.font = UIFont.systemFont(ofSize: 14)
+        areaLabel.textColor = .secondaryLabel
+        areaLabel.numberOfLines = 1
+        
+        // Configure time slot label
+        timeSlotLabel.font = UIFont.systemFont(ofSize: 14)
+        timeSlotLabel.textColor = .secondaryLabel
+        timeSlotLabel.numberOfLines = 1
+        
         print("Cell UI setup completed")
     }
 
-    func configure(with user: User) {
+    func configure(with user: User, area: Double? = nil, timeSlot: String? = nil) {
         print("Configuring cell for user: \(user.name)")
         
-        // Set only the user's name
+        // Set user's name
         nameLabel.text = user.name
+        
+        // Set area if available
+        if let area = area {
+            areaLabel.text = String(format: "%.2f acres", area)
+        } else {
+            areaLabel.text = "Area not specified"
+        }
+        
+        // Set time slot if available
+        if let timeSlot = timeSlot {
+            timeSlotLabel.text = timeSlot
+        } else {
+            timeSlotLabel.text = "Time slot not specified"
+        }
         
         // Set default image
         imageLabel.image = UIImage(systemName: "person.circle.fill")
@@ -57,6 +83,8 @@ class MyRequestInfoTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         nameLabel.text = nil
+        areaLabel.text = nil
+        timeSlotLabel.text = nil
         imageLabel.image = UIImage(systemName: "person.circle.fill")
     }
 }
