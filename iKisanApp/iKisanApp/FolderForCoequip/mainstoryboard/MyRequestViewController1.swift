@@ -19,29 +19,33 @@ class MyRequestViewController1: UIViewController {
     @IBOutlet weak var modifyRequestLabel: UIButton!
     @IBOutlet weak var deleteRequestLabel: UIButton!
     
+    
     // Keep track of both UUIDs and Users
     private var selectedUserIds: [UUID] = []
     private var acceptedRequestPeopleList: [User] = []
     
+    // Add property to store user areas and time slots
+    private var userAreas: [UUID: Double] = [:]
+    private var userTimeSlots: [UUID: String] = [:]
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("ViewDidLoad started")
+        print("Request details: \(String(describing: request))")
         
-        let nib = UINib(nibName: "MyRequestInfoTableViewCell", bundle: nil)
-        listTableView.register(nib, forCellReuseIdentifier: "cell")
+        // Setup table view and register nib
+        setupTableView()
         
         if let request = request,
            let equipment = dataController?.getEquipmentById(request.equipmentId) {
-            // Check if the equipmentImage is a URL or a local asset name
+            // Setup equipment details
             if equipment.equipmentImage.hasPrefix("http") {
-                // It's a URL, use our ImageCache utility to load it
                 equipmentImageLabel.loadImage(from: equipment.equipmentImage)
             } else {
-                // Fallback to local asset loading for backward compatibility
                 equipmentImageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
             }
             equipmentTitleLabel.text = equipment.name
             hostNameLabel.text = equipment.providerName
-           // currentAreaLabel.text = "\(request.area) acres"
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, d MMM"
             let dateString = dateFormatter.string(from: request.requestedDate)
@@ -49,77 +53,88 @@ class MyRequestViewController1: UIViewController {
             let totalPrice = equipment.pricePerAcre 
             priceLabel.text = "₹ \(Int(totalPrice))\nDate: \(dateString)"
             
-            // Initialize empty list since we can't get accepted users yet
-            acceptedRequestPeopleList = []
+            // Clear and populate accepted users list
+            acceptedRequestPeopleList.removeAll()
             
-            // Get accepted users from request participants
-            if let participants = request.participants?.filter({ $0.status == .done }) {
-                // Convert participant user IDs to User objects
-                acceptedRequestPeopleList = participants.compactMap { participant in
-                    dataController?.getUserById(participant.userId)
-                }
-            }
-            
-            
-           
-            // Initialize the list only once
-            acceptedRequestPeopleList = []
-            print("Starting to gather users for Request ID: \(request.id)")
-            
-            // First, check acceptedUser array from the database
-            if let acceptedUserIds = request.acceptedUsers { // Changed from acceptedUser to acceptedUsers
-                print("Processing accepted users from database: \(acceptedUserIds.count)")
-                let acceptedUsers = acceptedUserIds.compactMap { userId in
-                    let user = dataController?.getUserById(userId)
-                    print("Processing accepted user ID: \(userId)")
-                    return user
-                }
-                acceptedRequestPeopleList.append(contentsOf: acceptedUsers)
-                print("After accepted users: \(acceptedRequestPeopleList.count) users")
-            }
-            
-            // Then add any participants with accepted status
+            // Calculate total area from participants
+            var totalArea: Double = 0
             if let participants = request.participants {
-                print("Processing participants")
-                let acceptedParticipants = participants.filter { $0.status.rawValue == "accepted" }
-                let participantUsers = acceptedParticipants.compactMap { participant in
-                    let user = dataController?.getUserById(participant.userId)
-                    if !acceptedRequestPeopleList.contains(where: { $0.userID == user?.userID }) {
-                        return user
+                for participant in participants {
+                    if let area = participant.area {
+                        totalArea += area
                     }
-                    return nil
                 }
-                acceptedRequestPeopleList.append(contentsOf: participantUsers)
             }
             
-            // Finally add any selected users not already included
-            if let selectedUsers = request.acceptedUsers{
-                let additionalUsers = selectedUsers.compactMap { userId in
-                    let user = dataController?.getUserById(userId)
-                    if !acceptedRequestPeopleList.contains(where: { $0.userID == user?.userID }) {
-                        return user
+            // Update current area label
+            currentAreaLabel.text = String(format: "%.2f acres", totalArea)
+            
+            // Get accepted users from the request
+            if let acceptedUserIds = request.acceptedUsers {
+                print("Processing accepted users: \(acceptedUserIds)")
+                
+                for userId in acceptedUserIds {
+                    print("Looking up user with ID: \(userId)")
+                    if let user = dataController?.getUserById(userId) {
+                        print("Found user: \(user.name)")
+                        acceptedRequestPeopleList.append(user)
+                        
+                        // Store user's area and time slot
+                        if let participant = request.participants?.first(where: { $0.userId == userId }) {
+                            if let area = participant.area {
+                                userAreas[userId] = area
+                            }
+                            if let timeSlot = participant.timeSlot {
+                                userTimeSlots[userId] = timeSlot
+                            }
+                        }
                     }
-                    return nil
                 }
-                acceptedRequestPeopleList.append(contentsOf: additionalUsers)
+                
+                print("Total accepted users found: \(acceptedRequestPeopleList.count)")
             }
             
-            print("Final user count: \(acceptedRequestPeopleList.count)")
-            
-            listTableView.delegate = self
-            listTableView.dataSource = self
-            listTableView.reloadData()
+            // Reload table view on main thread
+            DispatchQueue.main.async {
+                self.listTableView.reloadData()
+            }
         } else {
             print("Failed to load request or equipment data")
         }
+        
         setupViewAppearance()
+    }
+    
+    private func setupTableView() {
+        print("Setting up table view")
+        
+        // Ensure table view outlet is connected
+        guard listTableView != nil else {
+            print("Error: listTableView outlet is not connected!")
+            return
+        }
+        
+        // Register the nib file
+        let nibName = "MyRequestInfoTableViewCell"
+        let nib = UINib(nibName: nibName, bundle: nil)
+        
+        // Verify nib loaded successfully
+        guard Bundle.main.path(forResource: nibName, ofType: "nib") != nil else {
+            print("Error: Could not find \(nibName).nib file!")
+            return
+        }
+        
+        listTableView.register(nib, forCellReuseIdentifier: "cell")
+        listTableView.delegate = self
+        listTableView.dataSource = self
+        
+        print("Table view setup completed")
     }
     
     private func setupViewAppearance() {
         firstViewLabel.layer.cornerRadius = 7
         secondViewLabel.layer.cornerRadius = 7
         equipmentImageLabel.layer.cornerRadius = 7
-        modifyRequestLabel.layer.cornerRadius = 7
         deleteRequestLabel.layer.cornerRadius = 7
     }
     
@@ -158,33 +173,24 @@ class MyRequestViewController1: UIViewController {
         }
     }
     
-    @IBAction func ModifyButtonTapped(_ sender: Any) {
+    
+    @IBAction func viewButtonTapped(_ sender: Any) {
         guard let request = request,
-              let dataController = dataController else {
-            showAlert(message: "Error: Request data not found")
+              let equipment = dataController?.getEquipmentById(request.equipmentId) else {
+            showAlert(message: "Equipment data not available")
             return
         }
-        guard let equipment = dataController.getEquipmentById(request.equipmentId) else {
-            showAlert(message: "Error: Equipment data not found")
-            return
-        }
-        let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
-        if let infoTableVC = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
-            infoTableVC.isModifying = true
-            infoTableVC.existingRequest = request
-            infoTableVC.cardData = equipment
-            infoTableVC.dataController = dataController
-            infoTableVC.date = request.requestedDate
-            infoTableVC.selectedUsers = acceptedRequestPeopleList // Pass [User] as expected
-            infoTableVC.location = request.location
-            infoTableVC.updateCompletionHandler = { [weak self] updatedRequest in
-                self?.dataController?.updateRequest(updatedRequest)
-                self?.request = updatedRequest
-                self?.viewDidLoad()
-            }
-            navigationController?.pushViewController(infoTableVC, animated: true)
+        
+        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+        if let equipmentDescVC = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
+            equipmentDescVC.equipment = equipment
+            equipmentDescVC.bookingSource = .coEquip
+            equipmentDescVC.selectedDate = request.requestedDate
+            navigationController?.pushViewController(equipmentDescVC, animated: true)
         }
     }
+    
+
     private func showAlert(message: String) {
         let alert = UIAlertController(
             title: "Alert",
@@ -201,20 +207,27 @@ class MyRequestViewController1: UIViewController {
 
 extension MyRequestViewController1: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print("Number of rows: \(acceptedRequestPeopleList.count)")
-        return acceptedRequestPeopleList.count
+        let count = acceptedRequestPeopleList.count
+        print("Number of rows in table: \(count)")
+        return count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        print("Configuring cell at index: \(indexPath.row)")
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MyRequestInfoTableViewCell
-        let person = acceptedRequestPeopleList[indexPath.row]
-        print("User name: \(person.name)")
-        cell.configure(with: person)
+        let user = acceptedRequestPeopleList[indexPath.row]
+        print("Configuring cell for user: \(user.name)")
+        
+        // Get user's area and time slot if available
+        let area = userAreas[user.userID]
+        let timeSlot = userTimeSlots[user.userID]
+        
+        cell.configure(with: user, area: area, timeSlot: timeSlot)
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 60
+        return 80
     }
+    
+    
 }

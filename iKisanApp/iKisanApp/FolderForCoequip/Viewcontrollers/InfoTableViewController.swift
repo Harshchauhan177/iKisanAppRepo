@@ -14,6 +14,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     @IBOutlet weak var FarmerListLabel: UILabel!
     @IBOutlet weak var LocationLabel: UILabel!
     
+    @IBOutlet weak var ViewButtonTapped: UIButton!
     // Properties
     var location: String = "Murshadpur, Greater Noida, U.P"
     var timeSlot: String = "08:00"
@@ -201,6 +202,32 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         }
     }
     
+    
+    
+    @IBAction func ViewButton(_ sender: Any) {
+        guard let equipment = cardData else {
+            let alert = UIAlertController(
+                title: "Error",
+                message: "Equipment data not available",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+        if let equipmentDescVC = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
+            equipmentDescVC.equipment = equipment
+            equipmentDescVC.bookingSource = .coEquip
+            equipmentDescVC.selectedDate = date
+            navigationController?.pushViewController(equipmentDescVC, animated: true)
+        }
+    }
+    
+    
+    
+    
     @IBAction func bookEquipment(_ sender: UIButton) {
         let infoVC = InfoTableViewController()
         infoVC.date = self.selectedDate
@@ -208,13 +235,18 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     }
     
     @IBAction func AddFarmerButtonTapped(_ sender: UIButton) {
-        let selectFarmerView = SelectFarmerView(dataController: self.dataController ?? IKisanDataController()) { selectedFarmers in
-            self.selectedUsers = selectedFarmers  // Store the selected farmers
-            self.FarmerListLabel.text = selectedFarmers.map { $0.name }.joined(separator: ", ")
-        }
+        let selectFarmerView = SelectFarmerView(
+            dataController: self.dataController ?? IKisanDataController(),
+            initialSelectedFarmers: Set(selectedUsers), // Pass currently selected farmers
+            onFarmerSelection: { [weak self] selectedFarmers in
+                guard let self = self else { return }
+                self.selectedUsers = selectedFarmers
+                self.FarmerListLabel.text = selectedFarmers.map { $0.name }.joined(separator: ", ")
+            }
+        )
         let hostingController = UIHostingController(rootView: selectFarmerView)
-        hostingController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
-        self.present(hostingController, animated: true)
+        hostingController.modalPresentationStyle = .fullScreen
+        present(hostingController, animated: true)
     }
     
     @IBAction func CreateButtonTapped(_ sender: UIButton, forEvent event: UIEvent) {

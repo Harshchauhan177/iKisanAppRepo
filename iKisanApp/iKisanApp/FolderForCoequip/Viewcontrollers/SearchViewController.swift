@@ -23,8 +23,14 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
         tableViewLabel.dataSource = self
         searchBarLabel.delegate = self
         
-        // Initialize with empty suggestions
-        filteredSuggestions = []
+        // Show all equipment suggestions by default
+        if let suggestions = dataController?.getEquipmentSuggestions() {
+            filteredSuggestions = suggestions
+            tableViewLabel.isHidden = false
+        } else {
+            filteredSuggestions = []
+            tableViewLabel.isHidden = true
+        }
         
         searchBarLabel.placeholder = "Search equipment..."
         searchBarLabel.searchBarStyle = .minimal
@@ -33,12 +39,20 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
             textField.layer.cornerRadius = 10
             textField.clipsToBounds = true
         }
+        
+       
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
-            filteredSuggestions = []
-            tableViewLabel.isHidden = true
+            // Show all equipment suggestions when empty
+            if let suggestions = dataController?.getEquipmentSuggestions() {
+                filteredSuggestions = suggestions
+                tableViewLabel.isHidden = false
+            } else {
+                filteredSuggestions = []
+                tableViewLabel.isHidden = true
+            }
         } else {
             tableViewLabel.isHidden = false
             if let suggestions = dataController?.getEquipmentSuggestions() {
@@ -84,6 +98,12 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
             if let existingVC = navController.viewControllers.first(where: { $0 is CreateRequestViewController }) as? CreateRequestViewController {
                 existingVC.selectedSuggestion = selectedSuggestion
                 existingVC.dataController = self.dataController
+                // Only show related equipment
+                if let suggestion = selectedSuggestion, let dataController = self.dataController {
+                    let allEquipment = dataController.getAllEquipment()
+                    existingVC.card = allEquipment.filter { $0.name.lowercased().contains(suggestion.lowercased()) }
+                    existingVC.filteredCard = existingVC.card
+                }
                 existingVC.applySearchFilter()
                 navController.popToViewController(existingVC, animated: true)
                 return
@@ -92,10 +112,15 @@ class SearchViewController: UIViewController, UISearchBarDelegate, UITableViewDe
             if let createRequestVC = storyboard.instantiateViewController(withIdentifier: "CreateRequestViewController") as? CreateRequestViewController {
                 createRequestVC.dataController = self.dataController
                 createRequestVC.selectedSuggestion = self.selectedSuggestion
+                // Only show related equipment
+                if let suggestion = selectedSuggestion, let dataController = self.dataController {
+                    let allEquipment = dataController.getAllEquipment()
+                    createRequestVC.card = allEquipment.filter { $0.name.lowercased().contains(suggestion.lowercased()) }
+                    createRequestVC.filteredCard = createRequestVC.card
+                }
                 navigationController?.pushViewController(createRequestVC, animated: true)
             }
         }
-
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }

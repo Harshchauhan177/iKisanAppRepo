@@ -268,7 +268,9 @@ class IKisanDataController: DataController {
         if let user = cachedUsers.first(where: { $0.userID == id }) {
             return user
         }
-        
+        else{
+            print("User not found in \(cachedUsers) with id \(id)")
+        }
         // If not found in cache, return nil
         // The cache will be updated next time getAllUsers() is called
         return nil
@@ -404,7 +406,7 @@ class IKisanDataController: DataController {
         self.bookingsList = await requestManager.fetchBookings()
         self.crops = await requestManager.fetchCrops()
         self.cropCategories = await requestManager.fetchCropCategories()
-        
+        self.cachedUsers = getAllUsers()
         // Load requests and update the local arrays
         self.coEquipRequests = await requestManager.fetchRequests()
         print("Debug: Fetched \(self.coEquipRequests.count) requests from database")
@@ -1182,7 +1184,7 @@ class RequestManager {
         do {
             print("🔄 Fetching requests from database...")
             
-            // Get the raw data with participants
+            // Get the raw data with participants and acceptedUser
             let rawData = try await SupabaseManager.shared.client
                 .from("requests")
                 .select("""
@@ -1248,7 +1250,7 @@ class RequestManager {
                 let timePeriod: String?
                 let location: String
                 let typeOfRequest: String
-                let selectedUsersIds: [String]?
+                let acceptedUser: [String]? // Match the exact column name from Supabase
                 let request_participants: [ParticipantDTO]?
                 
                 struct ParticipantDTO: Codable {
@@ -1257,14 +1259,20 @@ class RequestManager {
                     let userId: UUID
                     let status: String
                     let area: Double?
-                    let timeSlotId: String? // Changed from timeSlot to timeSlotId to match DB schema
+                    let timeSlotId: String?
                     let joinedAt: Date
                     let created_at: Date?
                     let updated_at: Date?
                 }
+                
+                enum CodingKeys: String, CodingKey {
+                    case id, userId, equipmentId, requestedDate, status, type, area, timeSlot, timePeriod, location, typeOfRequest, acceptedUser, request_participants
+                }
             }
             
             let requestsWithParticipants = try decoder.decode([RequestWithParticipants].self, from: rawData)
+            
+            print("📝 Decoded \(requestsWithParticipants.count) requests from database")
             
             // Convert to domain models
             var requests: [Request] = []
@@ -1277,10 +1285,17 @@ class RequestManager {
                         userId: participantDto.userId,
                         status: ParticipantStatus(rawValue: participantDto.status) ?? .pending,
                         area: participantDto.area,
-                        timeSlot: participantDto.timeSlotId, // Convert timeSlotId to TimeSlot
+                        timeSlot: participantDto.timeSlotId,
                         joinedAt: participantDto.joinedAt
                     )
                 } ?? []
+                
+                // Debug print acceptedUser array
+                if let acceptedUsers = dto.acceptedUser {
+                    print("📍 Request \(dto.id) has \(acceptedUsers.count) accepted users: \(acceptedUsers)")
+                } else {
+                    print("📍 Request \(dto.id) has no accepted users")
+                }
                 
                 // Create the request with all data
                 let request = Request(
@@ -1296,13 +1311,13 @@ class RequestManager {
                     location: dto.location,
                     typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest,
                     participants: participants,
-                    acceptedUsers: dto.selectedUsersIds?.compactMap { UUID(uuidString: $0) }
+                    acceptedUsers: dto.acceptedUser?.compactMap { UUID(uuidString: $0) } ?? []
                 )
                 
                 requests.append(request)
             }
             
-            print("✅ Fetched \(requests.count) requests with their participants")
+            print("✅ Successfully fetched and processed \(requests.count) requests")
             return requests
             
         } catch {
@@ -1316,9 +1331,27 @@ class RequestManager {
                     if let underlying = context.underlyingError {
                         print("Underlying error: \(underlying)")
                     }
-                default:
-                    print("Other decoding error: \(decodingError)")
+                case .keyNotFound(let key, let context):
+                    print("Key '\(key.stringValue)' not found:")
+                    print("Debug description: \(context.debugDescription)")
+                    print("Coding path: \(context.codingPath)")
+                case .typeMismatch(let type, let context):
+                    print("Type mismatch for type \(type):")
+                    print("Debug description: \(context.debugDescription)")
+                    print("Coding path: \(context.codingPath)")
+                case .valueNotFound(let type, let context):
+                    print("Value of type \(type) not found:")
+                    print("Debug description: \(context.debugDescription)")
+                    print("Coding path: \(context.codingPath)")
+                @unknown default:
+                    print("Unknown decoding error: \(decodingError)")
                 }
+            } else if let postgrestError = error as? PostgrestError {
+                print("Postgrest error details:")
+                print("Code: \(postgrestError.code ?? "nil")")
+                print("Message: \(postgrestError.message ?? "nil")")
+                print("Hint: \(postgrestError.hint ?? "nil")")
+                print("Details: \(postgrestError.detail ?? "nil")")
             }
             return []
         }
