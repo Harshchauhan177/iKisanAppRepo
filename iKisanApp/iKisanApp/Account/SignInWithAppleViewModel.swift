@@ -15,11 +15,14 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
     @Published var isLoading = false
     @Published var isAuthenticated = false
     @Published var navigateToHome = false
+    @Published var showNameEntry = false
     @Published var errorMessage: String?
     @Published var lastSupabaseSession: Session?
     
     private var currentNonce: String?
     private let supabase = SupabaseManager.shared
+    private var pendingSession: Session?
+    var pendingEmail: String = ""
     
     private enum UserDefaultsKeys {
         static let sessionKey = "supabase_session"
@@ -98,6 +101,7 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
             UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.userEmailKey)
             self.isAuthenticated = false
             self.navigateToHome = false
+            self.showNameEntry = false
         }
     }
 
@@ -151,33 +155,64 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
             print("   - User ID: \(session.user.id)")
             print("   - Email: \(session.user.email ?? "No email")")
 
-            // Save the session
-            await saveSession(session)
-
             // Always use email from Supabase session if Apple didn't provide it
             let finalEmail = rawEmail.isEmpty ? (session.user.email ?? "") : rawEmail
 
             if !finalEmail.isEmpty {
-                do {
-                    print("🔄 Handling Apple Sign In session with AuthManager...")
-                    let authUser = try await AuthManager.shared.handleAppleSignInSession(
-                        session,
-                        name: finalName,
-                        email: finalEmail
-                    )
-                    print("✅ Successfully handled Apple Sign In session")
+                // Check if Apple provided a name
+                let appleProvidedName = !rawName.isEmpty
+                
+                if appleProvidedName {
+                    // Apple provided a name, check if user exists and has a name
+                    let userHasName = await checkUserHasName(session)
                     
-                    // Set authentication state
-                    await MainActor.run {
-                        self.isAuthenticated = true
-                        self.navigateToHome = true
-                        self.errorMessage = nil
+                    if userHasName {
+                        // User exists and has a name, proceed normally
+                        do {
+                            print("🔄 Handling Apple Sign In session with AuthManager...")
+                            let authUser = try await AuthManager.shared.handleAppleSignInSession(
+                                session,
+                                name: finalName,
+                                email: finalEmail
+                            )
+                            print("✅ Successfully handled Apple Sign In session")
+                            
+                            // Save the session
+                            await saveSession(session)
+                            
+                            // Set authentication state
+                            await MainActor.run {
+                                self.isAuthenticated = true
+                                self.navigateToHome = true
+                                self.errorMessage = nil
+                            }
+                        } catch {
+                            print("❌ Error handling Apple Sign In session: \(error)")
+                            await MainActor.run {
+                                self.errorMessage = "Failed to complete sign in: \(error.localizedDescription)"
+                            }
+                        }
+                    } else {
+                        // User exists but doesn't have a name, show name entry screen
+                        print("📝 User exists but name is missing, showing name entry screen")
+                        await MainActor.run {
+                            self.pendingSession = session
+                            self.pendingEmail = finalEmail
+                            self.showNameEntry = true
+                            self.isLoading = false
+                        }
+                        return
                     }
-                } catch {
-                    print("❌ Error handling Apple Sign In session: \(error)")
+                } else {
+                    // Apple didn't provide a name, show name entry screen
+                    print("📝 Apple didn't provide a name, showing name entry screen")
                     await MainActor.run {
-                        self.errorMessage = "Failed to complete sign in: \(error.localizedDescription)"
+                        self.pendingSession = session
+                        self.pendingEmail = finalEmail
+                        self.showNameEntry = true
+                        self.isLoading = false
                     }
+                    return
                 }
             }
             
@@ -218,6 +253,137 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
         let inputData = Data(input.utf8)
         let hashed = SHA256.hash(data: inputData)
         return hashed.map { String(format: "%02x", $0) }.joined()
+    }
+
+    // MARK: - Name Validation
+    
+    private func checkUserHasName(_ session: Session) async -> Bool {
+        do {
+            // Fetch user details from users table
+            let result = try await supabase.client
+                .from("users")
+                .select("name")
+                .eq("userID", value: session.user.id.uuidString)
+                .single()
+                .execute()
+            
+            // Try to cast result.data to [String: Any] and extract name
+            if let dict = result.data as? [String: Any],
+               let nameString = dict["name"] as? String {
+                return !nameString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty
+            }
+            // Fallback: Try to decode as Data and parse JSON
+            if let data = try? JSONSerialization.data(withJSONObject: result.data, options: []),
+               let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let nameString = dict["name"] as? String {
+                return !nameString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty
+            }
+            return false
+        } catch {
+            print("❌ Error checking user name: \(error)")
+            return false
+        }
+    }
+    
+    func completeSignInWithName(_ name: String) async {
+        guard let session = pendingSession else {
+            await MainActor.run {
+                self.errorMessage = "No pending session found"
+                self.isLoading = false
+            }
+            return
+        }
+        
+        do {
+            // Check if user exists in the database
+            let userExists = await checkUserExists(session)
+            
+            if userExists {
+                // User exists, update the name
+                try await supabase.client
+                    .from("users")
+                    .update(["name": name])
+                    .eq("userID", value: session.user.id.uuidString)
+                    .execute()
+                print("✅ Updated existing user's name")
+            } else {
+                // User doesn't exist, create new user with the provided name
+                let newUser = NewUserRequest(
+                    userID: session.user.id.uuidString,
+                    name: name,
+                    email: pendingEmail,
+                    phone: "", // Empty phone for Apple Sign In users
+                    latitude: 0.0,
+                    longitude: 0.0,
+                    fieldArea: 0.0
+                )
+                
+                try await supabase.client
+                    .from("users")
+                    .insert(newUser)
+                    .execute()
+                print("✅ Created new user with provided name")
+            }
+            
+            // Now handle the Apple Sign In session
+            let authUser = try await AuthManager.shared.handleAppleSignInSession(
+                session,
+                name: name,
+                email: pendingEmail
+            )
+            
+            // Save the session
+            await saveSession(session)
+            
+            // Set authentication state
+            await MainActor.run {
+                self.isAuthenticated = true
+                self.navigateToHome = true
+                self.showNameEntry = false
+                self.errorMessage = nil
+                self.pendingSession = nil
+                self.pendingEmail = ""
+            }
+            
+            print("✅ Successfully completed sign in with name: \(name)")
+            
+        } catch {
+            print("❌ Error completing sign in with name: \(error)")
+            await MainActor.run {
+                self.errorMessage = "Failed to complete sign in: \(error.localizedDescription)"
+                self.showNameEntry = false
+                self.pendingSession = nil
+                self.pendingEmail = ""
+            }
+        }
+        
+        await MainActor.run { self.isLoading = false }
+    }
+    
+    private func checkUserExists(_ session: Session) async -> Bool {
+        do {
+            let result = try await supabase.client
+                .from("users")
+                .select("userID")
+                .eq("userID", value: session.user.id.uuidString)
+                .single()
+                .execute()
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    func cancelNameEntry() {
+        Task {
+            await MainActor.run {
+                self.showNameEntry = false
+                self.pendingSession = nil
+                self.pendingEmail = ""
+                self.isLoading = false
+                self.errorMessage = nil
+            }
+        }
     }
 }
 

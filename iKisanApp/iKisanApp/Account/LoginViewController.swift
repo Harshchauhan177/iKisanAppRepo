@@ -248,6 +248,16 @@ class LoginViewController: UIViewController {
             }
             .store(in: &cancellables)
         
+        // Observe name entry screen
+        appleSignInViewModel.$showNameEntry
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] showNameEntry in
+                if showNameEntry {
+                    self?.showNameEntryScreen()
+                }
+            }
+            .store(in: &cancellables)
+        
         // Observe error messages
         appleSignInViewModel.$errorMessage
             .receive(on: DispatchQueue.main)
@@ -357,39 +367,61 @@ class LoginViewController: UIViewController {
     
     // MARK: - Navigation
     private func navigateAfterLogin(user: AuthUser) {
-        // Always go directly to the main app after login, regardless of crop selection
-        // Users can select crops from their profile if needed
-        
-        // Use the storyboard to get the properly configured MainTabBarController
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController {
-            // Configure the tab bar with data controller
-            let dataController = IKisanDataController()
-            
-            // Set the data controller for each view controller in the tab bar
-            if let mainTabBarController = tabBarController as? MainTabBarController {
-                mainTabBarController.dataController = dataController
-            }
-            
-            // Configure individual view controllers
-            if let viewControllers = tabBarController.viewControllers {
-                for viewController in viewControllers {
-                    if let navController = viewController as? UINavigationController {
-                        if let homeVC = navController.viewControllers.first as? HomeViewController {
-                            homeVC.dataController = dataController
-                        } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
-                            agriAssistVC.dataController = dataController
-                        } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
-                            coequipVC.dataController = dataController
+        // Check if user has selected crops
+        if let selectedCrops = user.selectedCrops, !selectedCrops.isEmpty {
+            // User has crops, navigate to main app
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            if let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController {
+                // Configure the tab bar with data controller
+                let dataController = IKisanDataController()
+                
+                // Set the data controller for each view controller in the tab bar
+                if let mainTabBarController = tabBarController as? MainTabBarController {
+                    mainTabBarController.dataController = dataController
+                }
+                
+                // Configure individual view controllers
+                if let viewControllers = tabBarController.viewControllers {
+                    for viewController in viewControllers {
+                        if let navController = viewController as? UINavigationController {
+                            if let homeVC = navController.viewControllers.first as? HomeViewController {
+                                homeVC.dataController = dataController
+                            } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
+                                agriAssistVC.dataController = dataController
+                            } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
+                                coequipVC.dataController = dataController
+                            }
                         }
                     }
                 }
+                
+                // Set as root view controller
+                UIApplication.shared.windows.first?.rootViewController = tabBarController
+                UIApplication.shared.windows.first?.makeKeyAndVisible()
             }
-            
-            // Set as root view controller
-            UIApplication.shared.windows.first?.rootViewController = tabBarController
-            UIApplication.shared.windows.first?.makeKeyAndVisible()
+        } else {
+            // User doesn't have crops, navigate to crop selection
+            let selectCropsVC = SelectCropsViewController()
+            navigationController?.pushViewController(selectCropsVC, animated: true)
         }
+    }
+    
+    private func showNameEntryScreen() {
+        let nameEntryVC = NameEntryViewController()
+        nameEntryVC.userEmail = appleSignInViewModel.pendingEmail
+        nameEntryVC.onNameEntered = { [weak self] name in
+            Task {
+                await self?.appleSignInViewModel.completeSignInWithName(name)
+            }
+        }
+        nameEntryVC.onCancel = { [weak self] in
+            self?.appleSignInViewModel.cancelNameEntry()
+        }
+        
+        // Wrap in navigation controller and present modally
+        let navController = UINavigationController(rootViewController: nameEntryVC)
+        navController.modalPresentationStyle = .fullScreen
+        present(navController, animated: true)
     }
     
     private func navigateAfterAppleSignIn() {
