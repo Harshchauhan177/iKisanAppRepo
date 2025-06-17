@@ -85,14 +85,14 @@ struct ProfileView: View {
                         }
                     }
                     
-                    NavigationLink(destination: PaymentView()) {
-                        Label {
-                            Text("Payment")
-                        } icon: {
-                            Image(systemName: "creditcard.fill")
-                                .foregroundColor(viewModel.ikisanGreen)
-                        }
-                    }
+//                    NavigationLink(destination: PaymentView()) {
+//                        Label {
+//                            Text("Payment")
+//                        } icon: {
+//                            Image(systemName: "creditcard.fill")
+//                                .foregroundColor(viewModel.ikisanGreen)
+//                        }
+//                    }
                 }
                 
                 Section("Settings") {
@@ -316,13 +316,13 @@ struct HelpCenterView: View {
     }
 }
 
-struct PaymentView: View {
-    var body: some View {
-        Text("Payment View")
-            .navigationTitle("Payment")
-            .navigationBarTitleDisplayMode(.inline)
-    }
-}
+//struct PaymentView: View {
+//    var body: some View {
+//        Text("Payment View")
+//            .navigationTitle("Payment")
+//            .navigationBarTitleDisplayMode(.inline)
+//    }
+//}
 
 struct TermsPrivacyView: View {
     var body: some View {
