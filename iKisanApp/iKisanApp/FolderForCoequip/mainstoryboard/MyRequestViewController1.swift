@@ -209,7 +209,7 @@ extension MyRequestViewController1: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let count = acceptedRequestPeopleList.count
         print("Number of rows in table: \(count)")
-        return count
+        return acceptedRequestPeopleList.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
