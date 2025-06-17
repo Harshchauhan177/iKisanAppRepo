@@ -296,9 +296,9 @@ class BookingDetailsViewController: UIViewController {
     private func setupActionButtons() {
         // Configure view button
         viewButton.translatesAutoresizingMaskIntoConstraints = false
-        viewButton.setTitle("View Equipment", for: .normal)
+        viewButton.setTitle("", for: .normal)
         viewButton.setTitleColor(.white, for: .normal)
-        viewButton.backgroundColor = primaryColor
+        viewButton.backgroundColor = UIColor.white
         viewButton.layer.cornerRadius = 8
         viewButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         viewButton.addTarget(self, action: #selector(viewButtonTapped(_:)), for: .touchUpInside)
@@ -307,11 +307,11 @@ class BookingDetailsViewController: UIViewController {
         // Configure cancel button
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.setTitle("Cancel Booking", for: .normal)
-        cancelButton.setTitleColor(primaryColor, for: .normal)
+        cancelButton.setTitleColor(.systemRed, for: .normal)
         cancelButton.backgroundColor = .clear
         cancelButton.layer.cornerRadius = 8
         cancelButton.layer.borderWidth = 1
-        cancelButton.layer.borderColor = primaryColor.cgColor
+        cancelButton.layer.borderColor = UIColor.systemRed.cgColor
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         cancelButton.addTarget(self, action: #selector(cancelBookingTapped(_:)), for: .touchUpInside)
         contentView.addSubview(cancelButton)
