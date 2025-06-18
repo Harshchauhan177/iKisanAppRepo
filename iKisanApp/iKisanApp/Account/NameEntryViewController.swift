@@ -5,7 +5,7 @@ class NameEntryViewController: UIViewController {
     
     // MARK: - Properties
     var userEmail: String = ""
-    var onNameEntered: ((String) -> Void)?
+    var onNameEntered: ((String, String) -> Void)?
     var onCancel: (() -> Void)?
     
     // MARK: - UI Components
@@ -65,6 +65,21 @@ class NameEntryViewController: UIViewController {
         return textField
     }()
     
+    private let phoneTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "Enter your mobile number"
+        textField.borderStyle = .roundedRect
+        textField.font = UIFont.preferredFont(forTextStyle: .body)
+        textField.adjustsFontForContentSizeCategory = true
+        textField.keyboardType = .phonePad
+        textField.autocapitalizationType = .none
+        textField.autocorrectionType = .no
+        textField.returnKeyType = .done
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityLabel = "Phone input field"
+        return textField
+    }()
+    
     private let continueButton: UIButton = {
         let button = UIButton(type: .system)
         var configuration = UIButton.Configuration.filled()
@@ -109,7 +124,7 @@ class NameEntryViewController: UIViewController {
         
         // Update subtitle with email if available
         if !userEmail.isEmpty {
-            subtitleLabel.text = "Please enter your name to complete your profile\nEmail: \(userEmail)"
+            subtitleLabel.text = "Please enter your name and mobile number to complete your profile\nEmail: \(userEmail)"
         }
     }
     
@@ -140,6 +155,7 @@ class NameEntryViewController: UIViewController {
         containerStackView.addArrangedSubview(titleLabel)
         containerStackView.addArrangedSubview(subtitleLabel)
         containerStackView.addArrangedSubview(nameTextField)
+        containerStackView.addArrangedSubview(phoneTextField)
         containerStackView.addArrangedSubview(continueButton)
         
         // Add spacing view to push content to center
@@ -164,6 +180,11 @@ class NameEntryViewController: UIViewController {
             nameTextField.leadingAnchor.constraint(equalTo: containerStackView.leadingAnchor),
             nameTextField.trailingAnchor.constraint(equalTo: containerStackView.trailingAnchor),
             
+            // Phone text field constraints
+            phoneTextField.heightAnchor.constraint(equalToConstant: 44),
+            phoneTextField.leadingAnchor.constraint(equalTo: containerStackView.leadingAnchor),
+            phoneTextField.trailingAnchor.constraint(equalTo: containerStackView.trailingAnchor),
+            
             // Continue button constraints
             continueButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
             continueButton.leadingAnchor.constraint(equalTo: containerStackView.leadingAnchor),
@@ -179,6 +200,7 @@ class NameEntryViewController: UIViewController {
         
         // Set delegates
         nameTextField.delegate = self
+        phoneTextField.delegate = self
         
         // Make text field first responder
         nameTextField.becomeFirstResponder()
@@ -191,24 +213,27 @@ class NameEntryViewController: UIViewController {
     
     // MARK: - Action Methods
     @objc private func continueButtonTapped() {
-        guard let name = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !name.isEmpty else {
+        guard let name = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else {
             showAlert(title: "Error", message: "Please enter your name")
             return
         }
-        
-        // Validate name (at least 2 characters)
         if name.count < 2 {
             showAlert(title: "Error", message: "Name must be at least 2 characters long")
             return
         }
-        
-        // Start loading
+        guard let phone = phoneTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !phone.isEmpty else {
+            showAlert(title: "Error", message: "Please enter your mobile number")
+            return
+        }
+        // Basic phone validation (10 digits)
+        let phoneRegex = "^[0-9]{10}$"
+        if !NSPredicate(format: "SELF MATCHES %@", phoneRegex).evaluate(with: phone) {
+            showAlert(title: "Error", message: "Please enter a valid 10-digit mobile number")
+            return
+        }
         activityIndicator.startAnimating()
         continueButton.isEnabled = false
-        
-        // Call the completion handler
-        onNameEntered?(name)
+        onNameEntered?(name, phone)
     }
     
     // MARK: - Helper Methods
@@ -222,15 +247,30 @@ class NameEntryViewController: UIViewController {
 // MARK: - UITextFieldDelegate
 extension NameEntryViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        continueButtonTapped()
+        if textField == nameTextField {
+            phoneTextField.becomeFirstResponder()
+        } else {
+            continueButtonTapped()
+        }
         return true
     }
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        // Limit name to 50 characters
-        let currentText = textField.text ?? ""
-        guard let stringRange = Range(range, in: currentText) else { return false }
-        let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
-        return updatedText.count <= 50
+        if textField == nameTextField {
+            let currentText = textField.text ?? ""
+            guard let stringRange = Range(range, in: currentText) else { return false }
+            let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+            return updatedText.count <= 50
+        }
+        if textField == phoneTextField {
+            let currentText = textField.text ?? ""
+            guard let stringRange = Range(range, in: currentText) else { return false }
+            let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+            // Only allow up to 10 digits
+            let allowedCharacters = CharacterSet.decimalDigits
+            let characterSet = CharacterSet(charactersIn: string)
+            return updatedText.count <= 10 && allowedCharacters.isSuperset(of: characterSet)
+        }
+        return true
     }
 } 

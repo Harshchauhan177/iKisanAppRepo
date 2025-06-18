@@ -285,7 +285,7 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
         }
     }
     
-    func completeSignInWithName(_ name: String) async {
+    func completeSignInWithName(_ name: String, phone: String) async {
         guard let session = pendingSession else {
             await MainActor.run {
                 self.errorMessage = "No pending session found"
@@ -293,48 +293,42 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
             }
             return
         }
-        
         do {
             // Check if user exists in the database
             let userExists = await checkUserExists(session)
-            
             if userExists {
-                // User exists, update the name
+                // User exists, update the name and phone
                 try await supabase.client
                     .from("users")
-                    .update(["name": name])
+                    .update(["name": name, "phone": phone])
                     .eq("userID", value: session.user.id.uuidString)
                     .execute()
-                print("✅ Updated existing user's name")
+                print("✅ Updated existing user's name and phone")
             } else {
-                // User doesn't exist, create new user with the provided name
+                // User doesn't exist, create new user with the provided name and phone
                 let newUser = NewUserRequest(
                     userID: session.user.id.uuidString,
                     name: name,
                     email: pendingEmail,
-                    phone: "", // Empty phone for Apple Sign In users
+                    phone: phone,
                     latitude: 0.0,
                     longitude: 0.0,
                     fieldArea: 0.0
                 )
-                
                 try await supabase.client
                     .from("users")
                     .insert(newUser)
                     .execute()
-                print("✅ Created new user with provided name")
+                print("✅ Created new user with provided name and phone")
             }
-            
             // Now handle the Apple Sign In session
             let authUser = try await AuthManager.shared.handleAppleSignInSession(
                 session,
                 name: name,
                 email: pendingEmail
             )
-            
             // Save the session
             await saveSession(session)
-            
             // Set authentication state
             await MainActor.run {
                 self.isAuthenticated = true
@@ -344,11 +338,9 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
                 self.pendingSession = nil
                 self.pendingEmail = ""
             }
-            
-            print("✅ Successfully completed sign in with name: \(name)")
-            
+            print("✅ Successfully completed sign in with name and phone: \(name), \(phone)")
         } catch {
-            print("❌ Error completing sign in with name: \(error)")
+            print("❌ Error completing sign in with name and phone: \(error)")
             await MainActor.run {
                 self.errorMessage = "Failed to complete sign in: \(error.localizedDescription)"
                 self.showNameEntry = false
@@ -356,7 +348,6 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
                 self.pendingEmail = ""
             }
         }
-        
         await MainActor.run { self.isLoading = false }
     }
     

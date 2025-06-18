@@ -411,9 +411,9 @@ class LoginViewController: UIViewController {
     private func showNameEntryScreen() {
         let nameEntryVC = NameEntryViewController()
         nameEntryVC.userEmail = appleSignInViewModel.pendingEmail
-        nameEntryVC.onNameEntered = { [weak self] name in
+        nameEntryVC.onNameEntered = { [weak self] name, phone in
             Task {
-                await self?.appleSignInViewModel.completeSignInWithName(name)
+                await self?.appleSignInViewModel.completeSignInWithName(name, phone: phone)
             }
         }
         nameEntryVC.onCancel = { [weak self] in
