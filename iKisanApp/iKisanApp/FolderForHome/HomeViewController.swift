@@ -444,9 +444,11 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             saveBookedEquipment(id: booking.equipmentID)
         }
         
-        // IMPORTANT: Force all bookings to be shown in upcoming section
-        // For now, let's show all bookings regardless of date
-        upcomingBookings = allBookings
+        // Sort all bookings by date, most recent first
+        let sortedBookings = allBookings.sorted { $0.bookingDate > $1.bookingDate }
+        
+        // Get only the 3 most recently made bookings for the Upcoming Bookings section
+        upcomingBookings = Array(sortedBookings.prefix(3))
         
         // Generate explore section equipment based on user history
         generateExploreEquipment()
