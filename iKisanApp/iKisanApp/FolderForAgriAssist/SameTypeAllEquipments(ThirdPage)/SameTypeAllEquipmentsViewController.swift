@@ -71,7 +71,7 @@ class SameTypeAllEquipmentsViewController: UIViewController,UICollectionViewDele
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShowEquipmentDetails",
-           let destinationVC = segue.destination as? infoAboutEquipmentsViewController,
+           let destinationVC = segue.destination as? InfoAboutEquipmentsHostingController,
            let equipment = sender as? EquipmentAgri {
             destinationVC.dataController = dataController
             destinationVC.selectedEquipmentId = equipment.id

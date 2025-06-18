@@ -356,31 +356,15 @@
         <!--Info About Equipments View Controller-->
         <scene sceneID="IsW-i4-xZc">
             <objects>
-                <viewController storyboardIdentifier="infoAboutEquipments" id="RjB-ag-djl" customClass="infoAboutEquipmentsViewController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="infoAboutEquipments" id="RjB-ag-djl" customClass="InfoAboutEquipmentsHostingController" customModule="iKisanApp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="aSL-CO-c7H">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="tlF-db-qoQ">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tlF-db-qoQ">
                                 <rect key="frame" x="0.0" y="49" width="393" height="793"/>
                                 <color key="backgroundColor" red="0.91372549530000002" green="0.91372549530000002" blue="0.91372549530000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="KR0-7p-Jh3">
-                                    <size key="itemSize" width="128" height="128"/>
-                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
-                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
-                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
-                                </collectionViewFlowLayout>
-                                <cells>
-                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="cell" id="YnX-Jt-b9u">
-                                        <rect key="frame" x="0.0" y="0.0" width="127.99999999999997" height="128"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="pee-5f-yea">
-                                            <rect key="frame" x="0.0" y="0.0" width="127.99999999999997" height="128"/>
-                                            <autoresizingMask key="autoresizingMask"/>
-                                        </collectionViewCellContentView>
-                                    </collectionViewCell>
-                                </cells>
-                            </collectionView>
+                            </view>
                             <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WDi-Ne-n8j">
                                 <rect key="frame" x="0.0" y="5" width="393" height="44"/>
                                 <color key="backgroundColor" red="0.91372549530000002" green="0.91372549530000002" blue="0.91372549530000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
@@ -399,9 +383,6 @@
                             <constraint firstItem="tlF-db-qoQ" firstAttribute="leading" secondItem="AOg-Mx-9ck" secondAttribute="leading" id="z0q-3u-Bxy"/>
                         </constraints>
                     </view>
-                    <connections>
-                        <outlet property="collectionView" destination="tlF-db-qoQ" id="ZEM-fx-x0W"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dDS-9Y-ryb" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>

@@ -29,7 +29,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     private var isShowingSuggestions = false
     
     var preBookings: [Booking] = []
-    var preBookingEquipments: [Equipment] = []
+    var preBookingEquipments: [Equipment?] = []
     
     var hasPreBookings: Bool {
         return !preBookings.isEmpty
@@ -167,7 +167,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
                 }
                 
                 // Get equipment details for each prebooking
-                preBookingEquipments = preBookings.compactMap { booking in
+                preBookingEquipments = preBookings.map { booking in
                     dataController.getEquipment(byId: booking.equipmentID)
                 }
                 
@@ -177,9 +177,6 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
                 // Log the current prebookings for debugging
                 print("Current prebookings after refresh: \(self.preBookings.count)")
             }
-        }
-        preBookingEquipments = preBookings.compactMap { booking in
-            dataController.getEquipment(byId: booking.equipmentID)
         }
         
         // Reload the entire collection view to reflect changes
@@ -371,7 +368,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         case .prebookings:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Third", for: indexPath) as! yourPrebookingsSection
             let booking = preBookings[indexPath.row]
-            if let equipment = preBookingEquipments[safe: indexPath.row] {
+            if let equipment = preBookingEquipments[indexPath.row] {
                 cell.configure(with: booking, equipment: equipment)
                 cell.delegate = self
             }
@@ -1046,7 +1043,7 @@ extension PrebookingViewController: ReviewBookingDelegate {
         // Refresh the prebookings list
         if let dataController = dataController {
             preBookings = dataController.getPreBookings()
-            preBookingEquipments = preBookings.compactMap { booking in
+            preBookingEquipments = preBookings.map { booking in
                 dataController.getEquipment(byId: booking.equipmentID)
             }
         }

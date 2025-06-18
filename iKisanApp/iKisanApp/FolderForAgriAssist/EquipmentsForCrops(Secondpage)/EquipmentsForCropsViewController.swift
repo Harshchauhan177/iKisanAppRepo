@@ -98,7 +98,7 @@ class EquipmentsForCropsViewController: UIViewController,UITableViewDelegate,UIT
             destinationVC.selectedCategoryId = category.id
             destinationVC.title = "\(category.title)"
         } else if segue.identifier == "ShowEquipmentDetails",
-                  let destinationVC = segue.destination as? infoAboutEquipmentsViewController,
+                  let destinationVC = segue.destination as? InfoAboutEquipmentsHostingController,
                   let equipment = sender as? EquipmentAgri {
             print("Preparing ShowEquipmentDetails segue")
             print("Equipment: \(equipment.name) with ID: \(equipment.id)")
