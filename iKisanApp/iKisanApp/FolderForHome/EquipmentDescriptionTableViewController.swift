@@ -312,6 +312,9 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         self.mileage = equipment.mielage
         self.moreImages = equipment.equipmentMoreImages.images
         
+        // Check if the user has booked this equipment to determine if they can write a review
+        checkUserBookingStatus(for: equipment)
+        
         // Update the UI
         if isViewLoaded {
             updateEquipmentDescriptionData()
@@ -632,16 +635,50 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     // Helper method to check if user has completed booking for this equipment
     private func checkIfUserCompletedBooking(userID: UUID, equipmentID: UUID) -> Bool {
-        // In a real implementation, this would check the database
-        // For now, we'll simulate it by checking if both IDs are valid
+        // Check if we have a data controller - use it to quickly check local bookings
+        if let dataController = dataController {
+            // Get all bookings for this user and equipment using the new method
+            let userBookings = dataController.getUserBookings(userID: userID, equipmentID: equipmentID)
+            
+            // If we have any matching bookings, user can write a review
+            if !userBookings.isEmpty {
+                print("User has \(userBookings.count) bookings for this equipment")
+                return true
+            }
+        }
         
-        // Breaking up the complex expression to avoid compiler issues
-        let isValidUserID = !userID.uuidString.isEmpty
-        let isValidEquipmentID = !equipmentID.uuidString.isEmpty
+        // If no matches in local data, fetch from the backend
+        // We'll do this asynchronously and update the UI when complete
+        Task {
+            print("Checking user booking history for equipment ID: \(equipmentID)")
+            
+            // Fetch bookings from backend
+            let fetchedBookings = await RequestManager.shared.fetchBookings()
+            
+            // Check if any bookings match this user and equipment
+            let matchingBookings = fetchedBookings.filter { booking in
+                return booking.userID == userID && booking.equipmentID == equipmentID
+            }
+            
+            // Update UI on main thread if we found matching bookings
+            if !matchingBookings.isEmpty {
+                print("Found \(matchingBookings.count) matching bookings from backend")
+                await MainActor.run {
+                    self.userCanWriteReview = true
+                    self.updateReviewSectionUI()
+                }
+                return
+            }
+            
+            // If we still haven't found any bookings, ensure user cannot write review
+            await MainActor.run {
+                self.userCanWriteReview = false
+                self.updateReviewSectionUI()
+            }
+        }
         
-        // For testing purposes, return true to allow writing reviews
-        // In production, this should check actual booking history
-        return isValidUserID && isValidEquipmentID
+        // Default to false until async check completes
+        return false
     }
     
     private func updateReviewSectionUI() {
@@ -850,6 +887,20 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     @objc func presentReviewSheet() {
         guard let equipment = equipment else { return }
+        
+        // Check if user can write a review before showing the review sheet
+        if !userCanWriteReview {
+            // Show alert explaining why they can't write a review
+            let alert = UIAlertController(
+                title: "Cannot Write Review",
+                message: "You need to book and use this equipment before writing a review.",
+                preferredStyle: .alert
+            )
+            let okAction = UIAlertAction(title: "OK", style: .default)
+            alert.addAction(okAction)
+            present(alert, animated: true)
+            return
+        }
         
         // Create the write review view controller
         let writeReviewVC = WriteReviewViewController()
