@@ -129,6 +129,8 @@ class LoginViewController: UIViewController {
         let button = ASAuthorizationAppleIDButton(type: .signIn, style: .black)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.cornerRadius = 8
+        button.accessibilityIdentifier = "AppleSignInButton"
+        button.accessibilityLabel = "Sign in with Apple"
         return button
     }()
     
@@ -213,10 +215,10 @@ class LoginViewController: UIViewController {
             loginButton.leadingAnchor.constraint(equalTo: formStackView.leadingAnchor),
             loginButton.trailingAnchor.constraint(equalTo: formStackView.trailingAnchor),
             
-            // Apple Sign In button constraints
-            appleSignInButton.heightAnchor.constraint(equalToConstant: 44),
-            appleSignInButton.leadingAnchor.constraint(equalTo: buttonsStackView.leadingAnchor),
-            appleSignInButton.trailingAnchor.constraint(equalTo: buttonsStackView.trailingAnchor),
+            // Apple Sign In button constraints (match login button)
+            appleSignInButton.heightAnchor.constraint(equalTo: loginButton.heightAnchor),
+            appleSignInButton.leadingAnchor.constraint(equalTo: formStackView.leadingAnchor),
+            appleSignInButton.trailingAnchor.constraint(equalTo: formStackView.trailingAnchor),
             
             // Activity indicator constraints
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
