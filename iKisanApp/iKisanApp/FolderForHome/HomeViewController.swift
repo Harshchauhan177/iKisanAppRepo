@@ -25,6 +25,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     private var recentlyBookedEquipmentIds: [UUID] = []
     private var exploreEquipment: [Equipment] = [] // Equipment to show in Explore More section
     
+    // Pull-to-refresh control
+    private var refreshControl = UIRefreshControl()
+    
     // Keys for UserDefaults
     private let recentSearchesKey = "userRecentSearches"
     private let recentBookingsKey = "userRecentBookings"
@@ -90,6 +93,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         collectionView.isHidden = false
         setupSearchController()
         setupTableView()
+        setupRefreshControl()
 
         // Add profile button to navigation bar
         let profileButton = UIBarButtonItem(
@@ -440,9 +444,11 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             saveBookedEquipment(id: booking.equipmentID)
         }
         
-        // IMPORTANT: Force all bookings to be shown in upcoming section
-        // For now, let's show all bookings regardless of date
-        upcomingBookings = allBookings
+        // Sort all bookings by date, most recent first
+        let sortedBookings = allBookings.sorted { $0.bookingDate > $1.bookingDate }
+        
+        // Get only the 3 most recently made bookings for the Upcoming Bookings section
+        upcomingBookings = Array(sortedBookings.prefix(3))
         
         // Generate explore section equipment based on user history
         generateExploreEquipment()
@@ -1516,5 +1522,29 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         exploreEquipment = equipmentToShow
         print("Final explore equipment count: \(exploreEquipment.count) items")
         print("=====================================")
+    }
+
+    // Setup refresh control
+    private func setupRefreshControl() {
+      
+        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        collectionView.refreshControl = refreshControl
+    }
+    
+    @objc private func refreshData() {
+        print("Pull-to-refresh triggered")
+        // Start refresh animation
+        refreshControl.beginRefreshing()
+        
+        // Reload data asynchronously
+        Task {
+            await loadDataFromBackend(forceRefresh: true)
+            
+            // End refreshing on main thread
+            await MainActor.run {
+                refreshControl.endRefreshing()
+                print("Refresh completed")
+            }
+        }
     }
 }

@@ -207,7 +207,8 @@ class UpcomingBookingsListViewController: UIViewController, UICollectionViewData
             let fetchedEquipment = await RequestManager.shared.fetchEquipments()
             
             await MainActor.run {
-                self.upcomingBookings = fetchedBookings
+                // Sort bookings by date, most recent first
+                self.upcomingBookings = fetchedBookings.sorted { $0.bookingDate > $1.bookingDate }
                 self.allEquipment = fetchedEquipment
                 
                 print("UpcomingBookingsListViewController - Direct fetch loaded \(self.upcomingBookings.count) bookings and \(self.allEquipment.count) equipment items")
@@ -215,7 +216,9 @@ class UpcomingBookingsListViewController: UIViewController, UICollectionViewData
                 // If we have no bookings or equipment but we have a dataController, try that as fallback
                 if (self.upcomingBookings.isEmpty || self.allEquipment.isEmpty) && self.dataController != nil {
                     self.allEquipment = self.dataController!.getAllEquipment()
-                    self.upcomingBookings = self.dataController!.getUpcomingBookings()
+                    // Get bookings from dataController and sort them
+                    let dataControllerBookings = self.dataController!.getUpcomingBookings()
+                    self.upcomingBookings = dataControllerBookings.sorted { $0.bookingDate > $1.bookingDate }
                     print("UpcomingBookingsListViewController - Fallback to dataController loaded \(self.upcomingBookings.count) bookings")
                 }
                 

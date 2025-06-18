@@ -116,6 +116,9 @@ protocol DataController {
     
     // Add the missing method declaration
     func loadDataFromBackend() async
+    
+    // Get bookings for a specific user and equipment
+    func getUserBookings(userID: UUID, equipmentID: UUID) -> [Booking]
 }
 
 
@@ -1106,6 +1109,11 @@ class IKisanDataController: DataController {
     // Get all stored crop field areas
     func getAllCropFieldAreas() -> [String: String] {
         return UserDefaults.standard.dictionary(forKey: cropFieldAreasKey) as? [String: String] ?? [:]
+    }
+    
+    // Get bookings for a specific user and equipment
+    func getUserBookings(userID: UUID, equipmentID: UUID) -> [Booking] {
+        return bookingsList.filter { $0.userID == userID && $0.equipmentID == equipmentID }
     }
 }
 

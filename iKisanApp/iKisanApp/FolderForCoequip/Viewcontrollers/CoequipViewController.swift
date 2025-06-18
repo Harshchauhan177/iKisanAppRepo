@@ -10,9 +10,13 @@ class CoequipViewController: UIViewController {
     private var myRequests: [Request] = []  // Cache for my requests
     private var joinRequests: [Request] = [] // Cache for join requests
     
+    // Pull-to-refresh control
+    private var refreshControl = UIRefreshControl()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
+        setupRefreshControl()
         updateUI()
         NotificationCenter.default.addObserver(
             self,
@@ -20,6 +24,30 @@ class CoequipViewController: UIViewController {
             name: .requestDeleted,
             object: nil
         )
+    }
+    
+    // Setup refresh control
+    private func setupRefreshControl() {
+ 
+        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        CoequipTableView.refreshControl = refreshControl
+    }
+    
+    @objc private func refreshData() {
+        print("Pull-to-refresh triggered in CoequipViewController")
+        // Start refresh animation
+        refreshControl.beginRefreshing()
+        
+        // Reload data asynchronously
+        Task {
+            await dataController.loadDataFromBackend()
+            
+            await MainActor.run {
+                self.updateUI()
+                self.refreshControl.endRefreshing()
+                print("Refresh completed in CoequipViewController")
+            }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {

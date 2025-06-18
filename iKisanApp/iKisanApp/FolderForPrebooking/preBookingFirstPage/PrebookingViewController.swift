@@ -24,6 +24,9 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     private var allEquipment: [Equipment] = []
     private var filteredEquipment: [Equipment] = []
     
+    // Pull-to-refresh control
+    private var refreshControl = UIRefreshControl()
+    
     private var searchSuggestions: [Equipment] = []
     // Removed custom searchTableView in favor of standard UISearchController results
     private var isShowingSuggestions = false
@@ -770,6 +773,38 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         collectionView.setCollectionViewLayout(createLayout(), animated: false)
         collectionView.dataSource = self
         collectionView.delegate = self
+        
+        // Setup pull-to-refresh
+        setupRefreshControl()
+    }
+    
+    // Setup refresh control
+    private func setupRefreshControl() {
+       
+        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        collectionView.refreshControl = refreshControl
+    }
+    
+    @objc private func refreshData() {
+        print("Pull-to-refresh triggered in PrebookingViewController")
+        // Start refresh animation
+        refreshControl.beginRefreshing()
+        
+        // Reload data asynchronously
+        Task {
+            // Refresh all data
+            await dataController?.refreshBookingsFromDatabase()
+            await dataController?.refreshFAQsFromDatabase()
+            
+            // End refreshing on main thread
+            await MainActor.run {
+                // Reload all data
+                loadData()
+                loadPreBookings()
+                refreshControl.endRefreshing()
+                print("Refresh completed in PrebookingViewController")
+            }
+        }
     }
     
     private func setupSearchController() {
