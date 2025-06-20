@@ -760,14 +760,24 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         }
         
         let dataController = sceneDelegate.dataController
-        dataController.addBooking(newBooking)
+//        dataController.addBooking(newBooking)
     }
+    
     
     func onPaymentError(_ code: Int32, description str: String) {
         let alert = UIAlertController(title: "Failure", message: str, preferredStyle: .alert)
         let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         alert.addAction(cancel)
         self.view.window?.rootViewController?.present(alert, animated: true, completion: nil)
+    }
+    
+    private func addThisBooking() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let sceneDelegate = windowScene.delegate as? SceneDelegate else {
+            return
+        }
+        guard let booking = self.thisBooking else { return }
+        _ = sceneDelegate.dataController.addBooking(booking)
     }
         
     func onPaymentSuccess(_ payment_id: String) {
@@ -779,6 +789,7 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         guard let currentBooking = thisBooking else { return }
         
         Task {
+            addThisBooking()
             do {
                 try await SupabaseManager.shared.client
                     .from("bookings")
