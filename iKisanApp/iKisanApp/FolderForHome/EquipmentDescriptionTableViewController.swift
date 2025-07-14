@@ -312,8 +312,18 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
         self.mileage = equipment.mielage
         self.moreImages = equipment.equipmentMoreImages.images
         
+        // Initialize moreImages with at least the main equipment image if empty
+        if self.moreImages.isEmpty {
+            self.moreImages = [equipment.equipmentImage]
+        }
+        
         // Check if the user has booked this equipment to determine if they can write a review
         checkUserBookingStatus(for: equipment)
+        
+        // Fetch additional images from Supabase to update the "More" button count
+        fetchMoreImagesFromSupabase { [weak self] in
+            // No need to do anything here as the fetching updates the UI automatically
+        }
         
         // Update the UI
         if isViewLoaded {
@@ -528,15 +538,106 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
                 // in viewDidLoad or viewWillAppear
             }
         } else if segue.identifier == "MoreImageView" {
-            if let destinationVC = segue.destination as? ImageViewCollectionViewController {
-                destinationVC.imageNames = moreImages
+            print("Preparing MoreImageView segue - passing \(moreImages.count) images")
+            
+            // Handle both direct presentation and navigation controller presentation
+            var destinationVC: ImageViewCollectionViewController?
+            
+            if let imageVC = segue.destination as? ImageViewCollectionViewController {
+                destinationVC = imageVC
+            } else if let navController = segue.destination as? UINavigationController,
+                      let imageVC = navController.topViewController as? ImageViewCollectionViewController {
+                destinationVC = imageVC
+            }
+            
+            if let imageVC = destinationVC {
+                imageVC.imageNames = moreImages
+                print("Images passed to destination: \(moreImages)")
             }
         }
     }
 
     
     @IBAction func moreImageButtonTapped(_ sender: UIButton) {
-        performSegue(withIdentifier: "MoreImageView", sender: self)
+        print("More button tapped - performing segue with \(moreImages.count) images")
+        
+        // If images haven't been fetched yet, fetch them first
+        if moreImages.isEmpty || moreImages.count == 1 {
+            print("Images not loaded yet, fetching now...")
+            
+            // Show loading indicator
+            sender.isEnabled = false
+            sender.setTitle("Loading...", for: .normal)
+            
+            // Fetch more images from Supabase
+            fetchMoreImagesFromSupabase { [weak self] in
+                DispatchQueue.main.async {
+                    // Reset button state
+                    sender.isEnabled = true
+                    sender.setTitle("More", for: .normal)
+                    
+                    print("Fetching complete - performing segue with \(self?.moreImages.count ?? 0) images")
+                    
+                    // Perform segue with updated images
+                    self?.performSegue(withIdentifier: "MoreImageView", sender: self)
+                }
+            }
+        } else {
+            // Images already loaded, go directly to image view
+            performSegue(withIdentifier: "MoreImageView", sender: self)
+        }
+    }
+    
+    // MARK: - Fetch More Images from Supabase
+    
+    private func fetchMoreImagesFromSupabase(completion: @escaping () -> Void) {
+        guard let equipment = equipment else {
+            print("Error: No equipment available for fetching more images")
+            completion()
+            return
+        }
+        
+        print("Fetching more images for equipment ID: \(equipment.equipmentID.uuidString)")
+        
+        Task {
+            do {
+                let imageRecords: [EquipmentImageRecord] = try await SupabaseManager.shared.client
+                    .from("equipmentMoreImages")
+                    .select("*")
+                    .eq("equipmentID", value: equipment.equipmentID.uuidString)
+                    .execute()
+                    .value
+                
+                // Extract image URLs from the records
+                let imageUrls = imageRecords.map { $0.image }
+                
+                // Include the main equipment image as the first image
+                var allImages = [equipment.equipmentImage]
+                allImages.append(contentsOf: imageUrls)
+                
+                // Update moreImages array on main thread
+                await MainActor.run {
+                    self.moreImages = allImages
+                    // Update the more button text to reflect actual count
+                    self.more = "\(imageUrls.count)"
+                    if let moreLabel = self.moreLabel {
+                        moreLabel.text = "+ \(self.more)"
+                    }
+                    print("Successfully fetched \(imageUrls.count) additional images for equipment: \(equipment.name)")
+                    print("Total images available: \(allImages.count)")
+                    completion()
+                }
+                
+            } catch {
+                print("Error fetching more images from Supabase: \(error)")
+                
+                // Fallback to showing just the main equipment image
+                await MainActor.run {
+                    self.moreImages = [equipment.equipmentImage]
+                    completion()
+                }
+            }
+        }
     }
     
     deinit {

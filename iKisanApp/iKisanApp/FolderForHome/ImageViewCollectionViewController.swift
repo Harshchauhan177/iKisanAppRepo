@@ -16,6 +16,23 @@ class ImageViewCollectionViewController: UICollectionViewController {
        override func viewDidLoad() {
            super.viewDidLoad()
 
+           print("ImageViewCollectionViewController loaded with \(imageNames.count) images: \(imageNames)")
+
+           // Set up navigation title and close button
+           title = "Equipment Images"
+           
+           // Add close button for modal presentation
+           navigationItem.leftBarButtonItem = UIBarButtonItem(
+               barButtonSystemItem: .close,
+               target: self,
+               action: #selector(closeButtonTapped)
+           )
+
+           // Show empty state if no images
+           if imageNames.isEmpty {
+               title = "No Images Available"
+           }
+
            if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
                    layout.scrollDirection = .horizontal
                    layout.itemSize = CGSize(width: view.frame.width - 8, height: view.frame.height)
@@ -25,27 +42,27 @@ class ImageViewCollectionViewController: UICollectionViewController {
                
                collectionView.isPagingEnabled = true
        }
+    
+    @objc private func closeButtonTapped() {
+        // Handle both modal presentation and navigation controller presentation
+        if let presentingVC = presentingViewController {
+            presentingVC.dismiss(animated: true, completion: nil)
+        } else if let navController = navigationController {
+            navController.dismiss(animated: true, completion: nil)
+        }
+    }
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return imageNames.count
+        let count = imageNames.count
+        print("Collection view returning \(count) items")
+        return count
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! ImageViewCollectionViewCell
         
-        // Safely unwrap the imageView outlet to prevent crashes
-        if let imageView = cell.imageView {
-            let imageName = imageNames[indexPath.row]
-            
-            // Check if image name is a URL
-            if imageName.hasPrefix("http") {
-                // It's a URL, use our ImageCache utility to load it
-                imageView.loadImage(from: imageName)
-            } else {
-                // Local asset
-                imageView.image = UIImage(named: imageName) ?? UIImage(named: "placeholder_image")
-            }
-        }
+        let imageName = imageNames[indexPath.row]
+        cell.updateCellData(with: imageName)
         
         return cell
     }

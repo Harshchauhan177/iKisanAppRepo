@@ -167,6 +167,19 @@ struct EquipmentMoreImages: Codable {
     }
 }
 
+// Model for individual equipment image from equipmentMoreImages table
+struct EquipmentImageRecord: Codable {
+    let id: Int
+    let equipmentID: UUID?
+    let image: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case equipmentID
+        case image
+    }
+}
+
 
 //MARK: Model for User
 
