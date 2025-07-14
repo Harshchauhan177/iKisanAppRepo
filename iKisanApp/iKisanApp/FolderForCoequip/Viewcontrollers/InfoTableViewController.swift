@@ -9,7 +9,7 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var hostName: UILabel!
     @IBOutlet weak var InputAreaLabel: UITextField!
-    @IBOutlet weak var dateLabel: UILabel!
+    @IBOutlet weak var datePicker: UIDatePicker!
     @IBOutlet weak var TimeSlotLabel: UILabel!
     @IBOutlet weak var FarmerListLabel: UILabel!
     @IBOutlet weak var LocationLabel: UILabel!
@@ -166,17 +166,16 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
             hostName.text = "Hosted by \(equipment.providerName ?? "Unknown")"
         }
         
+        // Configure date picker
+        setupDatePicker()
+        
         if let selectedDate = date {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "E, d MMM"
-            dateLabel.text = dateFormatter.string(from: selectedDate)
+            datePicker.date = selectedDate
         } else {
-        // If no date was passed, use today's date
-        let today = Date()
-        date = today
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "E, d MMM"
-        dateLabel.text = dateFormatter.string(from: today)
+            // If no date was passed, use today's date
+            let today = Date()
+            date = today
+            datePicker.date = today
         }
         
         // Set location from user's address
@@ -194,6 +193,59 @@ class InfoTableViewController: UITableViewController, UITextFieldDelegate {
         InputAreaLabel.delegate = self
         
         print("Current user address: \(dataController?.getCurrentUserAddress() ?? "nil")")
+    }
+    
+    // MARK: - Date Picker Configuration
+    
+    private func setupDatePicker() {
+        // Set minimum date to today to prevent booking in the past
+        let today = Calendar.current.startOfDay(for: Date())
+        datePicker.minimumDate = today
+        
+        // Configure date picker style and color
+        datePicker.preferredDatePickerStyle = .compact
+        datePicker.datePickerMode = .date
+        datePicker.tintColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+        
+        // Add target for value changes
+        datePicker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
+    }
+    
+    @objc private func datePickerValueChanged() {
+        // Update both date properties to ensure consistency
+        date = datePicker.date
+        selectedDate = datePicker.date
+        
+        // Update time slot calculation based on new date if needed
+        if let area = Double(InputAreaLabel.text ?? "0"), area > 0 {
+            calculateTimeSlot()
+        }
+    }
+    
+    private func updateTimeSlot(for area: Double) {
+        // Get equipment capacity and convert to Double
+        let capacityPerHour = Double(cardData?.capacity ?? "1") ?? 1.0
+        
+        // Calculate exact hours needed
+        let hoursNeeded = area / capacityPerHour
+        
+        // Convert hours to minutes and calculate end time
+        let minutesNeeded = hoursNeeded * 60.0 // Convert hours to minutes
+        let endTimeInMinutes = Double(startTime) + minutesNeeded
+        
+        // Ensure end time doesn't exceed 6 PM (18:00)
+        let finalEndTime = min(endTimeInMinutes, Double(endTime))
+        
+        // Format the time slot string with hours and minutes
+        let startHour = startTime / minutesPerHour
+        let endHour = Int(finalEndTime) / minutesPerHour
+        let endMinutes = Int(finalEndTime) % minutesPerHour
+        
+        if endMinutes == 0 {
+            TimeSlotLabel.text = String(format: "%02d:00 - %02d:00", startHour, endHour)
+        } else {
+            TimeSlotLabel.text = String(format: "%02d:00 - %02d:%02d", startHour, endHour, endMinutes)
+        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
