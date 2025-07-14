@@ -114,9 +114,18 @@ class preBookingCalanderCollectionViewCell: UICollectionViewCell {
     }
     
     func configure(with equipments: [Equipment]?, dataController: DataController?, prebookingDates: [Date] = []) {
+        let previousCount = self.availableEquipments.count
         self.availableEquipments = equipments ?? []
         self.dataController = dataController
         self.prebookingDates = Set(prebookingDates.map { Calendar.current.startOfDay(for: $0) })
+        
+        // Debug logging
+        print("Calendar cell configure:")
+        print("- Previous equipment count: \(previousCount)")
+        print("- New equipment count: \(self.availableEquipments.count)")
+        if !self.availableEquipments.isEmpty {
+            print("- Equipment names: \(self.availableEquipments.map { $0.name })")
+        }
         
         if #available(iOS 16.0, *), let calendarView = self.calendarView {
             // Maintain current selection or set to today if none
@@ -198,7 +207,7 @@ class preBookingCalanderCollectionViewCell: UICollectionViewCell {
         }
     }
     
-    // Update availability check for multiple equipment
+    // Update availability check for multiple equipment (grouped by name)
     private func areAllEquipmentsAvailable(on date: Date) -> Bool {
         guard !availableEquipments.isEmpty else { return false }
         
@@ -302,10 +311,15 @@ extension preBookingCalanderCollectionViewCell: UICalendarSelectionSingleDateDel
         
         if hasPreBooking {
             NotificationCenter.default.post(
-                name: .prebookingDateSelected,
+                name: NSNotification.Name("prebookingDateSelected"),
                 object: nil,
                 userInfo: ["date": date]
             )
+        }
+        
+        // Get all available equipment from the group for this date
+        let availableEquipmentForDate = availableEquipments.filter { equipment in
+            equipment.isAvailable(on: date)
         }
         
         NotificationCenter.default.post(
@@ -315,7 +329,8 @@ extension preBookingCalanderCollectionViewCell: UICalendarSelectionSingleDateDel
                 "equipment": availableEquipments.first as Any,
                 "date": date,
                 "isAvailable": isEquipmentAvailable,
-                "hasPreBooking": hasPreBooking
+                "hasPreBooking": hasPreBooking,
+                "availableEquipmentGroup": availableEquipmentForDate
             ]
         )
         

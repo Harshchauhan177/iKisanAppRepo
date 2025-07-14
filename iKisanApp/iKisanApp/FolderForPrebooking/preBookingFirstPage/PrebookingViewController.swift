@@ -24,6 +24,10 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     private var allEquipment: [Equipment] = []
     private var filteredEquipment: [Equipment] = []
     
+    // Add grouped equipment data structures for grouping by name
+    private var groupedEquipments: [String: [Equipment]] = [:]
+    private var groupedSearchResults: [String: [Equipment]] = [:]
+    
     // Pull-to-refresh control
     private var refreshControl = UIRefreshControl()
     
@@ -59,6 +63,13 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             case .faq:
                 return "FAQ"
             }
+        }
+        
+        func getAvailableHeaderTitle(for equipmentName: String?) -> String {
+            if let name = equipmentName {
+                return "Available \(name)"
+            }
+            return "Available Equipment"
         }
     }
     
@@ -98,12 +109,29 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        // Check if there's an active search
+        let hasActiveSearch = !(searchController.searchBar.text?.isEmpty ?? true)
+        
         // Reset available equipment section state only if no search is active
-        if searchController.searchBar.text?.isEmpty ?? true {
+        if !hasActiveSearch {
             hasAddPreBook = false
             availableEquipments = []
             selectedDate = nil
             searchedEquipments = []
+        } else {
+            // If there's an active search, preserve the search state
+            print("Preserving search state for: \(searchController.searchBar.text ?? "")")
+            print("Searched equipments count: \(searchedEquipments.count)")
+            
+            // Ensure calendar is properly configured with searched equipment
+            if !searchedEquipments.isEmpty {
+                DispatchQueue.main.async { [weak self] in
+                    if let calendarCell = self?.collectionView.cellForItem(at: IndexPath(item: 0, section: Section.calendar.rawValue)) as? preBookingCalanderCollectionViewCell {
+                        calendarCell.configure(with: self?.searchedEquipments, dataController: self?.dataController)
+                        print("Reconfigured calendar with \(self?.searchedEquipments.count ?? 0) searched equipments")
+                    }
+                }
+            }
         }
         
         // Remove existing observer before adding new one to prevent duplicates
@@ -139,7 +167,28 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             await MainActor.run {
                 self?.loadData() // Reload all data including FAQs
                 self?.loadPreBookings()
-                self?.collectionView.reloadData()
+                
+                // Only reload collection view if no active search to preserve search state
+                if self?.searchedEquipments.isEmpty ?? true {
+                    self?.collectionView.reloadData()
+                } else {
+                    // For active search, only reload sections that don't affect calendar
+                    let sectionsToReload: [Int] = [
+                        Section.recommended.rawValue,
+                        Section.prebookings.rawValue,
+                        Section.faq.rawValue
+                    ].compactMap { sectionIndex in
+                        // Only reload if section exists in current layout
+                        if sectionIndex < self?.collectionView.numberOfSections ?? 0 {
+                            return sectionIndex
+                        }
+                        return nil
+                    }
+                    
+                    if !sectionsToReload.isEmpty {
+                        self?.collectionView.reloadSections(IndexSet(sectionsToReload))
+                    }
+                }
             }
         }
     }
@@ -148,7 +197,12 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         guard let dataController = dataController else { return }
         
         recommendedEquipments = dataController.getRecommendedEquipments()
-        availableEquipments = dataController.getAvailableEquipments()
+        
+        // Only update availableEquipments if there's no active search to preserve search context
+        if searchedEquipments.isEmpty {
+            availableEquipments = dataController.getAvailableEquipments()
+        }
+        
         faqs = dataController.getPreBookingFAQs()
         
         collectionView.reloadData()
@@ -325,7 +379,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         case .calendar:
             return 1
         case .available:
-            return hasAddPreBook ? 1 : 0
+            return hasAddPreBook ? availableEquipments.count : 0
         case .prebookings:
             return hasPreBookings ? preBookings.count : 0
         case .faq:
@@ -350,9 +404,18 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             // Get all prebooking dates
             let prebookingDates = preBookings.map { $0.bookingDate }
             
-            // Only pass equipment that has been explicitly searched for
-            // This prevents green dots from showing when no search is performed
-            let equipmentToShow = !searchedEquipments.isEmpty ? searchedEquipments : []
+            // Always use searched equipment if available, otherwise use empty array
+            // This ensures calendar only shows availability for searched equipment
+            let equipmentToShow = searchedEquipments.isEmpty ? [] : searchedEquipments
+            
+            // Debug logging
+            print("Calendar cell configuration:")
+            print("- Search bar text: '\(searchController.searchBar.text ?? "")'")
+            print("- Searched equipments count: \(searchedEquipments.count)")
+            print("- Equipment to show count: \(equipmentToShow.count)")
+            if !equipmentToShow.isEmpty {
+                print("- Equipment names: \(equipmentToShow.map { $0.name })")
+            }
             
             cell.configure(
                 with: equipmentToShow,
@@ -364,7 +427,8 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         
         case .available:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Fifth", for: indexPath) as! preBookingEquipmentSectionAddPreBookCollectionViewCell
-            if let equipment = availableEquipments.first {
+            if indexPath.row < availableEquipments.count {
+                let equipment = availableEquipments[indexPath.row]
                 cell.configure(with: equipment)
                 cell.delegate = self
             }
@@ -416,7 +480,15 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
         titleLabel.textColor = .label
-        titleLabel.text = getSectionType(for: indexPath.section).headerTitle
+        
+        let sectionType = getSectionType(for: indexPath.section)
+        if sectionType == .available && !availableEquipments.isEmpty {
+            // For available section, show the equipment name if it's a grouped result
+            let equipmentName = availableEquipments.first?.name
+            titleLabel.text = sectionType.getAvailableHeaderTitle(for: equipmentName)
+        } else {
+            titleLabel.text = sectionType.headerTitle
+        }
         
         headerView.addSubview(titleLabel)
         
@@ -670,9 +742,13 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     }
     
     func didTapViewButton(on cell: preBookingEquipmentSectionAddPreBookCollectionViewCell) {
-        // Get the selected equipment and date
-        guard let equipment = availableEquipments.first,
+        // Find the index path of the tapped cell
+        guard let indexPath = collectionView.indexPath(for: cell),
               let selectedDate = selectedDate else { return }
+        
+        // Get the specific equipment from the available equipments array
+        guard indexPath.row < availableEquipments.count else { return }
+        let equipment = availableEquipments[indexPath.row]
         
         // Get the storyboard and view controller
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
@@ -732,10 +808,24 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             hasAddPreBook = true
             selectedDate = date
             
-            // Use searched equipments if available, filtered by availability
-            availableEquipments = searchedEquipments.filter { equipment in
-                equipment.isAvailable(on: date) &&
-                Calendar.current.startOfDay(for: date) >= today
+            // Use the available equipment group from the notification if available
+            if let availableEquipmentGroup = userInfo["availableEquipmentGroup"] as? [Equipment] {
+                // Only use equipment from the searched group to maintain search context
+                if !searchedEquipments.isEmpty {
+                    // Filter to only include equipment that was in the searched results
+                    let searchedEquipmentIDs = Set(searchedEquipments.map { $0.equipmentID })
+                    availableEquipments = availableEquipmentGroup.filter { equipment in
+                        searchedEquipmentIDs.contains(equipment.equipmentID)
+                    }
+                } else {
+                    availableEquipments = availableEquipmentGroup
+                }
+            } else {
+                // Fallback: filter searched equipments by availability
+                availableEquipments = searchedEquipments.filter { equipment in
+                    equipment.isAvailable(on: date) &&
+                    Calendar.current.startOfDay(for: date) >= today
+                }
             }
         } else {
             hasAddPreBook = false
@@ -959,12 +1049,21 @@ extension PrebookingViewController: UISearchResultsUpdating {
         }
         
         // Comprehensive search across all equipment fields
-        searchSuggestions = allEquipments.filter { equipment in
+        let matchingEquipments = allEquipments.filter { equipment in
             equipment.name.lowercased().contains(searchText) ||
             equipment.type.lowercased().contains(searchText) ||
             equipment.description?.lowercased().contains(searchText) == true ||
             equipment.location.lowercased().contains(searchText)
         }
+        
+        // Group by name and show only one representative per group
+        let groupedResults = groupEquipmentByName(matchingEquipments)
+        searchSuggestions = getRepresentativeEquipmentNames(from: groupedResults).compactMap { name in
+            getRepresentativeEquipment(for: name, from: groupedResults)
+        }
+        
+        // Store grouped results for later use
+        groupedSearchResults = groupedResults
         
         // Reload the search results table
         (searchController.searchResultsController as? UITableViewController)?.tableView.reloadData()
@@ -981,10 +1080,11 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SearchCell", for: indexPath)
         let equipment = searchSuggestions[indexPath.row]
         
-        // Configure cell
+        // Configure cell to show only equipment name
         var content = cell.defaultContentConfiguration()
         content.text = equipment.name
-        content.secondaryText = "\(equipment.type) - \(equipment.location)"
+        // Remove secondary text to show only the equipment name
+        content.secondaryText = nil
         cell.contentConfiguration = content
         
         return cell
@@ -994,9 +1094,13 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         
         let selectedEquipment = searchSuggestions[indexPath.row]
-        searchedEquipments = [selectedEquipment]
         
-        // Update search bar text with selected equipment
+        // Select the entire group of equipment with the same name
+        searchedEquipments = getEquipmentGroup(for: selectedEquipment.name, from: groupedSearchResults)
+        
+        print("Search selection: \(selectedEquipment.name), found \(searchedEquipments.count) equipment entities")
+        
+        // Update search bar text with selected equipment name
         searchController.searchBar.text = selectedEquipment.name
         
         // Dismiss search controller
@@ -1006,13 +1110,17 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
             self.availableEquipments = []
             self.selectedDate = nil
             
-            // Update calendar with selected equipment
+            // Update calendar with selected equipment group BEFORE reloading
             if let calendarCell = self.collectionView.cellForItem(at: IndexPath(item: 0, section: Section.calendar.rawValue)) as? preBookingCalanderCollectionViewCell {
+                print("Configuring calendar with \(self.searchedEquipments.count) searched equipments before reload")
                 calendarCell.configure(with: self.searchedEquipments, dataController: self.dataController)
             }
             
-            // Reload all affected sections
-            self.collectionView.reloadData()
+            // Only reload the calendar section specifically to maintain search context
+            let calendarSection = Section.calendar.rawValue
+            self.collectionView.reloadSections(IndexSet([calendarSection]))
+            
+            print("Search context preserved: \(self.searchedEquipments.count) equipments")
         }
     }
 }
@@ -1037,12 +1145,18 @@ extension PrebookingViewController: UISearchBarDelegate {
         searchBar.resignFirstResponder()
         guard let query = searchBar.text, !query.isEmpty else { return }
         
-        // Use proper search method from DataController
-        searchedEquipments = dataController?.searchEquipment(query: query) ?? []
+        // Use proper search method from DataController and group results
+        let rawSearchResults = dataController?.searchEquipment(query: query) ?? []
+        let groupedResults = groupEquipmentByName(rawSearchResults)
+        
+        // Get all equipment from all groups for searchedEquipments
+        searchedEquipments = Array(groupedResults.values.flatMap { $0 })
         
         // Dismiss search controller
         searchController.dismiss(animated: true) {
             if !self.searchedEquipments.isEmpty {
+                print("Search button: Found \(self.searchedEquipments.count) equipments for query: \(query)")
+                
                 // Reset sections state
                 self.hasAddPreBook = false
                 self.availableEquipments = []
@@ -1050,6 +1164,7 @@ extension PrebookingViewController: UISearchBarDelegate {
                 
                 // Update calendar with ALL searched equipment
                 if let calendarCell = self.collectionView.cellForItem(at: IndexPath(item: 0, section: Section.calendar.rawValue)) as? preBookingCalanderCollectionViewCell {
+                    print("Configuring calendar with all searched equipment")
                     calendarCell.configure(with: self.searchedEquipments, dataController: self.dataController)
                 }
                 
@@ -1060,7 +1175,11 @@ extension PrebookingViewController: UISearchBarDelegate {
                     self.availableEquipments = self.searchedEquipments.filter { $0.isAvailable(on: today) }
                 }
                 
-                self.collectionView.reloadData()
+                // Only reload calendar section to preserve search context
+                let calendarSection = Section.calendar.rawValue
+                self.collectionView.reloadSections(IndexSet([calendarSection]))
+                
+                print("Search context established: \(self.searchedEquipments.count) equipments")
             }
         }
     }
@@ -1221,17 +1340,32 @@ extension PrebookingViewController {
     
     // Implement similar methods for available, prebookings, and FAQ sections
     private func createAvailableSection() -> NSCollectionLayoutSection {
+        // Set fixed height for a single item
+        let itemHeight: CGFloat = 105 // Height of one card
+        let spacing: CGFloat = 10
+        
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(150)
+            heightDimension: .absolute(itemHeight)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         
+        // Calculate number of items
+        let numberOfItems = max(1, availableEquipments.count) // At least 1 for layout purposes
+        
+        // Total height = (item height × number of items) + (spacing × (number of items - 1))
+        let totalHeight = (itemHeight * CGFloat(numberOfItems)) + (spacing * CGFloat(max(0, numberOfItems - 1)))
+        
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(150)
+            heightDimension: .absolute(totalHeight)
         )
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        let group = NSCollectionLayoutGroup.vertical(
+            layoutSize: groupSize,
+            subitem: item,
+            count: numberOfItems
+        )
+        group.interItemSpacing = .fixed(spacing)
         
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16)
@@ -1314,6 +1448,42 @@ extension PrebookingViewController {
         return section
     }
 }
+
+// MARK: - Equipment Grouping Helper Methods
+    
+    /// Groups equipment by their name into a dictionary
+    private func groupEquipmentByName(_ equipments: [Equipment]) -> [String: [Equipment]] {
+        return Dictionary(grouping: equipments) { $0.name }
+    }
+    
+    /// Gets representative equipment names for display (one per group)
+    private func getRepresentativeEquipmentNames(from groupedEquipments: [String: [Equipment]]) -> [String] {
+        return Array(groupedEquipments.keys).sorted()
+    }
+    
+    /// Gets the first equipment from a group (for display purposes)
+    private func getRepresentativeEquipment(for name: String, from groupedEquipments: [String: [Equipment]]) -> Equipment? {
+        return groupedEquipments[name]?.first
+    }
+    
+    /// Gets all equipment in a group by name
+    private func getEquipmentGroup(for name: String, from groupedEquipments: [String: [Equipment]]) -> [Equipment] {
+        return groupedEquipments[name] ?? []
+    }
+    
+    /// Checks if any equipment in a group is available on a specific date
+    private func isAnyEquipmentAvailable(in group: [Equipment], on date: Date) -> Bool {
+        return group.contains { equipment in
+            equipment.isAvailable(on: date)
+        }
+    }
+    
+    /// Gets all available equipment from a group on a specific date
+    private func getAvailableEquipment(from group: [Equipment], on date: Date) -> [Equipment] {
+        return group.filter { equipment in
+            equipment.isAvailable(on: date)
+        }
+    }
 
 
 
