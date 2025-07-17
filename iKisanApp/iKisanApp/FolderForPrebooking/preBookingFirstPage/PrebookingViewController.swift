@@ -416,7 +416,6 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
             if !equipmentToShow.isEmpty {
                 print("- Equipment names: \(equipmentToShow.map { $0.name })")
             }
-            
             cell.configure(
                 with: equipmentToShow,
                 dataController: dataController,
@@ -1116,9 +1115,8 @@ extension PrebookingViewController: UITableViewDataSource, UITableViewDelegate {
                 calendarCell.configure(with: self.searchedEquipments, dataController: self.dataController)
             }
             
-            // Only reload the calendar section specifically to maintain search context
-            let calendarSection = Section.calendar.rawValue
-            self.collectionView.reloadSections(IndexSet([calendarSection]))
+            // Use full reload instead of section-specific reload to avoid batch update issues
+            self.collectionView.reloadData()
             
             print("Search context preserved: \(self.searchedEquipments.count) equipments")
         }
