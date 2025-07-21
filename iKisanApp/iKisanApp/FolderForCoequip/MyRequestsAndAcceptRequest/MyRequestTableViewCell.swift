@@ -14,6 +14,9 @@ class MyRequestTableViewCell: UITableViewCell {
     @IBOutlet weak var PendingButtonTapped: UIButton!
     @IBOutlet weak var ConfirmButtonLabel: UIButton!
     
+    @IBOutlet weak var noOfPeopleJoinedOuter: UILabel!
+    
+    
     weak var delegate: MyRequestTableViewCellDelegate?
     
     override func awakeFromNib() {
@@ -37,6 +40,10 @@ class MyRequestTableViewCell: UITableViewCell {
         dateFormatter.dateFormat = "E, d MMM"
         DateLabel.text = dateFormatter.string(from: request.requestedDate)
         PendingButtonTapped.isHidden = (request.status != .pending)
+        
+        // Count and display the number of people who joined/accepted the request
+        let joinedCount = request.participants?.filter { $0.status == .done }.count ?? 0
+        noOfPeopleJoinedOuter.text = "\(joinedCount)"
     }
     
     @IBAction func ConfirmButtonTapped(_ sender: Any) {
