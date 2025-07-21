@@ -24,10 +24,10 @@
                     </label>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="ebY-pI-8yk" firstAttribute="top" secondItem="l6J-wJ-uEp" secondAttribute="top" id="7pA-aF-yvZ"/>
-                    <constraint firstItem="ebY-pI-8yk" firstAttribute="leading" secondItem="l6J-wJ-uEp" secondAttribute="leading" id="biZ-2W-EaY"/>
-                    <constraint firstAttribute="bottom" secondItem="ebY-pI-8yk" secondAttribute="bottom" id="vpr-TG-BbL"/>
-                    <constraint firstAttribute="trailing" secondItem="ebY-pI-8yk" secondAttribute="trailing" id="ywa-2q-XXi"/>
+                    <constraint firstItem="ebY-pI-8yk" firstAttribute="top" secondItem="l6J-wJ-uEp" secondAttribute="top" constant="8" id="7pA-aF-yvZ"/>
+                    <constraint firstItem="ebY-pI-8yk" firstAttribute="leading" secondItem="l6J-wJ-uEp" secondAttribute="leading" constant="12" id="biZ-2W-EaY"/>
+                    <constraint firstAttribute="bottom" secondItem="ebY-pI-8yk" secondAttribute="bottom" constant="8" id="vpr-TG-BbL"/>
+                    <constraint firstAttribute="trailing" secondItem="ebY-pI-8yk" secondAttribute="trailing" constant="12" id="ywa-2q-XXi"/>
                 </constraints>
             </collectionViewCellContentView>
             <connections>

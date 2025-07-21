@@ -868,7 +868,7 @@ class IKisanDataController: DataController {
     }
     
     func getCategories() -> [String] {
-        return ["Combine", "Rice", "Wheat", "Soyabean", "Irrigation", "Other"]
+        return ["All", "Rice", "Wheat", "Soyabean", "Irrigation", "Other"]
     }
     
     func getEquipmentList() -> [Equipment] {
@@ -1875,6 +1875,7 @@ class RequestManager {
                 // Since you don't have a crop_equipment_mapping table, let's create a mapping directly
                 // using cropEquipmentRecommendations table
                 let cropEquipmentData: [CropEquipmentMappingDTO] = try await SupabaseManager.shared.client
+                   
                     .from("cropEquipmentRecommendations")
                     .select("*")
                     .eq("cropID", value: cropDTO.cropID)

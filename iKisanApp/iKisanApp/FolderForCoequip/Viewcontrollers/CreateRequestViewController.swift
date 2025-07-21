@@ -17,16 +17,18 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
     var selectedCategory:String?
     var selectedDate: Date?
     var selectedSuggestion: String?
-     var selectedCalendarDate: Date?
+    var selectedCalendarDate: Date?
     private var calendarView: UICalendarView?
     var dataController: DataController!
     
-
+    // Add properties to track current filters
+    private var currentSearchText: String = ""
+    private var isSearchActive: Bool = false
 
     private func setupInitialState() {
-        // Set initial category
+        // Set initial category - use "All" instead of "Combine" for better UX
         if selectedCategory == nil && !categories.isEmpty {
-            selectedCategory = "Combine"  // Set to Combine by default
+            selectedCategory = "All"
         }
         
         setupCollectionViewLayouts()
@@ -36,12 +38,11 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         dateFormatter.dateFormat = "E, dd MMM"
         dateLabel.text = dateFormatter.string(from: Date())
         
-        // Select initial category
-        if let category = selectedCategory,
-           let index = categories.firstIndex(of: category) {
-            categoryCollectionView.selectItem(at: IndexPath(row: index, section: 0), animated: false, scrollPosition: .left)
-            filterCardsByCategory()
-        }
+        // Load all equipment initially
+        card = dataController.getAllEquipment()
+        
+        // Apply initial filters
+        applyAllFilters()
         
         updateCategorySelection()
         categoryCollectionView.reloadData()
@@ -56,49 +57,121 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
            !suggestion.isEmpty,
            let searchBarRef = searchBar {
             searchBarRef.text = suggestion
-            applySearchFilter()
-        }
-        
-        // Reapply category filter
-        if let category = selectedCategory {
-            filterCardsByCategory()
+            currentSearchText = suggestion
+            isSearchActive = true
         }
         
         // Set today's date if no date is selected
         let dateToUse = selectedCalendarDate ?? Date()
         selectedCalendarDate = dateToUse
-        filteredCard = card.filter { isEquipmentAvailable(on: dateToUse, for: $0) }
-        cardCollectionView.reloadData()
         
         // Update date label
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd MMM yyyy"
         dateLabel.text = dateFormatter.string(from: dateToUse)
         
+        // Apply all filters together
+        applyAllFilters()
+        
         // Update UI
         updateCategorySelection()
         cardCollectionView.reloadData()
     }
+    
     func applySearchFilter() {
-      
         guard isViewLoaded,
               let categoryCollectionViewRef = categoryCollectionView,
               let cardCollectionViewRef = cardCollectionView else {
             return
         }
         
-        if let searchText = selectedSuggestion {
-            card = dataController.getAllEquipment()
-            filteredCard = card.filter { 
-                $0.name.lowercased().contains(searchText.lowercased()) 
-            }
-            selectedCategory = nil
+        if let searchText = selectedSuggestion, !searchText.isEmpty {
+            currentSearchText = searchText
+            isSearchActive = true
+            
+            // Don't clear selectedCategory - let them work together
+            applyAllFilters()
+            
             categoryCollectionViewRef.reloadData()
             cardCollectionViewRef.reloadData()
         }
     }
 
-
+    // New method to apply all filters together
+    private func applyAllFilters() {
+        var results = card
+        
+        // First apply search filter if active
+        if isSearchActive && !currentSearchText.isEmpty {
+            results = results.filter { equipment in
+                equipment.name.lowercased().contains(currentSearchText.lowercased()) ||
+                equipment.type.lowercased().contains(currentSearchText.lowercased()) ||
+                equipment.description?.lowercased().contains(currentSearchText.lowercased()) == true
+            }
+        }
+        
+        // Then apply category filter
+        if let category = selectedCategory, category != "All" {
+            results = results.filter { equipment in
+                return filterEquipmentByCategory(equipment, category: category)
+            }
+        }
+        
+        // Finally apply date filter
+        if let dateToUse = selectedCalendarDate {
+            results = results.filter { isEquipmentAvailable(on: dateToUse, for: $0) }
+        }
+        
+        filteredCard = results
+    }
+    
+    // Improved category filtering logic
+    private func filterEquipmentByCategory(_ equipment: Equipment, category: String) -> Bool {
+        let equipmentName = equipment.name.lowercased()
+        let equipmentType = equipment.type.lowercased()
+        let categoryLower = category.lowercased()
+        
+        switch categoryLower {
+        case "combine":
+            return equipmentName.contains("combine") || 
+                   equipmentType.contains("combine") ||
+                   equipmentName.contains("harvest") && (equipmentType.contains("combine") || equipmentName.contains("combine"))
+            
+        case "rice":
+            return equipmentName.contains("rice") || 
+                   equipmentType.contains("rice") ||
+                   equipmentName.contains("paddy") ||
+                   equipmentType.contains("paddy")
+            
+        case "wheat":
+            return equipmentName.contains("wheat") || 
+                   equipmentType.contains("wheat") ||
+                   (equipmentName.contains("grain") && !equipmentName.contains("rice"))
+            
+        case "soyabean", "soybean":
+            return equipmentName.contains("soya") || 
+                   equipmentName.contains("soy") ||
+                   equipmentType.contains("soya") ||
+                   equipmentType.contains("soy")
+            
+        case "irrigation":
+            return equipmentName.contains("irrigation") || 
+                   equipmentType.contains("irrigation") ||
+                   equipmentName.contains("water") ||
+                   equipmentName.contains("pump") ||
+                   equipmentType.contains("pump")
+            
+        case "other":
+            // For "other", show equipment that doesn't match the main categories
+            let mainCategories = ["combine", "rice", "wheat", "soya", "irrigation", "pump", "paddy"]
+            return !mainCategories.contains { keyword in
+                equipmentName.contains(keyword) || equipmentType.contains(keyword)
+            }
+            
+        default:
+            return true
+        }
+    }
 
     @objc private func doneButtonTapped() {
         dismiss(animated: true) {
@@ -126,8 +199,8 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             dateFormatter.dateFormat = "dd MMM yyyy"
             self.dateLabel.text = dateFormatter.string(from: date)
             
-            // Filter equipment based on availability
-            self.filteredCard = self.card.filter { self.isEquipmentAvailable(on: date, for: $0) }
+            // Apply all filters including the new date
+            self.applyAllFilters()
             self.cardCollectionView.reloadData()
         }
     }
@@ -152,17 +225,15 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         
         // Load data
         if let dataController = dataController {
-            categories = dataController.getCategories()
+            // Update categories to include "All" and improve the list
+            categories = ["All", "Combine", "Rice", "Wheat", "Soyabean", "Irrigation", "Other"]
             card = dataController.getAllEquipment()
             
             // Set initial search text if coming from suggestion
             if let suggestion = selectedSuggestion {
                 searchBar.text = suggestion
-                filteredCard = card.filter { 
-                    $0.name.lowercased().contains(suggestion.lowercased()) 
-                }
-            } else {
-                filteredCard = card
+                currentSearchText = suggestion
+                isSearchActive = true
             }
         } else {
             showAlert(message: "System error: Please try again later")
@@ -273,19 +344,28 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             }
         }
     }
+    
+    // Updated search bar delegate method
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.isEmpty {
-            filteredCard = dataController?.getAllEquipment() ?? []
-        } else {
-            filteredCard = dataController?.filterEquipment(by: searchText) ?? []
-        }
+        currentSearchText = searchText
+        isSearchActive = !searchText.isEmpty
+        
+        // Apply all filters when search text changes
+        applyAllFilters()
         cardCollectionView.reloadData()
     }
 
     func setupCollectionViewLayouts() {
         let categoryLayout = UICollectionViewFlowLayout()
         categoryLayout.scrollDirection = .horizontal
+        // UPDATED LEFT MARGIN: Reduced from 24 to 16 since we increased the collection view leading constraint from 10 to 20
+        // Total margin is now 20 (collection view) + 16 (flow layout) = 36 points, ensuring "All" button is fully visible
+        categoryLayout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        categoryLayout.minimumInteritemSpacing = 12
+        categoryLayout.minimumLineSpacing = 12
         categoryCollectionView.setCollectionViewLayout(categoryLayout, animated: false)
+        categoryCollectionView.showsHorizontalScrollIndicator = false
+        
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         cardCollectionView.setCollectionViewLayout(layout, animated: false)
@@ -369,7 +449,9 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         if collectionView == categoryCollectionView {
             selectedCategory = categories[indexPath.row]
             categoryCollectionView.reloadData()
-            filterCardsByCategory()
+            // Apply all filters when category changes
+            applyAllFilters()
+            cardCollectionView.reloadData()
         } else if collectionView == cardCollectionView {
             let selectedCard = filteredCard[indexPath.row]
             guard let dataController = self.dataController else {
@@ -387,26 +469,6 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
                 navigationController?.pushViewController(equipmentDescVC, animated: true)
             }
         }
-        
-            func dateSelection(_ selection: UICalendarSelectionSingleDate, didSelectDate dateComponents: DateComponents?) {
-                if let dateComponents = dateComponents,
-                   let date = Calendar.current.date(from: dateComponents) {
-                    selectedCalendarDate = date
-                    
-                    // Update the date label
-                    let dateFormatter = DateFormatter()
-                    dateFormatter.dateFormat = "dd MMM yyyy"
-                    dateLabel.text = dateFormatter.string(from: date)
-                    
-                    // Dismiss the calendar
-                    dismiss(animated: true)
-                }
-            }
-            
-            func calendarView(_ calendarView: UICalendarView, decorationFor dateComponents: DateComponents) -> UICalendarView.Decoration? {
-                return nil
-            }
-        
     }
     
     private func updateCategorySelection() {
@@ -422,22 +484,33 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
         }
     }
 
+    // Remove the old filterCardsByCategory method and replace with improved version
     func filterCardsByCategory() {
-        guard let selectedCategory = selectedCategory else {
-            filteredCard = card
-            return
-        }
-        if selectedCategory == "Combine" {
-            filteredCard = card
-        } else {
-            filteredCard = card.filter { $0.name.lowercased().contains(selectedCategory.lowercased()) }
-        }
+        // This method is now replaced by applyAllFilters()
+        applyAllFilters()
         cardCollectionView?.reloadData()
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         if collectionView == categoryCollectionView {
-            return CGSize(width: 100, height: 40)
+            // MARK: - Filter Buttons (All, Combine, Rice, etc.) Height and Appearance Configuration
+            // This section controls the dynamic sizing and appearance of category filter buttons
+            // The buttons automatically adjust their width based on text content while maintaining
+            // consistent height for proper touch targets according to HIG guidelines
+            
+            // Calculate dynamic width based on text content
+            let category = categories[indexPath.row]
+            let font = UIFont.preferredFont(forTextStyle: .headline)
+            let textSize = category.size(withAttributes: [.font: font])
+            
+            // Add horizontal padding: 12pt left + 12pt right (from XIB constraints) + 8pt extra for visual comfort
+            let width = textSize.width + 24 + 8 // 8pt extra for visual comfort
+            
+            // FILTER BUTTON HEIGHT: Set to 40pt for proper touch targets per HIG guidelines
+            // This ensures all filter buttons have consistent height regardless of text length
+            let height: CGFloat = 40
+            
+            return CGSize(width: max(width, 60), height: height) // Minimum width of 60pt for consistency
         } else {
             let padding: CGFloat = 8
             let totalSpacing = (numberOfColumns + 1) * padding
