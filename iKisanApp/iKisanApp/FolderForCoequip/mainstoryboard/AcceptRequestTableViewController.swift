@@ -80,9 +80,9 @@ class AcceptRequestTableViewController: UITableViewController {
                 print("Equipment capacity: \(equipmentCapacityPerHour) acres per hour")
             }
             
-            // Use the last time from request's timePeriod as starting time
-            startTime = extractLastTimeFromPeriod(request.timePeriod)
-            print("Using last time from request as start time: \(startTime)")
+            // Calculate the correct start time based on existing participants
+            startTime = calculateNextAvailableStartTime(for: request)
+            print("Calculated next available start time: \(startTime)")
         }
         intputArea.addTarget(self, action: #selector(areaInputChanged), for: .editingChanged)
         
@@ -119,22 +119,66 @@ class AcceptRequestTableViewController: UITableViewController {
     }
     
     func updateTimeSlot(basedOn areaText: String) {
-        // Convert area text to double
-        guard let area = Double(areaText) else {
-            // If conversion fails, try counting words as before
-            let areaCount = areaText.split(separator: " ").count
-            let durationInMinutes = areaCount * 30
-            let endTime = getEndTime(from: startTime, durationInMinutes: durationInMinutes)
-            timeSlotLabel.text = "\(startTime) - \(endTime)"
+        // First, fetch the latest request data from the database to get current participants
+        guard let currentRequest = self.request else {
             return
         }
         
-        // Calculate duration based on equipment capacity (acres per hour)
-        let durationInHours = area / equipmentCapacityPerHour
-        let durationInMinutes = Int(durationInHours * 60)
-        
-        let endTime = getEndTime(from: startTime, durationInMinutes: durationInMinutes)
-        timeSlotLabel.text = "\(startTime) - \(endTime)"
+        // Fetch fresh request data from database
+        Task {
+            // Use RequestManager to fetch fresh data
+            let allRequests = await RequestManager.shared.fetchRequests()
+            if let updatedRequest = allRequests.first(where: { $0.id == currentRequest.id }) {
+                // Update our local request with fresh data
+                await MainActor.run {
+                    self.request = updatedRequest
+                    
+                    // Now calculate start time with updated data
+                    let currentStartTime = self.calculateNextAvailableStartTime(for: updatedRequest)
+                    print("🕒 Recalculated start time with fresh data: \(currentStartTime)")
+                    
+                    // Convert area text to double
+                    guard let area = Double(areaText) else {
+                        let areaCount = areaText.split(separator: " ").count
+                        let durationInMinutes = areaCount * 30
+                        let endTime = self.getEndTime(from: currentStartTime, durationInMinutes: durationInMinutes)
+                        self.timeSlotLabel.text = "\(currentStartTime) - \(endTime)"
+                        return
+                    }
+                    
+                    // Calculate duration based on equipment capacity (acres per hour)
+                    let durationInHours = area / self.equipmentCapacityPerHour
+                    let durationInMinutes = Int(durationInHours * 60)
+                    
+                    let endTime = self.getEndTime(from: currentStartTime, durationInMinutes: durationInMinutes)
+                    self.timeSlotLabel.text = "\(currentStartTime) - \(endTime)"
+                    
+                    print("⏰ Updated time slot with fresh data: \(currentStartTime) - \(endTime) for area: \(area) acres")
+                }
+            } else {
+                // Fallback to existing logic if request not found
+                await MainActor.run {
+                    let currentStartTime = self.calculateNextAvailableStartTime(for: currentRequest)
+                    print("🕒 Using fallback start time calculation: \(currentStartTime)")
+                    
+                    guard let area = Double(areaText) else {
+                        let areaCount = areaText.split(separator: " ").count
+                        let durationInMinutes = areaCount * 30
+                        let endTime = self.getEndTime(from: currentStartTime, durationInMinutes: durationInMinutes)
+                        self.timeSlotLabel.text = "\(currentStartTime) - \(endTime)"
+                        return
+                    }
+                    
+                    let durationInHours = area / self.equipmentCapacityPerHour
+                    let durationInMinutes = Int(durationInHours * 60)
+                    
+                    let endTime = self.getEndTime(from: currentStartTime, durationInMinutes: durationInMinutes)
+                    self.timeSlotLabel.text = "\(currentStartTime) - \(endTime)"
+                    
+                    print("⏰ Updated time slot with fallback: \(currentStartTime) - \(endTime) for area: \(area) acres")
+                }
+            }
+        }
     }
     
     func getEndTime(from startTime: String, durationInMinutes: Int) -> String {
@@ -371,5 +415,67 @@ class AcceptRequestTableViewController: UITableViewController {
         present(alertController, animated: true, completion: nil)
     }
     
+    // Add new method to calculate the next available start time
+    private func calculateNextAvailableStartTime(for request: Request) -> String {
+        var latestEndTime = "08:00" // Default start time if no participants
+        
+        // Check if there are any participants with .done status
+        if let participants = request.participants {
+            let acceptedParticipants = participants.filter { $0.status == .done }
+            
+            if !acceptedParticipants.isEmpty {
+                print("Found \(acceptedParticipants.count) accepted participants")
+                
+                // Find the latest end time from all accepted participants
+                for participant in acceptedParticipants {
+                    if let timeSlot = participant.timeSlot {
+                        print("Participant \(participant.userId) has time slot: \(timeSlot)")
+                        
+                        // Extract end time from time slot (e.g., "08:20 - 09:20" -> "09:20")
+                        if let endTime = extractEndTimeFromTimeSlot(timeSlot) {
+                            print("Extracted end time: \(endTime)")
+                            
+                            // Compare and keep the latest end time
+                            if isTimeLater(endTime, than: latestEndTime) {
+                                latestEndTime = endTime
+                                print("Updated latest end time to: \(latestEndTime)")
+                            }
+                        }
+                    }
+                }
+            } else {
+                // No accepted participants yet, use the original request creator's end time
+                if let timePeriod = request.timePeriod {
+                    latestEndTime = extractLastTimeFromPeriod(timePeriod)
+                    print("No accepted participants, using request creator's end time: \(latestEndTime)")
+                }
+            }
+        }
+        
+        return latestEndTime
+    }
     
+    // Helper method to extract end time from a time slot string
+    private func extractEndTimeFromTimeSlot(_ timeSlot: String) -> String? {
+        // Extract end time from "08:20 - 09:20" format
+        let components = timeSlot.split(separator: "-")
+        if components.count == 2 {
+            let endTime = components[1].trimmingCharacters(in: .whitespaces)
+            return endTime
+        }
+        return nil
+    }
+    
+    // Helper method to compare if one time is later than another
+    private func isTimeLater(_ time1: String, than time2: String) -> Bool {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        
+        guard let date1 = formatter.date(from: time1),
+              let date2 = formatter.date(from: time2) else {
+            return false
+        }
+        
+        return date1 > date2
+    }
 }
