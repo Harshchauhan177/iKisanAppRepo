@@ -234,6 +234,29 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
             return cell
         }
     }
+    
+    // Add didSelectRowAt to handle cell taps for navigation
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        guard let dataController = self.dataController,
+              let currentUser = dataController.getCurrentUser() else { return }
+        
+        let requests = CoequipSegmentedControl.selectedSegmentIndex == 0 ? myRequests : joinRequests
+        
+        // Safety check to prevent index out of bounds
+        guard indexPath.row < requests.count else { return }
+        
+        let request = requests[indexPath.row]
+        
+        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+            // My requests section - navigate to MyRequestViewController1
+            performSegue(withIdentifier: "goToMyRequest1", sender: request)
+        } else {
+            // Join requests section - navigate to AcceptRequestTableViewController
+            performSegue(withIdentifier: "goToAcceptRequest", sender: request)
+        }
+    }
 }
     
 extension CoequipViewController: MyRequestTableViewCellDelegate {
@@ -249,6 +272,13 @@ extension CoequipViewController: MyRequestTableViewCellDelegate {
     }
     
     func didTapPendingButton(cell: MyRequestTableViewCell) {
+        // Remove navigation functionality - pending button no longer redirects
+        // The button will remain visible for status display only
+        print("Pending button tapped - no navigation action")
+    }
+    
+    // Add the missing delegate method for cell tap
+    func didTapCell(cell: MyRequestTableViewCell) {
         guard let indexPath = CoequipTableView.indexPath(for: cell),
               let dataController = dataController,
               let currentUser = dataController.getCurrentUser() else { return }
@@ -262,9 +292,7 @@ extension CoequipViewController: MyRequestTableViewCellDelegate {
         // Safety check to prevent index out of bounds
         guard indexPath.row < requests.count else { return }
         
-        var request = requests[indexPath.row]
-        request.status = .pending
-        dataController.updateRequest(request)
+        let request = requests[indexPath.row]
         performSegue(withIdentifier: "goToMyRequest1", sender: request)
     }
 }

@@ -3,6 +3,7 @@ import UIKit
 protocol MyRequestTableViewCellDelegate: AnyObject {
     func didTapConfirmButton(cell: MyRequestTableViewCell)
     func didTapPendingButton(cell: MyRequestTableViewCell)
+    func didTapCell(cell: MyRequestTableViewCell) // Add new delegate method for cell tap
 }
 
 class MyRequestTableViewCell: UITableViewCell {
@@ -22,6 +23,15 @@ class MyRequestTableViewCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         EquipmentImageLabel.layer.cornerRadius = 10
+        
+        // Add tap gesture recognizer to the entire cell content
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(cellTapped))
+        tapGesture.cancelsTouchesInView = false // Allow buttons to still receive touches
+        self.contentView.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func cellTapped() {
+        delegate?.didTapCell(cell: self)
     }
 
     func configure(with equipment: Equipment, request: Request) {
