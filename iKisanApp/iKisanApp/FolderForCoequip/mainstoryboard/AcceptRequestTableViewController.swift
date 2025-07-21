@@ -170,24 +170,86 @@ class AcceptRequestTableViewController: UITableViewController {
             do {
                 // First update the request_participants table
                 try await SupabaseManager.shared.client
-                    .database
                     .from("request_participants")
                     .update(participantData)
                     .eq("requestId", value: request.id.uuidString)
-                    .eq("userId", value: currentUser.userID)
+                    .eq("userId", value: currentUser.userID.uuidString)
                     .execute()
                 
-                // Then update the requests table to add the current user to acceptedUser array
-                let updateData: [String: [String]] = [
-                    "acceptedUser": [currentUser.userID.uuidString]
-                ]
+                print("✅ Updated request_participants table")
                 
-                try await SupabaseManager.shared.client
-                    .database
-                    .from("requests")
-                    .update(updateData)
-                    .eq("id", value: request.id.uuidString)
-                    .execute()
+                // Fetch current request to get existing acceptedUser array with retry logic
+                var attempts = 0
+                var currentAcceptedUsers: [String] = []
+                let maxAttempts = 3
+                
+                while attempts < maxAttempts {
+                    do {
+                        let currentRequestData = try await SupabaseManager.shared.client
+                            .from("requests")
+                            .select("acceptedUser")
+                            .eq("id", value: request.id.uuidString)
+                            .single()
+                            .execute()
+                        
+                        // Parse the current acceptedUser array more safely
+                        if let jsonObject = try JSONSerialization.jsonObject(with: currentRequestData.data) as? [String: Any] {
+                            if let acceptedUserArray = jsonObject["acceptedUser"] as? [String] {
+                                currentAcceptedUsers = acceptedUserArray
+                                print("📊 Current accepted users: \(currentAcceptedUsers)")
+                            } else if let acceptedUserArray = jsonObject["acceptedUser"] as? [String?] {
+                                currentAcceptedUsers = acceptedUserArray.compactMap { $0 }
+                                print("📊 Current accepted users (nullable): \(currentAcceptedUsers)")
+                            } else {
+                                currentAcceptedUsers = []
+                                print("📊 No accepted users found, starting with empty array")
+                            }
+                        }
+                        break // Success, exit retry loop
+                        
+                    } catch {
+                        attempts += 1
+                        print("⚠️ Attempt \(attempts) failed: \(error)")
+                        if attempts >= maxAttempts {
+                            throw error
+                        }
+                        // Wait 500ms before retry
+                        try await Task.sleep(nanoseconds: 500_000_000)
+                    }
+                }
+                
+                // Add current user to accepted users if not already present
+                let currentUserIdString = currentUser.userID.uuidString
+                if !currentAcceptedUsers.contains(currentUserIdString) {
+                    currentAcceptedUsers.append(currentUserIdString)
+                    print("✅ Added user \(currentUserIdString) to accepted users. New array: \(currentAcceptedUsers)")
+                    
+                    // Update the requests table with the updated acceptedUser array
+                    // Create a properly typed update structure
+                    struct RequestUpdate: Encodable {
+                        let acceptedUser: [String]
+                        let updated_at: String
+                    }
+                    
+                    let updateData = RequestUpdate(
+                        acceptedUser: currentAcceptedUsers,
+                        updated_at: Date().ISO8601Format()
+                    )
+                    
+                    try await SupabaseManager.shared.client
+                        .from("requests")
+                        .update(updateData)
+                        .eq("id", value: request.id.uuidString)
+                        .execute()
+                    
+                    print("✅ Successfully updated requests table with new acceptedUser array")
+                    
+                    // Small delay to ensure database consistency
+                    try await Task.sleep(nanoseconds: 100_000_000) // 100ms
+                    
+                } else {
+                    print("ℹ️ User \(currentUserIdString) is already in accepted users list")
+                }
                 
                 // If database update successful, update local data
                 var updatedRequest = request
@@ -200,12 +262,8 @@ class AcceptRequestTableViewController: UITableViewController {
                     // Update request status
                     updatedRequest.status = .pending
                     
-                    // Add current user to accepted users if not already present
-                    var acceptedUsers = updatedRequest.acceptedUsers ?? []
-                    if !acceptedUsers.contains(currentUser.userID) {
-                        acceptedUsers.append(currentUser.userID)
-                        updatedRequest.acceptedUsers = acceptedUsers
-                    }
+                    // Update local accepted users array with the latest from database
+                    updatedRequest.acceptedUsers = currentAcceptedUsers.compactMap { UUID(uuidString: $0) }
                     
                     // Update local data
                     dataController.updateRequest(updatedRequest)

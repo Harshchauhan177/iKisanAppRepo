@@ -69,29 +69,36 @@ class MyRequestViewController1: UIViewController {
             // Update current area label
             currentAreaLabel.text = String(format: "%.2f acres", totalArea)
             
-            // Get accepted users from the request
-            if let acceptedUserIds = request.acceptedUsers {
-                print("Processing accepted users: \(acceptedUserIds)")
+            // Get all participants who have completed their acceptance (status = .done)
+            if let participants = request.participants {
+                print("Processing participants: \(participants.count) total participants")
                 
-                for userId in acceptedUserIds {
-                    print("Looking up user with ID: \(userId)")
-                    if let user = dataController?.getUserById(userId) {
-                        print("Found user: \(user.name)")
-                        acceptedRequestPeopleList.append(user)
-                        
-                        // Store user's area and time slot
-                        if let participant = request.participants?.first(where: { $0.userId == userId }) {
+                for participant in participants {
+                    // Only show participants who have completed their acceptance
+                    if participant.status == .done {
+                        print("Looking up user with ID: \(participant.userId)")
+                        if let user = dataController?.getUserById(participant.userId) {
+                            print("Found user: \(user.name) with status: \(participant.status)")
+                            acceptedRequestPeopleList.append(user)
+                            
+                            // Store user's area and time slot from participant data
                             if let area = participant.area {
-                                userAreas[userId] = area
+                                userAreas[participant.userId] = area
                             }
                             if let timeSlot = participant.timeSlot {
-                                userTimeSlots[userId] = timeSlot
+                                userTimeSlots[participant.userId] = timeSlot
                             }
+                        } else {
+                            print("❌ Could not find user with ID: \(participant.userId)")
                         }
+                    } else {
+                        print("ℹ️ Skipping participant \(participant.userId) with status: \(participant.status)")
                     }
                 }
                 
-                print("Total accepted users found: \(acceptedRequestPeopleList.count)")
+                print("✅ Total accepted participants found: \(acceptedRequestPeopleList.count)")
+            } else {
+                print("⚠️ No participants found in request")
             }
             
             // Reload table view on main thread
