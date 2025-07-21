@@ -14,6 +14,9 @@ class MyRequestTableViewCell: UITableViewCell {
     @IBOutlet weak var PendingButtonTapped: UIButton!
     @IBOutlet weak var ConfirmButtonLabel: UIButton!
     
+    @IBOutlet weak var ProviderNameLabel: UILabel!
+    
+    @IBOutlet weak var ProviderImageLabel: UIImageView!
     weak var delegate: MyRequestTableViewCellDelegate?
     
     override func awakeFromNib() {
@@ -33,6 +36,7 @@ class MyRequestTableViewCell: UITableViewCell {
         
         EquipmentTitleLabel.text = equipment.name
         LocationLabel.text = equipment.location
+        ProviderNameLabel.text=equipment.providerName
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "E, d MMM"
         DateLabel.text = dateFormatter.string(from: request.requestedDate)

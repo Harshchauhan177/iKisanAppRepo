@@ -33,6 +33,13 @@ struct SelectFarmerView: View {
     var filteredUsers: [User] {
         var filtered = users
         
+        // Filter out the current user
+        if let currentUser = AuthManager.shared.currentUser {
+            filtered = filtered.filter { user in
+                user.userID != currentUser.id
+            }
+        }
+        
         // Apply search filter
         if !searchText.isEmpty {
             filtered = filtered.filter { user in
@@ -57,8 +64,6 @@ struct SelectFarmerView: View {
             return filtered.filter { user in
                 return true
             }
-            
-       
         }
     }
 
@@ -67,35 +72,38 @@ struct SelectFarmerView: View {
             VStack(spacing: 0) {
                 // Filter Section
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 12) { // Increased spacing between filter buttons
                         ForEach(FilterOption.allCases, id: \.self) { option in
                             Button(action: {
                                 selectedFilter = option
                             }) {
                                 Text(option.rawValue)
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(selectedFilter == option ? .white : .black)
-                                    .padding(.horizontal, 15)
-                                    .padding(.vertical, 10)
-                                    .background(selectedFilter == option ? Color(hex: "#4c7f58") : Color.white)
+                                    .font(.system(size: 15, weight: .medium)) // More iOS-like font
+                                    .foregroundColor(selectedFilter == option ? .white : Color(.systemGray))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(selectedFilter == option ? Color(hex: "#4c7f58") : Color(.systemBackground))
                                     .overlay(
                                         Capsule()
-                                            .stroke(selectedFilter == option ? Color.clear : Color(.white), lineWidth: 1)
+                                            .stroke(selectedFilter == option ? Color.clear : Color(.systemGray4), lineWidth: 1)
                                     )
                                     .clipShape(Capsule())
                             }
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, 16) // Standard iOS margin
+                    .padding(.vertical, 10)
                 }
-                .background(Color(.systemGray6))
+                .background(Color(.systemGroupedBackground))
 
                 // Main Content
                 ZStack {
+                    Color(.systemGroupedBackground).edgesIgnoringSafeArea(.bottom)
+                    
                     if isLoading {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle())
+                            .scaleEffect(1.2) // Slightly larger progress indicator
                     } else {
                         List(filteredUsers, id: \.userID) { farmer in
                             Button(action: {
@@ -108,6 +116,7 @@ struct SelectFarmerView: View {
                                 FarmerRow(farmer: farmer, isSelected: selectedFarmers.contains(farmer))
                                     .listRowBackground(Color(UIColor.systemBackground))
                             }
+                            .buttonStyle(PlainButtonStyle()) // Removes default button styling
                         }
                         .listStyle(InsetGroupedListStyle())
                     }
@@ -134,6 +143,7 @@ struct SelectFarmerView: View {
                 }
             }
         }
+        .accentColor(Color(hex: "#4c7f58")) // Sets the accent color for the entire view
         .task {
             if users.isEmpty {
                 do {
@@ -162,28 +172,28 @@ struct FarmerRow: View {
     let isSelected: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) { // Increased spacing for better alignment
             // Avatar with first letter of name
             ZStack {
                 Circle()
                     .fill(Color(hex: "#4c7f58"))
-                    .frame(width: 36, height: 36)
+                    .frame(width: 40, height: 40) // Slightly larger for better visibility
                 Text(String(farmer.name.prefix(1)).uppercased())
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.white)
             }
             // Name only (no phone)
             Text(farmer.name)
-                .font(.system(size: 17, weight: .regular))
+                .font(.system(size: 16, weight: .regular)) // Standard iOS font size
                 .foregroundColor(.primary)
             Spacer()
             if isSelected {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
+                    .foregroundColor(Color(hex: "#4c7f58")) // Match app's theme color
                     .font(.system(size: 22))
             } else {
                 Image(systemName: "circle")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color(.systemGray3)) // More iOS-like color
                     .font(.system(size: 22))
             }
         }

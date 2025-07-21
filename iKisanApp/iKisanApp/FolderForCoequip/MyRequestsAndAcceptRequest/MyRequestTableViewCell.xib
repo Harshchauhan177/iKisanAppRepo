@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -28,7 +28,7 @@
                                 </constraints>
                             </imageView>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="0fk-mA-NWp">
-                                <rect key="frame" x="130" y="8" width="139" height="85.333333333333329"/>
+                                <rect key="frame" x="130" y="8" width="139" height="61"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Rice Harvester" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HtN-x8-xG6">
                                         <rect key="frame" x="0.0" y="0.0" width="139" height="26.333333333333332"/>
@@ -48,9 +48,6 @@
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.circle" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="AZE-Ed-tGv">
-                                        <rect key="frame" x="0.0" y="65.666666666666671" width="19.666666666666668" height="19"/>
-                                    </imageView>
                                 </subviews>
                             </stackView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="o1S-SQ-p33">
@@ -69,6 +66,26 @@
                                     <action selector="PendingButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="MDV-GY-tcr"/>
                                 </connections>
                             </button>
+                            <stackView opaque="NO" contentMode="scaleToFill" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="i93-g1-eYq">
+                                <rect key="frame" x="130" y="77" width="138.66666666666663" height="20.333333333333329"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Provider :" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ifn-lA-YvL">
+                                        <rect key="frame" x="0.0" y="0.0" width="50.333333333333336" height="20.333333333333332"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleCaption2"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.circle" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="a0s-Vj-9On">
+                                        <rect key="frame" x="51.333333333333343" y="0.66666666666666607" width="19.666666666666671" height="19"/>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Harsh kumar" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QLf-nf-QMB">
+                                        <rect key="frame" x="72" y="0.0" width="66.666666666666686" height="20.333333333333332"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleCaption2"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XIf-MP-cbC">
                                 <rect key="frame" x="282" y="45" width="94" height="35"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -87,7 +104,9 @@
                             <constraint firstItem="x2k-DU-84y" firstAttribute="centerY" secondItem="XFL-qk-b49" secondAttribute="centerY" id="4cx-Cu-uy6"/>
                             <constraint firstItem="o1S-SQ-p33" firstAttribute="centerY" secondItem="XFL-qk-b49" secondAttribute="centerY" id="FRG-6v-2Li"/>
                             <constraint firstItem="0fk-mA-NWp" firstAttribute="top" secondItem="XFL-qk-b49" secondAttribute="top" constant="8" id="MXK-BU-gpo"/>
+                            <constraint firstItem="i93-g1-eYq" firstAttribute="leading" secondItem="x2k-DU-84y" secondAttribute="trailing" constant="13" id="PyX-ck-Fm7"/>
                             <constraint firstItem="x2k-DU-84y" firstAttribute="leading" secondItem="XFL-qk-b49" secondAttribute="leading" constant="10" id="a6x-uc-oOw"/>
+                            <constraint firstAttribute="bottom" secondItem="i93-g1-eYq" secondAttribute="bottom" constant="17.670000000000002" id="ciB-CU-CT2"/>
                             <constraint firstAttribute="trailing" secondItem="o1S-SQ-p33" secondAttribute="trailing" constant="10" id="gRW-xL-a13"/>
                             <constraint firstItem="0fk-mA-NWp" firstAttribute="leading" secondItem="x2k-DU-84y" secondAttribute="trailing" constant="13" id="owq-dB-zgb"/>
                         </constraints>
@@ -113,6 +132,8 @@
                 <outlet property="EquipmentTitleLabel" destination="HtN-x8-xG6" id="n3f-ej-YtA"/>
                 <outlet property="LocationLabel" destination="fo9-6f-XaE" id="QgA-EL-fQB"/>
                 <outlet property="PendingButtonTapped" destination="o1S-SQ-p33" id="sDR-E4-uk6"/>
+                <outlet property="ProviderImageLabel" destination="a0s-Vj-9On" id="2rS-cR-Wgo"/>
+                <outlet property="ProviderNameLabel" destination="QLf-nf-QMB" id="Zjx-99-yhD"/>
             </connections>
             <point key="canvasLocation" x="55.725190839694655" y="29.929577464788736"/>
         </tableViewCell>
