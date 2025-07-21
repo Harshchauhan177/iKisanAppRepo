@@ -444,6 +444,19 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     
     @IBAction func bookButtonTapped(_ sender: UIButton) {
+        // Check if coming from co-equip view flow and prevent booking
+        if bookingSource == .coEquip {
+            // Show an alert explaining this is view-only mode
+            let alert = UIAlertController(
+                title: "View Only Mode", 
+                message: "This equipment is being viewed from the Co-Equip section. To book this equipment, please navigate to it from the Home tab.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
         // Check the booking source to determine the flow
         if bookingSource == .prebooking {
             // If coming from Prebooking tab, go directly to ReviewBooking with prebooking flow
