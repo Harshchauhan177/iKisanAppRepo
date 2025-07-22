@@ -279,20 +279,9 @@ extension CoequipViewController: MyRequestTableViewCellDelegate {
     
     // Add the missing delegate method for cell tap
     func didTapCell(cell: MyRequestTableViewCell) {
-        guard let indexPath = CoequipTableView.indexPath(for: cell),
-              let dataController = dataController,
-              let currentUser = dataController.getCurrentUser() else { return }
-        
-        // Get the filtered requests that match the current user and type
-        let requests = dataController.getAllCoEquipRequests().filter { request in
-            request.userId == currentUser.userID &&
-            request.typeOfRequest == .myRequest
-        }
-        
-        // Safety check to prevent index out of bounds
-        guard indexPath.row < requests.count else { return }
-        
-        let request = requests[indexPath.row]
+        guard let indexPath = CoequipTableView.indexPath(for: cell) else { return }
+        // Use the same array as the table view for correct mapping
+        let request = myRequests[indexPath.row]
         performSegue(withIdentifier: "goToMyRequest1", sender: request)
     }
 }
