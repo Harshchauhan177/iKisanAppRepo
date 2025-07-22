@@ -179,7 +179,7 @@ struct FarmerRow: View {
             Spacer()
             if isSelected {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
+                    .foregroundColor(Color(hex: "#4c7f58"))
                     .font(.system(size: 22))
             } else {
                 Image(systemName: "circle")
