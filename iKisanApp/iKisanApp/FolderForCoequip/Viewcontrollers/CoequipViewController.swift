@@ -9,6 +9,7 @@ class CoequipViewController: UIViewController {
     var currentRequest: Request?
     private var myRequests: [Request] = []  // Cache for my requests
     private var joinRequests: [Request] = [] // Cache for join requests
+    private var joinedRequests: [Request] = [] // Cache for joined requests (status = .done)
     
     // Pull-to-refresh control
     private var refreshControl = UIRefreshControl()
@@ -92,12 +93,20 @@ class CoequipViewController: UIViewController {
             }
             .sorted { $0.requestedDate > $1.requestedDate }
         
-        // Update join requests - sorted by creation date, newest first
+        // Update join requests - only pending requests (not joined)
         joinRequests = allRequests
             .filter { request in
                 request.participants?.contains { participant in
-                    participant.userId == currentUser.userID &&
-                    participant.status == .pending
+                    participant.userId == currentUser.userID && participant.status == .pending
+                } ?? false
+            }
+            .sorted { $0.requestedDate > $1.requestedDate }
+        
+        // Update joined requests - only accepted (done) requests
+        joinedRequests = allRequests
+            .filter { request in
+                request.participants?.contains { participant in
+                    participant.userId == currentUser.userID && participant.status == .done
                 } ?? false
             }
             .sorted { $0.requestedDate > $1.requestedDate }
@@ -187,15 +196,69 @@ class CoequipViewController: UIViewController {
 }
 
 extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
+    
+    // Number of sections
+    func numberOfSections(in tableView: UITableView) -> Int {
+        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+            // My Requests tab - single section
+            return 1
+        } else {
+            // Join Requests tab - two sections: pending and joined
+            return 2
+        }
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return CoequipSegmentedControl.selectedSegmentIndex == 0 ? myRequests.count : joinRequests.count
+        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+            // My Requests tab
+            return myRequests.count
+        } else {
+            // Join Requests tab
+            if section == 0 {
+                return joinRequests.count  // Pending join requests
+            } else {
+                return joinedRequests.count  // Joined requests
+            }
+        }
+    }
+    
+    // Set the row height to match the updated XIB height
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 130.0  // Matches the updated XIB cell height
+    }
+    
+    // Section headers
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+            return nil  // No header for My Requests
+        } else {
+            if section == 0 {
+                return joinRequests.isEmpty ? nil : nil  // No header for pending requests
+            } else {
+                return joinedRequests.isEmpty ? nil : "Joined by You"
+            }
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let dataController = self.dataController,
               let currentUser = dataController.getCurrentUser() else { return UITableViewCell() }
         
-        let requests = CoequipSegmentedControl.selectedSegmentIndex == 0 ? myRequests : joinRequests
+        var requests: [Request] = []
+        var isJoinedSection = false
+        
+        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+            // My Requests tab
+            requests = myRequests
+        } else {
+            // Join Requests tab
+            if indexPath.section == 0 {
+                requests = joinRequests  // Pending join requests
+            } else {
+                requests = joinedRequests  // Joined requests
+                isJoinedSection = true
+            }
+        }
         
         // Safety check to prevent index out of range
         guard indexPath.row < requests.count else { return UITableViewCell() }
@@ -221,7 +284,7 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
                     id: UUID(),
                     requestId: request.id,
                     userId: currentUser.userID,
-                    status: .pending,
+                    status: isJoinedSection ? .done : .pending,
                     area: nil,
                     timeSlot: nil,
                     joinedAt: Date()
@@ -242,7 +305,17 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
         guard let dataController = self.dataController,
               let currentUser = dataController.getCurrentUser() else { return }
         
-        let requests = CoequipSegmentedControl.selectedSegmentIndex == 0 ? myRequests : joinRequests
+        var requests: [Request] = []
+        
+        if CoequipSegmentedControl.selectedSegmentIndex == 0 {
+            requests = myRequests
+        } else {
+            if indexPath.section == 0 {
+                requests = joinRequests
+            } else {
+                requests = joinedRequests
+            }
+        }
         
         // Safety check to prevent index out of bounds
         guard indexPath.row < requests.count else { return }
@@ -355,6 +428,88 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
                         let errorAlert = UIAlertController(
                             title: "Error",
                             message: "Failed to delete request: \(error.localizedDescription)",
+                            preferredStyle: .alert
+                        )
+                        errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                        self.present(errorAlert, animated: true)
+                    }
+                }
+            }
+        })
+        
+        present(alertController, animated: true)
+    }
+    
+    func leaveButtonTapped(in cell: AcceptRequestTableViewCell) {
+        guard let request = cell.request,
+              let dataController = dataController,
+              let currentUser = dataController.getCurrentUser() else { return }
+        
+        // Show confirmation alert following Apple HIG
+        let alertController = UIAlertController(
+            title: "Leave Request",
+            message: "Are you sure you want to leave this co-equip request? You'll lose your spot and may need to request again.",
+            preferredStyle: .alert
+        )
+        
+        // Cancel button (default style)
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        // Leave button (destructive style following HIG)
+        alertController.addAction(UIAlertAction(title: "Leave", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+            
+            Task {
+                do {
+                    // Remove the current user from the request participants in the database
+                    try await SupabaseManager.shared.client
+                        .from("request_participants")
+                        .delete()
+                        .eq("requestId", value: request.id.uuidString)
+                        .eq("userId", value: currentUser.userID.uuidString)
+                        .execute()
+                    
+                    // Also remove from acceptedUser array in requests table
+                    let currentRequestData = try await SupabaseManager.shared.client
+                        .from("requests")
+                        .select("acceptedUser")
+                        .eq("id", value: request.id.uuidString)
+                        .single()
+                        .execute()
+                    
+                    if let jsonObject = try JSONSerialization.jsonObject(with: currentRequestData.data) as? [String: Any],
+                       let acceptedUserArray = jsonObject["acceptedUser"] as? [String] {
+                        
+                        let updatedAcceptedUsers = acceptedUserArray.filter { $0 != currentUser.userID.uuidString }
+                        
+                        try await SupabaseManager.shared.client
+                            .from("requests")
+                            .update(["acceptedUser": updatedAcceptedUsers])
+                            .eq("id", value: request.id.uuidString)
+                            .execute()
+                    }
+                    
+                    // Update UI on main thread
+                    await MainActor.run {
+                        // Refresh the data to reflect the change
+                        self.updateCachedRequests()
+                        self.CoequipTableView.reloadData()
+                        
+                        // Show success message
+                        let successAlert = UIAlertController(
+                            title: "Left Successfully",
+                            message: "You have successfully left the co-equip request.",
+                            preferredStyle: .alert
+                        )
+                        successAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                        self.present(successAlert, animated: true)
+                    }
+                    
+                } catch {
+                    await MainActor.run {
+                        let errorAlert = UIAlertController(
+                            title: "Error",
+                            message: "Failed to leave the request: \(error.localizedDescription)",
                             preferredStyle: .alert
                         )
                         errorAlert.addAction(UIAlertAction(title: "OK", style: .default))
