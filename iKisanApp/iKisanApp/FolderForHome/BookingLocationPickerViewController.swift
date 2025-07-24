@@ -4,22 +4,36 @@ import CoreLocation
 import MapKit
 import Combine
 
+// Add enum to distinguish between different use cases
+enum LocationPickerPurpose {
+    case bookingLocation
+    case addressUpdate
+}
+
 // Protocol for passing back location data
 protocol BookingLocationPickerDelegate: AnyObject {
     func didUpdateLocation(latitude: Double, longitude: Double, address: String?)
 }
 
+// New protocol for address updates
+protocol AddressUpdateLocationDelegate: AnyObject {
+    func didSelectLocation(latitude: Double, longitude: Double, address: String?)
+}
+
 class BookingLocationPickerViewController: UIViewController {
     
     weak var delegate: BookingLocationPickerDelegate?
+    weak var addressDelegate: AddressUpdateLocationDelegate?
     private var initialLatitude: Double = 0.0
     private var initialLongitude: Double = 0.0
     private var initialAddress: String?
+    private var purpose: LocationPickerPurpose = .bookingLocation
     
-    init(latitude: Double, longitude: Double, address: String?) {
+    init(latitude: Double, longitude: Double, address: String?, purpose: LocationPickerPurpose = .bookingLocation) {
         self.initialLatitude = latitude
         self.initialLongitude = longitude
         self.initialAddress = address
+        self.purpose = purpose
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -30,8 +44,13 @@ class BookingLocationPickerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Set up navigation bar
-        title = "Update Location"
+        // Set up navigation bar with appropriate title
+        switch purpose {
+        case .bookingLocation:
+            title = "Update Location"
+        case .addressUpdate:
+            title = "Select Address Location"
+        }
         
         // Add a Done button
         navigationItem.rightBarButtonItem = UIBarButtonItem(
@@ -72,12 +91,21 @@ class BookingLocationPickerViewController: UIViewController {
         // Get the selected location from the location manager
         let locationManager = LocationManager.shared
         if let selectedLocation = locationManager.selectedLocation {
-            // Pass back the selected location using the delegate
-            delegate?.didUpdateLocation(
-                latitude: selectedLocation.latitude,
-                longitude: selectedLocation.longitude,
-                address: selectedLocation.address
-            )
+            // Use appropriate delegate based on purpose
+            switch purpose {
+            case .bookingLocation:
+                delegate?.didUpdateLocation(
+                    latitude: selectedLocation.latitude,
+                    longitude: selectedLocation.longitude,
+                    address: selectedLocation.address
+                )
+            case .addressUpdate:
+                addressDelegate?.didSelectLocation(
+                    latitude: selectedLocation.latitude,
+                    longitude: selectedLocation.longitude,
+                    address: selectedLocation.address
+                )
+            }
             
             // Log success to help with debugging
             print("Location updated: lat=\(selectedLocation.latitude), lon=\(selectedLocation.longitude), address=\(selectedLocation.address ?? "none")")
@@ -90,7 +118,6 @@ class BookingLocationPickerViewController: UIViewController {
         // we need to use popViewController instead of dismiss
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            
             if let navController = self.navigationController {
                 print("Popping view controller from navigation stack")
                 navController.popViewController(animated: true)
@@ -120,6 +147,26 @@ class LocationManager: NSObject, ObservableObject {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
+    }
+    
+    // Public method to request location permissions
+    func requestLocationPermission() {
+        locationManager.requestWhenInUseAuthorization()
+    }
+    
+    // Public method to start location updates
+    func startLocationUpdates() {
+        guard locationManager.authorizationStatus == .authorizedWhenInUse || 
+              locationManager.authorizationStatus == .authorizedAlways else {
+            requestLocationPermission()
+            return
+        }
+        locationManager.startUpdatingLocation()
+    }
+    
+    // Public method to check authorization status
+    var authorizationStatus: CLAuthorizationStatus {
+        return locationManager.authorizationStatus
     }
 }
 
@@ -583,37 +630,12 @@ struct BookingLocationPickerView: View {
             // Update selected location
             updateSelectedLocation(coordinate: userLocation.coordinate)
         } else {
-            // Create a location permission manager if needed
-            let permissionManager = LocationPermissionManager()
-            permissionManager.checkLocationAuthorization()
-            permissionManager.requestCurrentLocation()
-            
-            // Create a subscription for location updates
-            let subscription = permissionManager.$currentLocation
-                .compactMap { $0 }
-                .receive(on: RunLoop.main)
-                .sink { newLocation in
-                    // Update map to show user's location
-                    withAnimation {
-                        region = MKCoordinateRegion(
-                            center: newLocation.coordinate,
-                            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                        )
-                    }
-                    
-                    // Set pin at user's location
-                    pinLocation = newLocation.coordinate
-                    
-                    // Update selected location
-                    updateSelectedLocation(coordinate: newLocation.coordinate)
-                }
-            
-            // Store in our state-managed cancellables
-            cancellables.insert(subscription)
+            // Use the public methods to request location
+            locationManager.startLocationUpdates()
         }
     }
     
-    // Reverse geocode to get address from coordinates
+    // Reverse geocoding to get address from coordinates
     private func reverseGeocode(coordinate: CLLocationCoordinate2D) {
         // Avoid multiple simultaneous geocoding requests
         if isReverseGeocodingInProgress { return }
@@ -764,67 +786,5 @@ struct MapViewWithRegionTracking: UIViewRepresentable {
             }
             mapView.addAnnotations(mkAnnotations)
         }
-    }
-}
-
-// Location permission manager
-class LocationPermissionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private let locationManager = CLLocationManager()
-    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
-    @Published var currentLocation: CLLocation?
-    @Published var locationError: String?
-    
-    override init() {
-        super.init()
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        authorizationStatus = locationManager.authorizationStatus
-    }
-    
-    func checkLocationAuthorization() {
-        switch locationManager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            // Start requesting location
-            locationManager.startUpdatingLocation()
-        case .denied, .restricted:
-            // Handle denied access
-            self.locationError = "Location access is denied. Please enable it in Settings to use this feature."
-        case .notDetermined:
-            // Request permission
-            locationManager.requestWhenInUseAuthorization()
-        @unknown default:
-            // Handle future cases
-            locationManager.requestWhenInUseAuthorization()
-        }
-    }
-    
-    func requestCurrentLocation() {
-        // This will trigger a one-time location request
-        locationManager.requestLocation()
-    }
-    
-    // MARK: - CLLocationManagerDelegate
-    
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        authorizationStatus = manager.authorizationStatus
-        
-        if manager.authorizationStatus == .authorizedWhenInUse || 
-           manager.authorizationStatus == .authorizedAlways {
-            locationManager.startUpdatingLocation()
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.last {
-            // Update published property for location
-            currentLocation = location
-            // Stop if we only need one update
-            locationManager.stopUpdatingLocation()
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        // Update published property for error
-        locationError = error.localizedDescription
     }
 }

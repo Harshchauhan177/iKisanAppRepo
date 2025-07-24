@@ -228,7 +228,7 @@ struct UpdateAddressView: View {
     }
     
     var body: some View {
-        List {
+        Form {
             Section(header: Text("Location on Map")) {
                 VStack {
                     MapPreview(latitude: latitude, longitude: longitude)
@@ -290,6 +290,34 @@ struct UpdateAddressView: View {
                 }
             }
             
+            // Add Save button as a form section for better HIG compliance
+            Section {
+                Button(action: {
+                    updateAddress()
+                }) {
+                    HStack {
+                        Spacer()
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(0.8)
+                                .tint(.white)
+                        } else {
+                            Text("Save Address")
+                                .fontWeight(.semibold)
+                        }
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .foregroundColor(.white)
+                }
+                .disabled(isLoading || !isFormValid)
+                .listRowBackground(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isFormValid && !isLoading ? ikisanGreen : Color.gray)
+                )
+            }
+            
             if let errorMessage = errorMessage {
                 Section {
                     Text(errorMessage)
@@ -301,14 +329,6 @@ struct UpdateAddressView: View {
         .listStyle(.insetGrouped)
         .navigationTitle("Update Address")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Save") {
-                    updateAddress()
-                }
-                .disabled(isLoading || !isFormValid)
-            }
-        }
         .overlay(
             ZStack {
                 if isLoading {
@@ -339,19 +359,23 @@ struct UpdateAddressView: View {
             loadSavedAddress()
         }
         .sheet(isPresented: $showMapPicker) {
-            MapLocationPickerWithPermissions(
-                region: $region,
-                latitude: $latitude,
-                longitude: $longitude,
-                onDismiss: { showMapPicker = false },
-                onSelect: { lat, long in
+            // Use the unified BookingLocationPickerViewController wrapped in NavigationView
+            UnifiedLocationPickerView(
+                latitude: latitude,
+                longitude: longitude,
+                address: buildAddressString(),
+                onLocationSelected: { lat, long, address in
                     latitude = lat
                     longitude = long
-                    lookupAddress(for: CLLocationCoordinate2D(latitude: lat, longitude: long))
+                    if let address = address {
+                        parseAndSetAddressComponents(from: address)
+                    }
+                    showMapPicker = false
+                },
+                onDismiss: {
                     showMapPicker = false
                 }
             )
-            .edgesIgnoringSafeArea(.all)
         }
     }
     
@@ -397,6 +421,21 @@ struct UpdateAddressView: View {
         }
     }
     
+    // Helper function to build address string from components
+    private func buildAddressString() -> String? {
+        let components = [street, city, state, zipCode].filter { !$0.isEmpty }
+        return components.isEmpty ? nil : components.joined(separator: ", ")
+    }
+    
+    // Helper function to parse and set address components from a selected address
+    private func parseAndSetAddressComponents(from address: String) {
+        let components = parseAddressComponents(from: address)
+        street = components.street
+        city = components.city
+        state = components.state
+        zipCode = components.zipCode
+    }
+    
     // Helper function to parse address components from a formatted address string
     private func parseAddressComponents(from address: String) -> (street: String, city: String, state: String, zipCode: String) {
         // Default empty values
@@ -407,61 +446,33 @@ struct UpdateAddressView: View {
         
         // Handle different address formats
         // Format examples:
-        // "123 Main St, Anytown, CA 12345"
-        // "123 Main St, Anytown CA 12345"
-        // "123 Main St, Anytown CA"
-        // "123 Main St Anytown CA 12345"
+        // "123 Main St, New York, NY 10001"
+        // "Main Street, Delhi, Delhi"
+        // "Street Name, City Name, State Name Zip"
         
-        // First try comma-separated format
-        var components = address.components(separatedBy: ", ")
+        let components = address.components(separatedBy: ", ")
         
         if components.count >= 1 {
             street = components[0].trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        
         if components.count >= 2 {
-            // Second component might have city, or city+state+zip
-            let part = components[1].trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            if components.count == 2 {
-                // If we only have 2 components, the second might contain city, state, zip
-                let parts = part.components(separatedBy: " ").filter { !$0.isEmpty }
-                
-                if parts.count >= 1 {
-                    // First part is likely city
-                    city = parts[0]
-                    
-                    if parts.count >= 2 {
-                        // Second part is likely state
-                        state = parts[1]
-                        
-                        if parts.count >= 3 {
-                            // Third part is likely zip code
-                            zipCode = parts[2]
-                        }
-                    }
-                }
-            } else {
-                // If we have more components, the second is likely just city
-                city = part
-            }
+            city = components[1].trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        
         if components.count >= 3 {
-            // Third component might have state and zip code
-            let part = components[2].trimmingCharacters(in: .whitespacesAndNewlines)
-            let parts = part.components(separatedBy: " ").filter { !$0.isEmpty }
+            // The last component might contain both state and zip code
+            let lastComponent = components[2].trimmingCharacters(in: .whitespacesAndNewlines)
             
-            if parts.count >= 1 {
-                state = parts[0]
-                
-                if parts.count >= 2 {
-                    zipCode = parts[1]
-                }
+            // Try to separate state and zip code
+            let lastParts = lastComponent.components(separatedBy: " ")
+            if lastParts.count >= 2 {
+                // Assume first part is state, last part is zip
+                state = lastParts.dropLast().joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                zipCode = lastParts.last?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            } else {
+                // No zip code found, treat entire component as state
+                state = lastComponent
             }
         }
-        
-        // If we have a fourth component it might be the zip code alone
         if components.count >= 4 {
             zipCode = components[3].trimmingCharacters(in: .whitespacesAndNewlines)
         }
@@ -518,6 +529,7 @@ struct UpdateAddressView: View {
             }
         }
     }
+}
 
 // MARK: - Data Models
 
@@ -1238,11 +1250,53 @@ struct MapLocationPickerWithPermissions: View {
     }
 }
 
-// MARK: - MapLocationPickerWithPermissions struct end
+// MARK: - Unified Location Picker Wrapper
+struct UnifiedLocationPickerView: UIViewControllerRepresentable {
+    let latitude: Double
+    let longitude: Double
+    let address: String?
+    let onLocationSelected: (Double, Double, String?) -> Void
+    let onDismiss: () -> Void
+    
+    func makeUIViewController(context: Context) -> UINavigationController {
+        let locationPicker = BookingLocationPickerViewController(
+            latitude: latitude,
+            longitude: longitude,
+            address: address,
+            purpose: .addressUpdate
+        )
+        
+        locationPicker.addressDelegate = context.coordinator
+        
+        let navController = UINavigationController(rootViewController: locationPicker)
+        return navController
+    }
+    
+    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
+        // No updates needed
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onLocationSelected: onLocationSelected, onDismiss: onDismiss)
+    }
+    
+    class Coordinator: NSObject, AddressUpdateLocationDelegate {
+        let onLocationSelected: (Double, Double, String?) -> Void
+        let onDismiss: () -> Void
+        
+        init(onLocationSelected: @escaping (Double, Double, String?) -> Void, onDismiss: @escaping () -> Void) {
+            self.onLocationSelected = onLocationSelected
+            self.onDismiss = onDismiss
+        }
+        
+        func didSelectLocation(latitude: Double, longitude: Double, address: String?) {
+            onLocationSelected(latitude, longitude, address)
+        }
+    }
 }
 
 #Preview {
     NavigationView {
         UpdateAddressView()
     }
-} 
+}
