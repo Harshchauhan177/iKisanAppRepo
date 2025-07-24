@@ -245,12 +245,30 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
         }
     }
     
+    // Add synchronous version for immediate updates
+    private func loadPreBookingsSync() {
+        guard let dataController = dataController else { return }
+        
+        // Get all bookings and filter prebookings synchronously
+        let allBookings = dataController.getUpcomingBookings()
+        preBookings = allBookings.filter {
+            $0.bookingType == .prebooking && $0.source == .prebooking
+        }
+        
+        // Get equipment details for each prebooking
+        preBookingEquipments = preBookings.compactMap { booking in
+            dataController.getEquipment(byId: booking.equipmentID)
+        }
+        
+        print("Sync loaded prebookings: \(preBookings.count)")
+    }
+    
     @objc private func handlePreBookingAdded(_ notification: Notification) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             
-            // Refresh data
-            self.loadPreBookings()
+            // Force immediate refresh of prebookings data synchronously
+            self.loadPreBookingsSync()
             
             // Force update calendar decorations
             let calendarIndexPath = IndexPath(item: 0, section: Section.calendar.rawValue)
@@ -258,6 +276,7 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
                 calendarCell.refreshCalendarDecorations()
             }
             
+            // Reload the entire collection view to ensure sections are properly displayed
             self.collectionView.reloadData()
         }
     }
