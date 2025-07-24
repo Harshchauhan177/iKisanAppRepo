@@ -491,8 +491,12 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
                     
                     // Update UI on main thread
                     await MainActor.run {
-                        // Refresh the data to reflect the change
-                        self.updateCachedRequests()
+                        // Remove the request from joinedRequests cache immediately
+                        if let index = self.joinedRequests.firstIndex(where: { $0.id == request.id }) {
+                            self.joinedRequests.remove(at: index)
+                        }
+                        
+                        // Reload the table view to reflect the change immediately
                         self.CoequipTableView.reloadData()
                         
                         // Show success message
