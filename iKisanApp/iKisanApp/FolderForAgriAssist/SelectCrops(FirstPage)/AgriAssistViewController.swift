@@ -112,6 +112,7 @@ class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableV
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let selectedCrop = filteredCrops[indexPath.row]
         print("Selected crop: \(selectedCrop.name) with ID: \(selectedCrop.id)")
+        // Pass both the crop and its name
         performSegue(withIdentifier: "SelectCrops", sender: selectedCrop)
     }
 
@@ -121,6 +122,8 @@ class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableV
            let selectedCrop = sender as? AgriCrop {
             equipmentsVC.dataController = dataController
             equipmentsVC.selectedCropId = selectedCrop.id
+            // Pass the crop name as well
+            equipmentsVC.selectedCropName = selectedCrop.name
         }
     }
 }
