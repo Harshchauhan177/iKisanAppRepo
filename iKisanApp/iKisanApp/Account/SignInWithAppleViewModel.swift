@@ -283,18 +283,39 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
                 .single()
                 .execute()
             
-            // Try to cast result.data to [String: Any] and extract name
-            if let dict = result.data as? [String: Any],
-               let nameString = dict["name"] as? String {
-                return !nameString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty
+            // Handle different possible data types from Supabase
+            let nameString: String?
+            
+            if let dict = result.data as? [String: Any] {
+                // Direct dictionary access
+                nameString = dict["name"] as? String
+            } else if let data = result.data as? Data {
+                // Data that needs JSON decoding
+                do {
+                    let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                    nameString = dict?["name"] as? String
+                } catch {
+                    print("❌ Failed to decode JSON data: \(error)")
+                    return false
+                }
+            } else {
+                // Try to decode the result directly using JSONDecoder
+                do {
+                    let userData = try JSONDecoder().decode([String: String].self, from: result.data)
+                    nameString = userData["name"]
+                } catch {
+                    print("❌ Failed to decode user data: \(error)")
+                    return false
+                }
             }
-            // Fallback: Try to decode as Data and parse JSON
-            if let data = try? JSONSerialization.data(withJSONObject: result.data, options: []),
-               let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let nameString = dict["name"] as? String {
-                return !nameString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty
+            
+            // Check if name exists and is not empty
+            guard let name = nameString else {
+                return false
             }
-            return false
+            
+            return !name.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty
+            
         } catch {
             print("❌ Error checking user name: \(error)")
             return false

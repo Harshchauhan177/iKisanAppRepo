@@ -1,5 +1,6 @@
 import UIKit
 import SwiftUICore
+import SafariServices
 
 class SignupViewController: UIViewController {
     
@@ -137,12 +138,42 @@ class SignupViewController: UIViewController {
         return indicator
     }()
     
+    // Privacy Policy Components
+    private let privacyPolicyContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let privacyCheckbox: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "square"), for: .normal)
+        button.setImage(UIImage(systemName: "checkmark.square.fill"), for: .selected)
+        button.tintColor = .systemBlue
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityLabel = "Privacy Policy Agreement"
+        button.accessibilityHint = "Tap to agree to Terms and Privacy Policy"
+        return button
+    }()
+    
+    private let privacyPolicyLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 0
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = true
+        return label
+    }()
+    
     // MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         configureActions()
         setupKeyboardDismissal()
+        setupPrivacyPolicyText()
     }
     
     // MARK: - UI Setup
@@ -160,9 +191,14 @@ class SignupViewController: UIViewController {
         contentView.addSubview(phoneTextField)
         contentView.addSubview(passwordTextField)
         contentView.addSubview(confirmPasswordTextField)
+        contentView.addSubview(privacyPolicyContainer)
         contentView.addSubview(signupButton)
         contentView.addSubview(loginButton)
         contentView.addSubview(activityIndicator)
+        
+        // Setup privacy policy container
+        privacyPolicyContainer.addSubview(privacyCheckbox)
+        privacyPolicyContainer.addSubview(privacyPolicyLabel)
         
         // Configure constraints
         let contentViewHeightConstraint = contentView.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
@@ -216,7 +252,25 @@ class SignupViewController: UIViewController {
             confirmPasswordTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             confirmPasswordTextField.heightAnchor.constraint(equalToConstant: 50),
             
-            signupButton.topAnchor.constraint(equalTo: confirmPasswordTextField.bottomAnchor, constant: 30),
+            // Privacy policy container constraints
+            privacyPolicyContainer.topAnchor.constraint(equalTo: confirmPasswordTextField.bottomAnchor, constant: 20),
+            privacyPolicyContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            privacyPolicyContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            // Privacy checkbox constraints
+            privacyCheckbox.leadingAnchor.constraint(equalTo: privacyPolicyContainer.leadingAnchor),
+            privacyCheckbox.topAnchor.constraint(equalTo: privacyPolicyContainer.topAnchor),
+            privacyCheckbox.bottomAnchor.constraint(lessThanOrEqualTo: privacyPolicyContainer.bottomAnchor),
+            privacyCheckbox.widthAnchor.constraint(equalToConstant: 24),
+            privacyCheckbox.heightAnchor.constraint(equalToConstant: 24),
+            
+            // Privacy label constraints
+            privacyPolicyLabel.leadingAnchor.constraint(equalTo: privacyCheckbox.trailingAnchor, constant: 8),
+            privacyPolicyLabel.trailingAnchor.constraint(equalTo: privacyPolicyContainer.trailingAnchor),
+            privacyPolicyLabel.topAnchor.constraint(equalTo: privacyPolicyContainer.topAnchor),
+            privacyPolicyLabel.bottomAnchor.constraint(equalTo: privacyPolicyContainer.bottomAnchor),
+            
+            signupButton.topAnchor.constraint(equalTo: privacyPolicyContainer.bottomAnchor, constant: 20),
             signupButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             signupButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             signupButton.heightAnchor.constraint(equalToConstant: 50),
@@ -235,12 +289,79 @@ class SignupViewController: UIViewController {
         phoneTextField.delegate = self
         passwordTextField.delegate = self
         confirmPasswordTextField.delegate = self
+        
+        // Initially disable signup button
+        updateSignupButtonState()
+    }
+    
+    // MARK: - Privacy Policy Setup
+    private func setupPrivacyPolicyText() {
+        let fullText = "I agree to the Terms of Service and Privacy Policy"
+        let attributedString = NSMutableAttributedString(string: fullText)
+        
+        // Set base attributes
+        attributedString.addAttributes([
+            .font: UIFont.preferredFont(forTextStyle: .footnote),
+            .foregroundColor: UIColor.secondaryLabel
+        ], range: NSRange(location: 0, length: fullText.count))
+        
+        // Make "Terms of Service and Privacy Policy" clickable
+        if let linkRange = fullText.range(of: "Terms of Service and Privacy Policy") {
+            let nsRange = NSRange(linkRange, in: fullText)
+            attributedString.addAttributes([
+                .foregroundColor: UIColor.systemBlue,
+                .underlineStyle: NSUnderlineStyle.single.rawValue
+            ], range: nsRange)
+        }
+        
+        privacyPolicyLabel.attributedText = attributedString
+        
+        // Add tap gesture to the label
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(privacyPolicyLabelTapped(_:)))
+        privacyPolicyLabel.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func privacyPolicyLabelTapped(_ gesture: UITapGestureRecognizer) {
+        guard let text = privacyPolicyLabel.text else { return }
+        
+        let linkRange = (text as NSString).range(of: "Terms of Service and Privacy Policy")
+        
+        // Check if tap was on the link text
+        if gesture.didTapAttributedTextInLabel(label: privacyPolicyLabel, inRange: linkRange) {
+            openPrivacyPolicy()
+        }
+    }
+    
+    private func openPrivacyPolicy() {
+        guard let url = URL(string: "https://harshchauhan177.github.io/ikisan-PrivacyPolicy/") else { return }
+        
+        let safariViewController = SFSafariViewController(url: url)
+        safariViewController.preferredControlTintColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+        present(safariViewController, animated: true)
+    }
+    
+    private func updateSignupButtonState() {
+        let isPrivacyAccepted = privacyCheckbox.isSelected
+        signupButton.isEnabled = isPrivacyAccepted
+        
+        // Update button appearance
+        signupButton.alpha = isPrivacyAccepted ? 1.0 : 0.6
     }
     
     // MARK: - Actions Configuration
     private func configureActions() {
         signupButton.addTarget(self, action: #selector(signupButtonTapped), for: .touchUpInside)
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
+        privacyCheckbox.addTarget(self, action: #selector(privacyCheckboxTapped), for: .touchUpInside)
+    }
+    
+    @objc private func privacyCheckboxTapped() {
+        privacyCheckbox.isSelected.toggle()
+        updateSignupButtonState()
+        
+        // Provide haptic feedback following HIG
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
     }
     
     private func setupKeyboardDismissal() {
@@ -270,6 +391,12 @@ class SignupViewController: UIViewController {
     
     // MARK: - Action Methods
     @objc private func signupButtonTapped() {
+        // Check privacy policy agreement first
+        guard privacyCheckbox.isSelected else {
+            showAlert(title: "Terms Required", message: "Please accept the Terms of Service and Privacy Policy to continue")
+            return
+        }
+        
         // Validate fields
         guard let name = nameTextField.text, !name.isEmpty,
               let email = emailTextField.text, !email.isEmpty,
@@ -454,4 +581,4 @@ extension SignupViewController: UITextFieldDelegate {
         }
         return true
     }
-} 
+}

@@ -2,6 +2,7 @@ import UIKit
 import SwiftUI
 import AuthenticationServices
 import Combine
+import SafariServices
 
 class LoginViewController: UIViewController {
     
@@ -164,12 +165,42 @@ class LoginViewController: UIViewController {
         return indicator
     }()
     
+    // Privacy Policy Components
+    private let privacyPolicyContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let privacyCheckbox: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "square"), for: .normal)
+        button.setImage(UIImage(systemName: "checkmark.square.fill"), for: .selected)
+        button.tintColor = .systemBlue
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityLabel = "Privacy Policy Agreement"
+        button.accessibilityHint = "Tap to agree to Terms and Privacy Policy"
+        return button
+    }()
+    
+    private let privacyPolicyLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 0
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isUserInteractionEnabled = true
+        return label
+    }()
+    
     // MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         configureActions()
         setupAppleSignInObservers()
+        setupPrivacyPolicyText()
     }
     
     // MARK: - UI Setup
@@ -184,11 +215,16 @@ class LoginViewController: UIViewController {
         containerStackView.addArrangedSubview(welcomeLabel)
         containerStackView.addArrangedSubview(subtitleLabel)
         containerStackView.addArrangedSubview(formStackView)
+        containerStackView.addArrangedSubview(privacyPolicyContainer)
         containerStackView.addArrangedSubview(buttonsStackView)
         
         formStackView.addArrangedSubview(emailTextField)
         formStackView.addArrangedSubview(passwordTextField)
         formStackView.addArrangedSubview(loginButton)
+        
+        // Setup privacy policy container
+        privacyPolicyContainer.addSubview(privacyCheckbox)
+        privacyPolicyContainer.addSubview(privacyPolicyLabel)
         
         buttonsStackView.addArrangedSubview(appleSignInButton)
         buttonsStackView.addArrangedSubview(forgotPasswordButton)
@@ -210,6 +246,23 @@ class LoginViewController: UIViewController {
             formStackView.leadingAnchor.constraint(equalTo: containerStackView.leadingAnchor),
             formStackView.trailingAnchor.constraint(equalTo: containerStackView.trailingAnchor),
             
+            // Privacy policy container constraints
+            privacyPolicyContainer.leadingAnchor.constraint(equalTo: containerStackView.leadingAnchor),
+            privacyPolicyContainer.trailingAnchor.constraint(equalTo: containerStackView.trailingAnchor),
+            
+            // Privacy checkbox constraints
+            privacyCheckbox.leadingAnchor.constraint(equalTo: privacyPolicyContainer.leadingAnchor),
+            privacyCheckbox.topAnchor.constraint(equalTo: privacyPolicyContainer.topAnchor),
+            privacyCheckbox.bottomAnchor.constraint(lessThanOrEqualTo: privacyPolicyContainer.bottomAnchor),
+            privacyCheckbox.widthAnchor.constraint(equalToConstant: 24),
+            privacyCheckbox.heightAnchor.constraint(equalToConstant: 24),
+            
+            // Privacy label constraints
+            privacyPolicyLabel.leadingAnchor.constraint(equalTo: privacyCheckbox.trailingAnchor, constant: 8),
+            privacyPolicyLabel.trailingAnchor.constraint(equalTo: privacyPolicyContainer.trailingAnchor),
+            privacyPolicyLabel.topAnchor.constraint(equalTo: privacyPolicyContainer.topAnchor),
+            privacyPolicyLabel.bottomAnchor.constraint(equalTo: privacyPolicyContainer.bottomAnchor),
+            
             // Login button constraints
             loginButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
             loginButton.leadingAnchor.constraint(equalTo: formStackView.leadingAnchor),
@@ -228,6 +281,65 @@ class LoginViewController: UIViewController {
         // Set delegates
         emailTextField.delegate = self
         passwordTextField.delegate = self
+        
+        // Initially disable login buttons
+        updateLoginButtonsState()
+    }
+    
+    // MARK: - Privacy Policy Setup
+    private func setupPrivacyPolicyText() {
+        let fullText = "I agree to the Terms of Service and Privacy Policy"
+        let attributedString = NSMutableAttributedString(string: fullText)
+        
+        // Set base attributes
+        attributedString.addAttributes([
+            .font: UIFont.preferredFont(forTextStyle: .footnote),
+            .foregroundColor: UIColor.secondaryLabel
+        ], range: NSRange(location: 0, length: fullText.count))
+        
+        // Make "Terms of Service and Privacy Policy" clickable
+        if let linkRange = fullText.range(of: "Terms of Service and Privacy Policy") {
+            let nsRange = NSRange(linkRange, in: fullText)
+            attributedString.addAttributes([
+                .foregroundColor: UIColor.systemBlue,
+                .underlineStyle: NSUnderlineStyle.single.rawValue
+            ], range: nsRange)
+        }
+        
+        privacyPolicyLabel.attributedText = attributedString
+        
+        // Add tap gesture to the label
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(privacyPolicyLabelTapped(_:)))
+        privacyPolicyLabel.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func privacyPolicyLabelTapped(_ gesture: UITapGestureRecognizer) {
+        guard let text = privacyPolicyLabel.text else { return }
+        
+        let linkRange = (text as NSString).range(of: "Terms of Service and Privacy Policy")
+        
+        // Check if tap was on the link text
+        if gesture.didTapAttributedTextInLabel(label: privacyPolicyLabel, inRange: linkRange) {
+            openPrivacyPolicy()
+        }
+    }
+    
+    private func openPrivacyPolicy() {
+        guard let url = URL(string: "https://harshchauhan177.github.io/ikisan-PrivacyPolicy/") else { return }
+        
+        let safariViewController = SFSafariViewController(url: url)
+        safariViewController.preferredControlTintColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+        present(safariViewController, animated: true)
+    }
+    
+    private func updateLoginButtonsState() {
+        let isPrivacyAccepted = privacyCheckbox.isSelected
+        loginButton.isEnabled = isPrivacyAccepted
+        appleSignInButton.isEnabled = isPrivacyAccepted
+        
+        // Update button appearance
+        loginButton.alpha = isPrivacyAccepted ? 1.0 : 0.6
+        appleSignInButton.alpha = isPrivacyAccepted ? 1.0 : 0.6
     }
     
     // MARK: - Actions Configuration
@@ -236,6 +348,16 @@ class LoginViewController: UIViewController {
         forgotPasswordButton.addTarget(self, action: #selector(forgotPasswordButtonTapped), for: .touchUpInside)
         createAccountButton.addTarget(self, action: #selector(createAccountButtonTapped), for: .touchUpInside)
         appleSignInButton.addTarget(self, action: #selector(appleSignInButtonTapped), for: .touchUpInside)
+        privacyCheckbox.addTarget(self, action: #selector(privacyCheckboxTapped), for: .touchUpInside)
+    }
+    
+    @objc private func privacyCheckboxTapped() {
+        privacyCheckbox.isSelected.toggle()
+        updateLoginButtonsState()
+        
+        // Provide haptic feedback following HIG
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
     }
     
     // MARK: - Apple Sign In Observers
@@ -287,6 +409,12 @@ class LoginViewController: UIViewController {
     
     // MARK: - Action Methods
     @objc private func loginButtonTapped() {
+        // Check privacy policy agreement first
+        guard privacyCheckbox.isSelected else {
+            showAlert(title: "Terms Required", message: "Please accept the Terms of Service and Privacy Policy to continue")
+            return
+        }
+        
         guard let email = emailTextField.text, !email.isEmpty,
               let password = passwordTextField.text, !password.isEmpty else {
             showAlert(title: "Error", message: "Please enter both email and password")
@@ -333,6 +461,12 @@ class LoginViewController: UIViewController {
     }
     
     @objc private func appleSignInButtonTapped() {
+        // Check privacy policy agreement first
+        guard privacyCheckbox.isSelected else {
+            showAlert(title: "Terms Required", message: "Please accept the Terms of Service and Privacy Policy to continue")
+            return
+        }
+        
         appleSignInViewModel.signIn()
     }
 
@@ -485,4 +619,4 @@ extension LoginViewController: UITextFieldDelegate {
         }
         return true
     }
-} 
+}
