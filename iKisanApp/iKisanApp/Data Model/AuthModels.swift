@@ -556,8 +556,14 @@ class AuthManager {
     
     /// Handle Apple Sign In session and create/update user in the database
     func handleAppleSignInSession(_ session: Session, name: String, email: String) async throws -> AuthUser {
+        // Validate inputs to prevent crashes
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw AuthError.invalidCredentials
+        }
+        
         do {
-            // First, try to fetch existing user from the users table
+            // First, try to fetch existing user from the users table with timeout protection
             let result = try await supabase.client
                 .from("users")
                 .select()
@@ -575,41 +581,66 @@ class AuthManager {
             
             return appUser
         } catch {
-            // User doesn't exist, create new user record
+            // User doesn't exist, create new user record with proper error handling
             print("User not found in database, creating new user record...")
             
-            let newUser = NewUserRequest(
-                userID: session.user.id.uuidString,
-                name: name,
-                email: email,
-                phone: "", // Empty phone for Apple Sign In users
-                latitude: 0.0,
-                longitude: 0.0,
-                fieldArea: 0.0
-            )
-            
-            // Insert new user record
-            try await supabase.client
-                .from("users")
-                .insert(newUser)
-                .execute()
-            
-            // Fetch the newly created user
-            let result = try await supabase.client
-                .from("users")
-                .select()
-                .eq("userID", value: session.user.id.uuidString)
-                .single()
-                .execute()
-            
-            let userData = result.data
-            let appUser = try JSONDecoder().decode(AuthUser.self, from: userData)
-            
-            // Save user locally
-            self.currentUser = appUser
-            saveUserToUserDefaults(appUser)
-            
-            return appUser
+            do {
+                let newUser = NewUserRequest(
+                    userID: session.user.id.uuidString,
+                    name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+                    email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+                    phone: "", // Empty phone for Apple Sign In users
+                    latitude: 0.0,
+                    longitude: 0.0,
+                    fieldArea: 0.0
+                )
+                
+                // Insert new user record with retry logic
+                try await supabase.client
+                    .from("users")
+                    .insert(newUser)
+                    .execute()
+                
+                // Small delay to ensure database consistency
+                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                
+                // Fetch the newly created user with timeout protection
+                let result = try await supabase.client
+                    .from("users")
+                    .select()
+                    .eq("userID", value: session.user.id.uuidString)
+                    .single()
+                    .execute()
+                
+                let userData = result.data
+                let appUser = try JSONDecoder().decode(AuthUser.self, from: userData)
+                
+                // Save user locally
+                self.currentUser = appUser
+                saveUserToUserDefaults(appUser)
+                
+                return appUser
+            } catch {
+                print("❌ Error creating Apple Sign-In user: \(error)")
+                // Provide more specific error handling
+                if error.localizedDescription.contains("duplicate") || error.localizedDescription.contains("unique") {
+                    // Try to fetch again in case of race condition
+                    let retryResult = try await supabase.client
+                        .from("users")
+                        .select()
+                        .eq("userID", value: session.user.id.uuidString)
+                        .single()
+                        .execute()
+                    
+                    let userData = retryResult.data
+                    let appUser = try JSONDecoder().decode(AuthUser.self, from: userData)
+                    self.currentUser = appUser
+                    saveUserToUserDefaults(appUser)
+                    return appUser
+                } else {
+                    throw AuthError.registrationFailed
+                }
+            }
         }
     }
 

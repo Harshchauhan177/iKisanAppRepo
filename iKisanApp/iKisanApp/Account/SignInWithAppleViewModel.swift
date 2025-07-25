@@ -38,30 +38,37 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
     }
     
     private func checkAndRestoreSession() async {
-        if let sessionString = UserDefaults.standard.string(forKey: UserDefaultsKeys.sessionKey),
-           let sessionData = sessionString.data(using: .utf8) {
+        guard let sessionString = UserDefaults.standard.string(forKey: UserDefaultsKeys.sessionKey),
+              let sessionData = sessionString.data(using: .utf8) else {
+            print("❌ No saved session found")
+            return
+        }
+        
+        do {
+            let sessionDict = try JSONDecoder().decode([String: String].self, from: sessionData)
+            guard let accessToken = sessionDict["accessToken"],
+                  let refreshToken = sessionDict["refreshToken"],
+                  !accessToken.isEmpty,
+                  !refreshToken.isEmpty else {
+                print("❌ Invalid session data found")
+                await clearSession()
+                return
+            }
+            
             do {
-                let sessionDict = try JSONDecoder().decode([String: String].self, from: sessionData)
-                if let accessToken = sessionDict["accessToken"],
-                   let refreshToken = sessionDict["refreshToken"] {
-                    do {
-                        try await supabase.client.auth.setSession(accessToken: accessToken, refreshToken: refreshToken)
-                        await MainActor.run {
-                            self.isAuthenticated = true
-                            self.navigateToHome = true
-                            print("✅ Session restored")
-                        }
-                    } catch {
-                        print("❌ Failed to set session: \(error)")
-                        await clearSession()
-                    }
+                try await supabase.client.auth.setSession(accessToken: accessToken, refreshToken: refreshToken)
+                await MainActor.run {
+                    self.isAuthenticated = true
+                    self.navigateToHome = true
+                    print("✅ Session restored")
                 }
             } catch {
-                print("❌ Failed to restore session: \(error)")
+                print("❌ Failed to set session: \(error)")
                 await clearSession()
             }
-        } else {
-            print("❌ No saved session found")
+        } catch {
+            print("❌ Failed to restore session: \(error)")
+            await clearSession()
         }
     }
     
@@ -121,9 +128,11 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
 
     func handleAppleSignIn(credential: ASAuthorizationAppleIDCredential) async {
         guard let identityToken = credential.identityToken,
-              let tokenString = String(data: identityToken, encoding: .utf8) else {
+              let tokenString = String(data: identityToken, encoding: .utf8),
+              let currentNonce = currentNonce else {
             await MainActor.run {
-                self.errorMessage = "Failed to get Apple credentials"
+                self.errorMessage = "Failed to get Apple credentials or nonce"
+                self.isLoading = false
             }
             return
         }
@@ -158,54 +167,51 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
             // Always use email from Supabase session if Apple didn't provide it
             let finalEmail = rawEmail.isEmpty ? (session.user.email ?? "") : rawEmail
 
-            if !finalEmail.isEmpty {
-                // Check if Apple provided a name
-                let appleProvidedName = !rawName.isEmpty
+            // Ensure we have a valid email before proceeding
+            guard !finalEmail.isEmpty else {
+                await MainActor.run {
+                    self.errorMessage = "No email available from Apple or session"
+                    self.isLoading = false
+                }
+                return
+            }
+
+            // Check if Apple provided a name
+            let appleProvidedName = !rawName.isEmpty
+            
+            if appleProvidedName {
+                // Apple provided a name, check if user exists and has a name
+                let userHasName = await checkUserHasName(session)
                 
-                if appleProvidedName {
-                    // Apple provided a name, check if user exists and has a name
-                    let userHasName = await checkUserHasName(session)
-                    
-                    if userHasName {
-                        // User exists and has a name, proceed normally
-                        do {
-                            print("🔄 Handling Apple Sign In session with AuthManager...")
-                            let authUser = try await AuthManager.shared.handleAppleSignInSession(
-                                session,
-                                name: finalName,
-                                email: finalEmail
-                            )
-                            print("✅ Successfully handled Apple Sign In session")
-                            
-                            // Save the session
-                            await saveSession(session)
-                            
-                            // Set authentication state
-                            await MainActor.run {
-                                self.isAuthenticated = true
-                                self.navigateToHome = true
-                                self.errorMessage = nil
-                            }
-                        } catch {
-                            print("❌ Error handling Apple Sign In session: \(error)")
-                            await MainActor.run {
-                                self.errorMessage = "Failed to complete sign in: \(error.localizedDescription)"
-                            }
-                        }
-                    } else {
-                        // User exists but doesn't have a name, show name entry screen
-                        print("📝 User exists but name is missing, showing name entry screen")
+                if userHasName {
+                    // User exists and has a name, proceed normally
+                    do {
+                        print("🔄 Handling Apple Sign In session with AuthManager...")
+                        let authUser = try await AuthManager.shared.handleAppleSignInSession(
+                            session,
+                            name: finalName,
+                            email: finalEmail
+                        )
+                        print("✅ Successfully handled Apple Sign In session")
+                        
+                        // Save the session
+                        await saveSession(session)
+                        
+                        // Set authentication state
                         await MainActor.run {
-                            self.pendingSession = session
-                            self.pendingEmail = finalEmail
-                            self.showNameEntry = true
-                            self.isLoading = false
+                            self.isAuthenticated = true
+                            self.navigateToHome = true
+                            self.errorMessage = nil
                         }
-                        return
+                    } catch {
+                        print("❌ Error handling Apple Sign In session: \(error)")
+                        await MainActor.run {
+                            self.errorMessage = "Failed to complete sign in: \(error.localizedDescription)"
+                        }
                     }
                 } else {
-                    // Apple didn't provide a name, show name entry screen
-                    print("📝 Apple didn't provide a name, showing name entry screen")
+                    // User exists but doesn't have a name, show name entry screen
+                    print("📝 User exists but name is missing, showing name entry screen")
                     await MainActor.run {
                         self.pendingSession = session
                         self.pendingEmail = finalEmail
@@ -214,6 +220,16 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
                     }
                     return
                 }
+            } else {
+                // Apple didn't provide a name, show name entry screen
+                print("📝 Apple didn't provide a name, showing name entry screen")
+                await MainActor.run {
+                    self.pendingSession = session
+                    self.pendingEmail = finalEmail
+                    self.showNameEntry = true
+                    self.isLoading = false
+                }
+                return
             }
             
         } catch {
@@ -285,6 +301,13 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
         }
     }
     
+    // MARK: - Helper Structures
+    
+    private struct UserUpdateRequest: Encodable {
+        let name: String
+        let phone: String
+    }
+    
     func completeSignInWithName(_ name: String, phone: String) async {
         guard let session = pendingSession else {
             await MainActor.run {
@@ -293,14 +316,32 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
             }
             return
         }
+        
+        // Validate input parameters to prevent crashes
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            await MainActor.run {
+                self.errorMessage = "Name cannot be empty"
+                self.isLoading = false
+            }
+            return
+        }
+        
+        await MainActor.run { self.isLoading = true }
+        
         do {
-            // Check if user exists in the database
+            // Check if user exists in the database with timeout protection
             let userExists = await checkUserExists(session)
+            
             if userExists {
-                // User exists, update the name and phone
+                // User exists, update the name and phone with proper error handling
+                let updateData = UserUpdateRequest(
+                    name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+                    phone: phone.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+                
                 try await supabase.client
                     .from("users")
-                    .update(["name": name, "phone": phone])
+                    .update(updateData)
                     .eq("userID", value: session.user.id.uuidString)
                     .execute()
                 print("✅ Updated existing user's name and phone")
@@ -308,9 +349,9 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
                 // User doesn't exist, create new user with the provided name and phone
                 let newUser = NewUserRequest(
                     userID: session.user.id.uuidString,
-                    name: name,
+                    name: name.trimmingCharacters(in: .whitespacesAndNewlines),
                     email: pendingEmail,
-                    phone: phone,
+                    phone: phone.trimmingCharacters(in: .whitespacesAndNewlines),
                     latitude: 0.0,
                     longitude: 0.0,
                     fieldArea: 0.0
@@ -321,14 +362,17 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
                     .execute()
                 print("✅ Created new user with provided name and phone")
             }
-            // Now handle the Apple Sign In session
+            
+            // Now handle the Apple Sign In session with proper error handling
             let authUser = try await AuthManager.shared.handleAppleSignInSession(
                 session,
-                name: name,
+                name: name.trimmingCharacters(in: .whitespacesAndNewlines),
                 email: pendingEmail
             )
-            // Save the session
+            
+            // Save the session only if everything succeeded
             await saveSession(session)
+            
             // Set authentication state
             await MainActor.run {
                 self.isAuthenticated = true
@@ -342,7 +386,17 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
         } catch {
             print("❌ Error completing sign in with name and phone: \(error)")
             await MainActor.run {
-                self.errorMessage = "Failed to complete sign in: \(error.localizedDescription)"
+                // Provide more specific error messages
+                let errorMessage: String
+                if error.localizedDescription.contains("network") || error.localizedDescription.contains("connection") {
+                    errorMessage = "Network error. Please check your connection and try again."
+                } else if error.localizedDescription.contains("timeout") {
+                    errorMessage = "Request timed out. Please try again."
+                } else {
+                    errorMessage = "Failed to complete sign in. Please try again."
+                }
+                
+                self.errorMessage = errorMessage
                 self.showNameEntry = false
                 self.pendingSession = nil
                 self.pendingEmail = ""
@@ -395,11 +449,52 @@ extension SignInWithAppleViewModel: ASAuthorizationControllerDelegate, ASAuthori
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         print("❌ Apple Sign-In failed: \(error.localizedDescription)")
-        self.errorMessage = "Apple Sign-In failed: \(error.localizedDescription)"
-        self.isLoading = false
+        
+        // Handle specific Apple Sign-In errors to prevent crashes
+        let nsError = error as NSError
+        let errorMessage: String
+        
+        switch nsError.code {
+        case 1000: // ASAuthorizationErrorCanceled
+            errorMessage = "Sign in was canceled"
+        case 1001: // ASAuthorizationErrorFailed
+            errorMessage = "Sign in failed. Please try again"
+        case 1002: // ASAuthorizationErrorInvalidResponse
+            errorMessage = "Invalid response from Apple. Please try again"
+        case 1003: // ASAuthorizationErrorNotHandled
+            errorMessage = "Sign in not handled. Please try again"
+        case 1004: // ASAuthorizationErrorUnknown
+            errorMessage = "Unknown error occurred. Please try again"
+        default:
+            errorMessage = "Sign in failed: \(error.localizedDescription)"
+        }
+        
+        // Ensure UI updates happen on main thread
+        DispatchQueue.main.async { [weak self] in
+            self?.errorMessage = errorMessage
+            self?.isLoading = false
+            self?.isAuthenticated = false
+        }
     }
 
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        return UIApplication.shared.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
+        // More robust window finding to prevent crashes
+        if let keyWindow = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow }) {
+            return keyWindow
+        }
+        
+        // Fallback to first available window
+        if let firstWindow = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first {
+            return firstWindow
+        }
+        
+        // Last resort fallback
+        return ASPresentationAnchor()
     }
 }
