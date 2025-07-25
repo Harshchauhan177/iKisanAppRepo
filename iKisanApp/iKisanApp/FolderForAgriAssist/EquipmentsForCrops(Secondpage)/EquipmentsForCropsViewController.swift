@@ -14,6 +14,7 @@ class EquipmentsForCropsViewController: UIViewController,UITableViewDelegate,UIT
     
     var dataController: DataController!
     var selectedCropId: UUID!
+    var selectedCropName: String? // Add this property
     private var equipmentCategories: [EquipmentCategory] = []
     
     override func viewWillAppear(_ animated: Bool) {
@@ -51,9 +52,9 @@ class EquipmentsForCropsViewController: UIViewController,UITableViewDelegate,UIT
         equipmentCategories = dataController.getEquipmentCategories(forCrop: selectedCropId)
         print("Found \(equipmentCategories.count) equipment categories")
         
-        if let cropCategory = dataController.getCropCategory(forCrop: selectedCropId) {
-            print("Found crop category: \(cropCategory.cropName)")
-            EquipmentsForCropsLabel.title = cropCategory.equipmentsForCrops
+        // Set the navigation title using the selected crop name
+        if let cropName = selectedCropName {
+            EquipmentsForCropsLabel.title = "Equipments for \(cropName)"
         }
         
         myTable.reloadData()

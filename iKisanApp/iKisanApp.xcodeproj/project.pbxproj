@@ -199,7 +199,7 @@
 				CODE_SIGN_ENTITLEMENTS = iKisanApp/iKisanApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZT3MPRJ8J8;
+				DEVELOPMENT_TEAM = 73B8W4ZN6V;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iKisanApp/Info.plist;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "iKisan needs your location to help you add your accurate address details and improve nearby equipment recommendations.";
@@ -230,7 +230,7 @@
 				CODE_SIGN_ENTITLEMENTS = iKisanApp/iKisanApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZT3MPRJ8J8;
+				DEVELOPMENT_TEAM = 73B8W4ZN6V;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iKisanApp/Info.plist;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "iKisan needs your location to help you add your accurate address details and improve nearby equipment recommendations.";
