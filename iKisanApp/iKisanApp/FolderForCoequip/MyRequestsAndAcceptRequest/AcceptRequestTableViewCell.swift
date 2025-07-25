@@ -114,7 +114,15 @@ class AcceptRequestTableViewCell: UITableViewCell {
         }
         titleLabel.text = equipment.name
         priceLabel.text = "₹ \(equipment.pricePerAcre)"
-        hostLabel.text = equipment.providerName
+        
+        // Show the request creator's name instead of equipment provider's name
+        if let dataController = dataController,
+           let requestCreator = dataController.getUserById(request.userId) {
+            hostLabel.text = requestCreator.name
+        } else {
+            hostLabel.text = "Unknown User"
+        }
+        
         locationLabel.text = equipment.location
 
         let dateFormatter = DateFormatter()

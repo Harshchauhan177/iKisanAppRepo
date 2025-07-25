@@ -66,7 +66,14 @@ class AcceptRequestTableViewController: UITableViewController {
                 imageLabel.image = UIImage(named: equipment.equipmentImage) ?? UIImage(named: "placeholder_image")
             }
             titleLabel.text = equipment.name
-            hostLabel.text = equipment.providerName
+            
+            // Show the request creator's name instead of equipment provider's name
+            if let requestCreator = dataController?.getUserById(request.userId) {
+                hostLabel.text = requestCreator.name
+            } else {
+                hostLabel.text = "Unknown User"
+            }
+            
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, d MMM"
             let dateString = dateFormatter.string(from: request.requestedDate)
