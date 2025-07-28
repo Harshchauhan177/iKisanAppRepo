@@ -462,7 +462,8 @@ class CreateRequestViewController: UIViewController,UICollectionViewDelegate,UIC
             let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
             if let equipmentDescVC = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
                 equipmentDescVC.equipment = selectedCard
-                equipmentDescVC.bookingSource = isFromHomeViewController ? .coEquip : .home
+                // Fix: Search from Co-Equip should use .home (allows booking), only "View" buttons from request cards use .coEquipViewOnly
+                equipmentDescVC.bookingSource = .home
                 equipmentDescVC.loadViewIfNeeded()
                 equipmentDescVC.selectedDate = selectedCalendarDate ?? Date()
                 

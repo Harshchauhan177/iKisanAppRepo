@@ -236,6 +236,7 @@ enum BookingSource: Codable {
     case home
     case prebooking
     case coEquip
+    case coEquipViewOnly  // New case for view-only mode from request cards
 }
 
 //MARK: Model for FAQ

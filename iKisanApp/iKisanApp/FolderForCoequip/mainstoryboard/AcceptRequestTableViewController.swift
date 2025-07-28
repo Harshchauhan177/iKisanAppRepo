@@ -409,7 +409,7 @@ class AcceptRequestTableViewController: UITableViewController {
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
         if let equipmentDescVC = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
             equipmentDescVC.equipment = equipment
-            equipmentDescVC.bookingSource = .coEquip
+            equipmentDescVC.bookingSource = .coEquipViewOnly  // Use view-only mode for request card views
             equipmentDescVC.selectedDate = request.requestedDate
             navigationController?.pushViewController(equipmentDescVC, animated: true)
         }

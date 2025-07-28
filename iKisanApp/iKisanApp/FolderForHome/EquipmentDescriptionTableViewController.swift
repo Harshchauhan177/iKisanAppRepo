@@ -444,7 +444,20 @@ class EquipmentDescriptionTableViewController: UITableViewController, UICollecti
     
     
     @IBAction func bookButtonTapped(_ sender: UIButton) {
-        // Check if coming from co-equip view flow and prevent booking
+        // Check if coming from co-equip view-only flow and prevent booking
+        if bookingSource == .coEquipViewOnly {
+            // Show an alert explaining this is view-only mode
+            let alert = UIAlertController(
+                title: "View Only Mode", 
+                message: "This equipment is being viewed from a Co-Equip request card. This is for viewing purposes only and booking is not available from this screen.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        // Check if coming from co-equip search flow and prevent booking
         if bookingSource == .coEquip {
             // Show an alert explaining this is view-only mode
             let alert = UIAlertController(
