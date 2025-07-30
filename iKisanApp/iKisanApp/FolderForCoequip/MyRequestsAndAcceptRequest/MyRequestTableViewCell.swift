@@ -49,7 +49,17 @@ class MyRequestTableViewCell: UITableViewCell {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "E, d MMM"
         DateLabel.text = dateFormatter.string(from: request.requestedDate)
-        PendingButtonTapped.isHidden = (request.status != .pending)
+        
+        // Control button visibility based on request status
+        // Initially show pending button, hide confirm button
+        // When provider accepts (status changes from pending), show confirm button and hide pending button
+        if request.status == .pending {
+            PendingButtonTapped.isHidden = false
+            ConfirmButtonLabel.isHidden = true
+        } else {
+            PendingButtonTapped.isHidden = true
+            ConfirmButtonLabel.isHidden = false
+        }
         
         // Count and display the number of people who joined/accepted the request
         let joinedCount = request.participants?.filter { $0.status == .done }.count ?? 0

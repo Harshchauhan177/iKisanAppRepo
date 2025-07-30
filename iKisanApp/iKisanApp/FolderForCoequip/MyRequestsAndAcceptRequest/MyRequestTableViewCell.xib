@@ -70,19 +70,22 @@
                                     <constraint firstAttribute="height" constant="35" id="95C-VV-hp4"/>
                                     <constraint firstAttribute="width" constant="80" id="bdL-Nh-Kku"/>
                                 </constraints>
-                                <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="tintColor" systemColor="systemOrangeColor"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="pending" cornerStyle="capsule">
                                     <fontDescription key="titleFontDescription" type="system" pointSize="15"/>
-                                    <color key="baseBackgroundColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                    <color key="baseBackgroundColor" systemColor="systemOrangeColor"/>
                                 </buttonConfiguration>
                                 <connections>
                                     <action selector="PendingButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="MDV-GY-tcr"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XIf-MP-cbC">
-                                <rect key="frame" x="282" y="45" width="94" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <rect key="frame" x="278" y="40" width="85" height="35"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="35" id="IVa-1R-AAY"/>
+                                    <constraint firstAttribute="width" constant="85" id="i5j-74-IJr"/>
+                                </constraints>
                                 <color key="tintColor" red="0.29803922770000002" green="0.49803921579999999" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Confirm" cornerStyle="capsule">
@@ -97,16 +100,13 @@
                         <constraints>
                             <constraint firstItem="x2k-DU-84y" firstAttribute="centerY" secondItem="XFL-qk-b49" secondAttribute="centerY" id="4cx-Cu-uy6"/>
                             <constraint firstItem="o1S-SQ-p33" firstAttribute="centerY" secondItem="XFL-qk-b49" secondAttribute="centerY" id="FRG-6v-2Li"/>
+                            <constraint firstItem="XIf-MP-cbC" firstAttribute="centerY" secondItem="XFL-qk-b49" secondAttribute="centerY" id="LUN-5r-GRU"/>
                             <constraint firstItem="0fk-mA-NWp" firstAttribute="top" secondItem="XFL-qk-b49" secondAttribute="top" constant="8" id="MXK-BU-gpo"/>
+                            <constraint firstAttribute="trailing" secondItem="XIf-MP-cbC" secondAttribute="trailing" constant="10" id="NwX-xE-aCD"/>
                             <constraint firstItem="x2k-DU-84y" firstAttribute="leading" secondItem="XFL-qk-b49" secondAttribute="leading" constant="10" id="a6x-uc-oOw"/>
                             <constraint firstAttribute="trailing" secondItem="o1S-SQ-p33" secondAttribute="trailing" constant="10" id="gRW-xL-a13"/>
                             <constraint firstItem="0fk-mA-NWp" firstAttribute="leading" secondItem="x2k-DU-84y" secondAttribute="trailing" constant="13" id="owq-dB-zgb"/>
                         </constraints>
-                        <variation key="default">
-                            <mask key="subviews">
-                                <exclude reference="XIf-MP-cbC"/>
-                            </mask>
-                        </variation>
                     </view>
                 </subviews>
                 <constraints>
@@ -133,6 +133,9 @@
         <image name="person.circle" catalog="system" width="128" height="123"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemOrangeColor">
+            <color red="1" green="0.58431372549019611" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
