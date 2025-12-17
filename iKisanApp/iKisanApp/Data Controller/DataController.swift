@@ -71,9 +71,15 @@ protocol DataController {
     // Add this new function for SameTypeAllEquipments
     func getEquipmentsByCategory(categoryId: UUID) -> [EquipmentAgri]
     
-    // Add these new functions
+    // Add these new functions for crop selection
     func setSelectedCrops(_ cropNames: Set<String>)
     func getSelectedCrops() -> Set<String>
+    
+    // Add these new functions for crop field area management
+    func saveCropFieldArea(cropName: String, area: String)
+    func saveCropFieldAreas(areas: [String: String])
+    func getCropFieldArea(cropName: String) -> String?
+    func getAllCropFieldAreas() -> [String: String]
     
     //coequip Related functions
     func getAllCoEquipRequests() -> [Request]

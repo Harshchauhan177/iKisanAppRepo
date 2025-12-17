@@ -38,7 +38,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // Helper method to transition to the main interface after onboarding.
     func switchToMainInterface() {
         // Now show login screen after onboarding instead of crop selection
-        let loginVC = LoginViewController()
+        let loginVC = LoginHostingController()
         let navigationController = UINavigationController(rootViewController: loginVC)
         
         guard let window = self.window else { return }
@@ -87,7 +87,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     // Helper method to transition to login screen
     func switchToLogin() {
-        let loginVC = LoginViewController()
+        let loginVC = LoginHostingController()
         let navController = UINavigationController(rootViewController: loginVC)
         
         guard let window = self.window else { return }
@@ -96,7 +96,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     // Helper method to transition to crop selection
     func switchToCropSelection() {
-        let selectCropsVC = SelectCropsViewController()
+        let dataController = IKisanDataController()
+        let selectCropsVC = SelectCropsHostingController(dataController: dataController, isFromProfile: false)
         let navController = UINavigationController(rootViewController: selectCropsVC)
         
         guard let window = self.window else { return }

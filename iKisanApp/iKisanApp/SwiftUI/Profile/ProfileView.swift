@@ -67,7 +67,7 @@ struct ProfileView: View {
             // Hide these sections in edit mode
             if !viewModel.isEditMode {
                 Section("Actions") {
-                    NavigationLink(destination: SelectCropsView()) {
+                    NavigationLink(destination: SelectCropsViewWrapper()) {
                         Label {
                             Text("Select Crops")
                         } icon: {
@@ -243,20 +243,24 @@ struct AlertItem: Identifiable {
 
 // MARK: - Destination Views
 
-// UIViewControllerRepresentable to wrap the UIKit SelectCropsViewController
-struct SelectCropsView: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> SelectCropsViewController {
-        // Create the SelectCropsViewController
-        let viewController = SelectCropsViewController()
-        
-        // Configure for profile mode - this ensures it's recognized as coming from profile
-        // and will display currently selected crops
-        viewController.isFromProfile = true
-        
+// UIViewControllerRepresentable to wrap the SwiftUI SelectCropsHostingController
+struct SelectCropsViewWrapper: UIViewControllerRepresentable {
+    let dataController: DataController
+    
+    init(dataController: DataController = IKisanDataController()) {
+        self.dataController = dataController
+    }
+    
+    func makeUIViewController(context: Context) -> SelectCropsHostingController {
+        // Create the SelectCropsHostingController configured for profile mode
+        let viewController = SelectCropsHostingController(
+            dataController: dataController,
+            isFromProfile: true
+        )
         return viewController
     }
     
-    func updateUIViewController(_ uiViewController: SelectCropsViewController, context: Context) {
+    func updateUIViewController(_ uiViewController: SelectCropsHostingController, context: Context) {
         // Nothing to update here
     }
 }

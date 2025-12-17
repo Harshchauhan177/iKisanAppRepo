@@ -511,8 +511,9 @@ class SignupViewController: UIViewController {
                 await MainActor.run {
                     activityIndicator.stopAnimating()
                     
-                    // Navigate to select crops screen
-                    let selectCropsVC = SelectCropsViewController()
+                    // Navigate to select crops screen using SwiftUI
+                    let dataController = IKisanDataController()
+                    let selectCropsVC = SelectCropsHostingController(dataController: dataController, isFromProfile: false)
                     let navigationController = UINavigationController(rootViewController: selectCropsVC)
                     UIApplication.shared.windows.first?.rootViewController = navigationController
                     UIApplication.shared.windows.first?.makeKeyAndVisible()

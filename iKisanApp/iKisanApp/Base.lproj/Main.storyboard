@@ -104,7 +104,7 @@
                             </pageControl>
                             <collectionView multipleTouchEnabled="YES" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="ImO-SX-kKd">
                                 <rect key="frame" x="21.666666666666657" y="109" width="350" height="567"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="567" id="FUW-nB-CD2"/>
                                     <constraint firstAttribute="width" constant="350" id="Wqi-Bu-dAC"/>
@@ -142,7 +142,7 @@
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="UYa-Qp-W7n"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="ImO-SX-kKd" firstAttribute="centerX" secondItem="UYa-Qp-W7n" secondAttribute="centerX" id="0OK-ix-Jcg"/>
                             <constraint firstItem="ImO-SX-kKd" firstAttribute="top" secondItem="UYa-Qp-W7n" secondAttribute="top" constant="50" id="DF3-nM-Fqh"/>
@@ -159,6 +159,7 @@
                         <outlet property="collectionView" destination="ImO-SX-kKd" id="ZR3-cR-faw"/>
                         <outlet property="nextBtn" destination="XfQ-wC-IGu" id="ywq-64-Z1u"/>
                         <outlet property="pageControl" destination="3AX-cC-AhZ" id="hgm-c4-Kmu"/>
+                        <outlet property="skipBtn" destination="vgc-oX-jhd" id="skip-btn-outlet"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="CUU-YF-5hX" sceneMemberID="firstResponder"/>
@@ -240,6 +241,9 @@
         </scene>
     </scenes>
     <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
         <systemColor name="systemGray3Color">
             <color red="0.78039215689999997" green="0.78039215689999997" blue="0.80000000000000004" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>

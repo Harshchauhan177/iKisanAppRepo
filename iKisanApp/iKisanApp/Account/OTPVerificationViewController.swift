@@ -226,8 +226,9 @@ class OTPVerificationViewController: UIViewController {
                     activityIndicator.stopAnimating()
                     verifyButton.isEnabled = true
                     
-                    // Navigate to select crops screen
-                    let selectCropsVC = SelectCropsViewController()
+                    // Navigate to select crops screen using SwiftUI
+                    let dataController = IKisanDataController()
+                    let selectCropsVC = SelectCropsHostingController(dataController: dataController, isFromProfile: false)
                     let navigationController = UINavigationController(rootViewController: selectCropsVC)
                     UIApplication.shared.windows.first?.rootViewController = navigationController
                     UIApplication.shared.windows.first?.makeKeyAndVisible()

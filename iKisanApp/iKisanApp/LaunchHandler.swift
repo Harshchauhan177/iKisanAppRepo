@@ -7,26 +7,34 @@ class LaunchHandler {
     
     func determineInitialScreen(window: UIWindow) -> UIViewController {
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-        let didCompleteCropSelection = UserDefaults.standard.bool(forKey: "didCompleteCropSelection")
+        let isNewlyRegisteredUser = UserDefaults.standard.bool(forKey: "isNewlyRegisteredUser")
+        
+        // Flow logic:
+        // 1. First time users (no onboarding) → Show onboarding
+        // 2. Onboarding completed but not logged in → Show login
+        // 3. Newly registered users (signup or first Apple Sign In) → Show crop selection
+        // 4. Existing users logging in → Show main app (can select crops from profile)
         
         if !hasCompletedOnboarding {
-            // User hasn't completed onboarding, show onboarding screens
+            // User hasn't completed onboarding, show UIKit onboarding screens
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            if let onboardingVC = storyboard.instantiateViewController(withIdentifier: "OnboardingViewController") as? OnboardingViewController {
-                return onboardingVC
-            }
+            let onboardingVC = storyboard.instantiateViewController(withIdentifier: "OnboardingViewController") as! OnboardingViewController
+            return onboardingVC
         } else if !AuthManager.shared.isLoggedIn {
             // User has completed onboarding but isn't logged in, show login screen
-            let loginVC = LoginViewController()
+            // Using new SwiftUI LoginView with MVVM architecture
+            let loginVC = LoginHostingController()
             return UINavigationController(rootViewController: loginVC)
-        } else if UserDefaults.standard.bool(forKey: "isNewlyRegisteredUser") {
-            // This is a newly registered user who needs to complete crop selection
-            // This flag is set during the registration process and cleared after crop selection
-            let selectCropsVC = SelectCropsViewController()
+        } else if isNewlyRegisteredUser {
+            // This is a newly registered user (signup or new Apple Sign In)
+            // Show crop selection as part of onboarding flow
+            // This flag is set during registration and cleared after crop selection
+            let dataController = IKisanDataController()
+            let selectCropsVC = SelectCropsHostingController(dataController: dataController, isFromProfile: false)
             return UINavigationController(rootViewController: selectCropsVC)
         } else {
-            // User is logged in, show main interface regardless of crop selection status
-            // They can always access crop selection from their profile later
+            // Existing user logging in - go directly to main app
+            // They can select/update crops later from their profile
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             if let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController {
                 configureTabBarWithDataController(tabBarController)
@@ -35,7 +43,7 @@ class LaunchHandler {
         }
         
         // Fallback to login screen if any issues
-        let loginVC = LoginViewController()
+        let loginVC = LoginHostingController()
         return UINavigationController(rootViewController: loginVC)
     }
     

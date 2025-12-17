@@ -382,6 +382,9 @@ class SignInWithAppleViewModel: NSObject, ObservableObject {
                     .insert(newUser)
                     .execute()
                 print("✅ Created new user with provided name and phone")
+                
+                // Set flag that this is a newly registered user who needs to select crops
+                UserDefaults.standard.set(true, forKey: "isNewlyRegisteredUser")
             }
             
             // Now handle the Apple Sign In session with proper error handling

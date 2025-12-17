@@ -601,6 +601,9 @@ class AuthManager {
                     .insert(newUser)
                     .execute()
                 
+                // Set flag that this is a newly registered user who needs to select crops
+                UserDefaults.standard.set(true, forKey: "isNewlyRegisteredUser")
+                
                 // Small delay to ensure database consistency
                 try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
                 
