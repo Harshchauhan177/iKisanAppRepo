@@ -72,15 +72,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         
         // First check if dataController is initialized
         guard let dataController = dataController else {
-            print("Error: DataController not initialized")
-            // Show error alert to user
-            let alert = UIAlertController(
-                title: "Error",
-                message: "Unable to initialize app data. Please try again later.",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
+            print("❌ Error: DataController not initialized in HomeViewController")
+            // Don't show alert - MainTabBarController handles initialization
+            // This shouldn't happen if MainTabBarController is properly set up
             return
         }
         

@@ -25,6 +25,13 @@ class AgriAssistViewController: UIViewController,UITableViewDataSource, UITableV
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Ensure dataController is initialized
+        guard dataController != nil else {
+            print("❌ Error: DataController not initialized in AgriAssistViewController")
+            // This shouldn't happen if MainTabBarController is properly set up
+            return
+        }
+        
         // Register cell from nib
     //
             

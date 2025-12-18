@@ -16,6 +16,14 @@ class CoequipViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Ensure dataController is initialized
+        guard dataController != nil else {
+            print("❌ Error: DataController not initialized in CoequipViewController")
+            // This shouldn't happen if MainTabBarController is properly set up
+            return
+        }
+        
         setupTableView()
         setupRefreshControl()
         updateUI()

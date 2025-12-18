@@ -36,9 +36,12 @@ class LaunchHandler {
             // Existing user logging in - go directly to main app
             // They can select/update crops later from their profile
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            if let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController {
-                configureTabBarWithDataController(tabBarController)
-                return tabBarController
+            if let mainTabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? MainTabBarController {
+                // Set dataController BEFORE viewDidLoad
+                let dataController = IKisanDataController()
+                mainTabBarController.dataController = dataController
+                print("✅ LaunchHandler: dataController set on MainTabBarController")
+                return mainTabBarController
             }
         }
         
@@ -46,28 +49,5 @@ class LaunchHandler {
         let loginVC = LoginHostingController()
         return UINavigationController(rootViewController: loginVC)
     }
-    
-    private func configureTabBarWithDataController(_ tabBarController: UITabBarController) {
-        let dataController = IKisanDataController()
-        
-        guard let viewControllers = tabBarController.viewControllers else { return }
-        
-        for viewController in viewControllers {
-            if let navController = viewController as? UINavigationController {
-                if let homeVC = navController.viewControllers.first as? HomeViewController {
-                    homeVC.dataController = dataController
-                } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
-                    agriAssistVC.dataController = dataController
-                } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
-                    coequipVC.dataController = dataController
-                }
-            } else if let homeVC = viewController as? HomeViewController {
-                homeVC.dataController = dataController
-            } else if let agriAssistVC = viewController as? AgriAssistViewController {
-                agriAssistVC.dataController = dataController
-            } else if let coequipVC = viewController as? CoequipViewController {
-                coequipVC.dataController = dataController
-            }
-        }
-    }
-} 
+}
+ 

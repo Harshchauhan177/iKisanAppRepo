@@ -52,8 +52,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     private func setupMainInterface(in window: UIWindow) {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         
-        guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController,
-              let viewControllers = tabBarController.viewControllers else { return }
+        guard let mainTabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? MainTabBarController else { 
+            print("❌ Failed to instantiate MainTabBarController")
+            return 
+        }
+        
+        // Set dataController BEFORE viewDidLoad is called
+        mainTabBarController.dataController = dataController
+        print("✅ SceneDelegate: dataController set on MainTabBarController")
         
         // First fetch reviews to make sure they're available throughout the app
         Task {
@@ -64,25 +70,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             ReviewDataClass.updateReviews(with: reviews)
         }
         
-        for viewController in viewControllers {
-            if let navController = viewController as? UINavigationController {
-                if let homeVC = navController.viewControllers.first as? HomeViewController {
-                    homeVC.dataController = dataController
-                } else if let agriAssistVC = navController.viewControllers.first as? AgriAssistViewController {
-                    agriAssistVC.dataController = dataController
-                } else if let coequipVC = navController.viewControllers.first as? CoequipViewController {
-                    coequipVC.dataController = dataController
-                }
-            } else if let homeVC = viewController as? HomeViewController {
-                homeVC.dataController = dataController
-            } else if let agriAssistVC = viewController as? AgriAssistViewController {
-                agriAssistVC.dataController = dataController
-            } else if let coequipVC = viewController as? CoequipViewController {
-                coequipVC.dataController = dataController
-            }
-        }
-        
-        window.rootViewController = tabBarController
+        window.rootViewController = mainTabBarController
     }
     
     // Helper method to transition to login screen

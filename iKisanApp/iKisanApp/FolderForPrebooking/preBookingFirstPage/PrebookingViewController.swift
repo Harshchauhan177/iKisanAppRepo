@@ -80,12 +80,15 @@ class PrebookingViewController: UIViewController,UICollectionViewDataSource,UICo
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Get DataController from SceneDelegate
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let sceneDelegate = windowScene.delegate as? SceneDelegate {
-            self.dataController = sceneDelegate.dataController
-            loadData()
+        // Ensure dataController is initialized (set by MainTabBarController)
+        guard dataController != nil else {
+            print("❌ Error: DataController not initialized in PrebookingViewController")
+            // This shouldn't happen if MainTabBarController is properly set up
+            return
         }
+        
+        // Load data now that dataController is confirmed
+        loadData()
         
         setupCollectionView()
         setupSearchController()

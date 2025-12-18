@@ -15,38 +15,57 @@ class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Ensure dataController is initialized
-        guard dataController != nil else {
-            print("Error: DataController not initialized in MainTabBarController")
-            // Show error alert
-            let alert = UIAlertController(
-                title: "Error",
-                message: "Unable to initialize app data. Please try again later.",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            return
-        }
+        print("🚀 MainTabBarController viewDidLoad called")
         
-        // We're using view controllers from storyboard, so no need to set them up programmatically
-        // We just need to pass dataController to them
+        // Always setup view controllers first (SwiftUI replacement happens here)
         setupViewControllers()
         setupNotificationObservers()
+        
+        // Check dataController after setup (log warning but don't block)
+        if dataController == nil {
+            print("⚠️ Warning: DataController not initialized in MainTabBarController")
+            // Note: App continues to work, dataController may be set later
+        } else {
+            print("✅ DataController is initialized")
+        }
     }
     
     private func setupViewControllers() {
+        print("📋 setupViewControllers() called")
+        
         // The tabs are already set up in the storyboard
         // We just need to pass the dataController to each view controller
         
         guard let viewControllers = self.viewControllers else {
-            print("Error: No view controllers found in MainTabBarController")
+            print("❌ Error: No view controllers found in MainTabBarController")
             return
         }
         
+        print("📱 Found \(viewControllers.count) view controllers to process")
+        
         // Iterate through all tab bar view controllers and assign dataController
         for (index, viewController) in viewControllers.enumerated() {
+            print("🔍 Processing view controller at index \(index): \(type(of: viewController))")
+            
             if let navController = viewController as? UINavigationController {
+                print("  ✓ Is UINavigationController with \(navController.viewControllers.count) child(ren)")
+                
+                if let firstVC = navController.viewControllers.first {
+                    print("  ➡️ First child type: \(type(of: firstVC))")
+                }
+                
+                // ✅ SWIFTUI ENABLED: Replace UIKit HomeViewController with SwiftUI version
+                if navController.viewControllers.first is HomeViewController {
+                    print("🔄 FOUND HomeViewController at index \(index) - REPLACING WITH SWIFTUI VERSION")
+                    let swiftUIHomeVC = HomeViewControllerSwiftUI()
+                    swiftUIHomeVC.dataController = dataController
+                    navController.setViewControllers([swiftUIHomeVC], animated: false)
+                    print("✅ Successfully replaced with HomeViewControllerSwiftUI")
+                    continue
+                }
+                // ✅ END SWIFTUI
+                
+                // Keep other tabs as UIKit for now
                 if let homeVC = navController.viewControllers.first as? HomeViewController {
                     print("Setting up HomeViewController at index \(index)")
                     homeVC.dataController = dataController
