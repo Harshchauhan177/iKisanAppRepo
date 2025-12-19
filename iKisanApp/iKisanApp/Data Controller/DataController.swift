@@ -40,7 +40,7 @@ class SupabaseManager {
     }
 }
 
-protocol DataController {
+protocol DataController: AnyObject {
     func getAllEquipment() -> [Equipment]
     func getEquipment(byType type: String) -> [Equipment]
     func getAllReviews() -> [ReviewData]

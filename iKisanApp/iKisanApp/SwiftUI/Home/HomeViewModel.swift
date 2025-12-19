@@ -26,6 +26,12 @@ class HomeViewModel: NSObject, ObservableObject {
     @Published var isLoading: Bool = false
     @Published var isRefreshing: Bool = false
     
+    // MARK: - Navigation Coordinator (Bridge to UIKit)
+    weak var navigationCoordinator: HomeNavigationCoordinator?
+    
+    // MARK: - Data Controller
+    var dataController: DataController?
+    
     // MARK: - Private Properties
     private let requestManager = RequestManager.shared
     private var cancellables = Set<AnyCancellable>()

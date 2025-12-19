@@ -8,11 +8,24 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject private var viewModel = HomeViewModel()
+    @StateObject private var viewModel: HomeViewModel
     @State private var showingProfile = false
-    @State private var selectedEquipment: Equipment?
-    @State private var selectedBooking: Booking?
     @State private var showLocationPermissionAlert = false
+    
+    // Remove SwiftUI navigation states - we're using UIKit navigation now
+    // @State private var selectedEquipment: Equipment?
+    // @State private var selectedBooking: Booking?
+    
+    // MARK: - Initializer
+    
+    /// Initialize with optional pre-configured ViewModel for dependency injection
+    init(viewModel: HomeViewModel? = nil) {
+        if let viewModel = viewModel {
+            _viewModel = StateObject(wrappedValue: viewModel)
+        } else {
+            _viewModel = StateObject(wrappedValue: HomeViewModel())
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -63,7 +76,8 @@ struct HomeView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        showingProfile = true
+                        // Use navigation coordinator instead of sheet
+                        viewModel.navigationCoordinator?.navigateToProfile()
                     }) {
                         Image(systemName: "person.crop.circle")
                             .font(.system(size: 22, weight: .medium))
@@ -83,22 +97,6 @@ struct HomeView: View {
                                 .lineLimit(1)
                         }
                     }
-                }
-            }
-            .sheet(isPresented: $showingProfile) {
-                // Profile View (to be implemented)
-                Text("Profile View")
-            }
-            .sheet(item: $selectedEquipment) { equipment in
-                // Equipment Details View (to be implemented)
-                NavigationView {
-                    EquipmentDetailsPlaceholder(equipment: equipment)
-                }
-            }
-            .sheet(item: $selectedBooking) { booking in
-                // Booking Details View (to be implemented)
-                NavigationView {
-                    BookingDetailsPlaceholder(booking: booking)
                 }
             }
             .alert("Improve Your Experience", isPresented: $showLocationPermissionAlert) {
@@ -159,9 +157,12 @@ struct HomeView: View {
                         Button(action: {
                             viewModel.selectSearchResult(result)
                             
-                            // Find and show equipment
+                            // Find and navigate to equipment using coordinator
                             if let equipment = viewModel.allEquipment.first(where: { $0.name == result }) {
-                                selectedEquipment = equipment
+                                viewModel.navigationCoordinator?.navigateToEquipmentDetails(
+                                    equipment: equipment,
+                                    bookingSource: .home
+                                )
                             }
                         }) {
                             HStack(spacing: 12) {
@@ -210,7 +211,11 @@ struct HomeView: View {
                 LazyHStack(spacing: 12) {
                     ForEach(viewModel.discountedEquipment, id: \.equipmentID) { equipment in
                         Button(action: {
-                            selectedEquipment = equipment
+                            // Use navigation coordinator to navigate to equipment details
+                            viewModel.navigationCoordinator?.navigateToEquipmentDetails(
+                                equipment: equipment,
+                                bookingSource: .home
+                            )
                         }) {
                             DiscountCardView(
                                 equipment: equipment,
@@ -231,8 +236,8 @@ struct HomeView: View {
                 title: "Upcoming Bookings",
                 showViewAll: true,
                 onViewAllTapped: {
-                    // Navigate to all bookings
-                    // TODO: Implement navigation
+                    // Use navigation coordinator to navigate to all bookings
+                    viewModel.navigationCoordinator?.navigateToAllUpcomingBookings()
                 }
             )
             
@@ -244,7 +249,11 @@ struct HomeView: View {
                                 booking: booking,
                                 equipment: equipment,
                                 onViewTapped: {
-                                    selectedBooking = booking
+                                    // Use navigation coordinator
+                                    viewModel.navigationCoordinator?.navigateToBookingDetails(
+                                        booking: booking,
+                                        equipment: equipment
+                                    )
                                 }
                             )
                             .frame(width: UIScreen.main.bounds.width - 32)
@@ -265,7 +274,11 @@ struct HomeView: View {
                 LazyHStack(spacing: 12) {
                     ForEach(viewModel.suggestions, id: \.equipmentID) { equipment in
                         Button(action: {
-                            selectedEquipment = equipment
+                            // Use navigation coordinator
+                            viewModel.navigationCoordinator?.navigateToEquipmentDetails(
+                                equipment: equipment,
+                                bookingSource: .home
+                            )
                         }) {
                             SuggestionCardView(equipment: equipment)
                                 .frame(width: UIScreen.main.bounds.width - 32)
@@ -291,13 +304,21 @@ struct HomeView: View {
             ) {
                 ForEach(viewModel.exploreEquipment, id: \.equipmentID) { equipment in
                     Button(action: {
-                        selectedEquipment = equipment
+                        // Use navigation coordinator for card tap
+                        viewModel.navigationCoordinator?.navigateToEquipmentDetails(
+                            equipment: equipment,
+                            bookingSource: .home
+                        )
                     }) {
                         ExploreCardView(
                             equipment: equipment,
                             averageRating: viewModel.getAverageRating(for: equipment),
                             onBookNow: {
-                                selectedEquipment = equipment
+                                // Use navigation coordinator for "Book Now" button
+                                viewModel.navigationCoordinator?.navigateToReviewBooking(
+                                    equipment: equipment,
+                                    bookingSource: .home
+                                )
                             }
                         )
                     }
@@ -308,86 +329,6 @@ struct HomeView: View {
         }
         .padding(.bottom, 24)
     }
-}
-
-// MARK: - Placeholder Views
-private struct EquipmentDetailsPlaceholder: View {
-    let equipment: Equipment
-    @Environment(\.dismiss) var dismiss
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            AsyncImage(url: URL(string: equipment.equipmentImage)) { phase in
-                switch phase {
-                case .success(let image):
-                    image.resizable().aspectRatio(contentMode: .fit)
-                default:
-                    Color.gray.opacity(0.3)
-                }
-            }
-            .frame(height: 200)
-            
-            Text(equipment.name)
-                .font(.title)
-                .bold()
-            
-            Text("Details coming soon...")
-                .foregroundColor(.secondary)
-            
-            Spacer()
-        }
-        .navigationTitle("Equipment Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Done") {
-                    dismiss()
-                }
-            }
-        }
-        .padding()
-    }
-}
-
-private struct BookingDetailsPlaceholder: View {
-    let booking: Booking
-    @Environment(\.dismiss) var dismiss
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Booking ID: \(booking.bookingID.uuidString)")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text("Status: \(booking.status.rawValue)")
-                .font(.title2)
-                .bold()
-            
-            Text("Details coming soon...")
-                .foregroundColor(.secondary)
-            
-            Spacer()
-        }
-        .navigationTitle("Booking Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Done") {
-                    dismiss()
-                }
-            }
-        }
-        .padding()
-    }
-}
-
-// Make Equipment and Booking Identifiable for sheets
-extension Equipment: Identifiable {
-    var id: UUID { equipmentID }
-}
-
-extension Booking: Identifiable {
-    var id: UUID { bookingID }
 }
 
 // MARK: - Preview
