@@ -1152,12 +1152,38 @@ class RequestManager {
     
     func fetchEquipments() async -> [Equipment] {
         do {
-            let data: [Equipment] = try await SupabaseManager.shared.client
-            .from("equipment")
-            .select("*")
-            .execute()
-            .value
-        return data
+            // Fetch equipment data
+            var equipmentData: [Equipment] = try await SupabaseManager.shared.client
+                .from("equipment")
+                .select("*")
+                .execute()
+                .value
+            
+            // Fetch all equipment images from equipmentMoreImages table
+            let imageRecords: [EquipmentImageRecord] = try await SupabaseManager.shared.client
+                .from("equipmentMoreImages")
+                .select("*")
+                .execute()
+                .value
+            
+            // Group images by equipmentID
+            var imagesByEquipmentID: [UUID: [String]] = [:]
+            for record in imageRecords {
+                if let equipmentID = record.equipmentID {
+                    imagesByEquipmentID[equipmentID, default: []].append(record.image)
+                }
+            }
+            
+            // Assign images to each equipment
+            for i in 0..<equipmentData.count {
+                let equipmentID = equipmentData[i].equipmentID
+                if let images = imagesByEquipmentID[equipmentID], !images.isEmpty {
+                    equipmentData[i].equipmentMoreImages = EquipmentMoreImages(images: images)
+                    print("✅ Loaded \(images.count) additional images for equipment: \(equipmentData[i].name)")
+                }
+            }
+            
+            return equipmentData
         } catch {
             print("Error fetching equipment: \(error)")
             return []

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24128" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24063"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="PhotosSectionUiKitCell" customModule="iKisanApp" customModuleProvider="target">
+            <connections>
+                <outlet property="bottomLeftImageView" destination="gYb-jj-WVh" id="abc-01-001"/>
+                <outlet property="contentView" destination="Ojd-ey-zRp" id="abc-02-002"/>
+                <outlet property="mainImageView" destination="nDJ-F0-q7X" id="abc-03-003"/>
+                <outlet property="moreLabel" destination="oVf-lF-0a9" id="abc-05-005"/>
+                <outlet property="topLeftImageView" destination="QpF-yU-ahd" id="abc-06-006"/>
+                <outlet property="topRightImageView" destination="tuj-sR-SQB" id="abc-07-007"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="Ojd-ey-zRp">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <subviews>
+                <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" spacing="22" translatesAutoresizingMaskIntoConstraints="NO" id="7SL-ok-7fo">
+                    <rect key="frame" x="16" y="201" width="362" height="158"/>
+                    <subviews>
+                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="1" translatesAutoresizingMaskIntoConstraints="NO" id="nDJ-F0-q7X">
+                            <rect key="frame" x="0.0" y="0.0" width="158" height="158"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="158" id="nap-D6-DSe"/>
+                                <constraint firstAttribute="width" constant="158" id="yaz-kL-utv"/>
+                            </constraints>
+                        </imageView>
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="18" translatesAutoresizingMaskIntoConstraints="NO" id="rNm-l0-dRD">
+                            <rect key="frame" x="180" y="0.0" width="182" height="158"/>
+                            <subviews>
+                                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" alignment="center" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="V7h-7x-8Xu">
+                                    <rect key="frame" x="0.0" y="0.0" width="182" height="70"/>
+                                    <subviews>
+                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="1" translatesAutoresizingMaskIntoConstraints="NO" id="QpF-yU-ahd">
+                                            <rect key="frame" x="0.0" y="0.0" width="78" height="70"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="78" id="RVo-0Y-MSx"/>
+                                                <constraint firstAttribute="height" constant="70" id="zcL-nF-uqS"/>
+                                            </constraints>
+                                        </imageView>
+                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="1" translatesAutoresizingMaskIntoConstraints="NO" id="tuj-sR-SQB">
+                                            <rect key="frame" x="104" y="0.0" width="78" height="70"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="78" id="E0Q-ea-Z2Y"/>
+                                                <constraint firstAttribute="height" constant="70" id="Tyn-x7-qPG"/>
+                                            </constraints>
+                                        </imageView>
+                                    </subviews>
+                                </stackView>
+                                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" alignment="center" spacing="26" translatesAutoresizingMaskIntoConstraints="NO" id="XgF-wy-Z4q">
+                                    <rect key="frame" x="0.0" y="88" width="182" height="70"/>
+                                    <subviews>
+                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="1" translatesAutoresizingMaskIntoConstraints="NO" id="gYb-jj-WVh">
+                                            <rect key="frame" x="0.0" y="0.0" width="78" height="70"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="70" id="69L-EF-x8S"/>
+                                                <constraint firstAttribute="width" constant="78" id="gje-F6-X8H"/>
+                                            </constraints>
+                                        </imageView>
+                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RkU-ph-WGu">
+                                            <rect key="frame" x="104" y="0.0" width="78" height="70"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="+ more" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oVf-lF-0a9">
+                                                    <rect key="frame" x="14.333333333333318" y="26" width="49.333333333333343" height="18"/>
+                                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="15"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            <constraints>
+                                                <constraint firstItem="oVf-lF-0a9" firstAttribute="centerX" secondItem="RkU-ph-WGu" secondAttribute="centerX" id="LsS-OD-DDf"/>
+                                                <constraint firstItem="oVf-lF-0a9" firstAttribute="centerY" secondItem="RkU-ph-WGu" secondAttribute="centerY" id="aYQ-gq-hmP"/>
+                                                <constraint firstAttribute="width" constant="78" id="cnh-CW-0ph"/>
+                                                <constraint firstAttribute="height" constant="70" id="fAl-Ce-k9D"/>
+                                            </constraints>
+                                        </view>
+                                    </subviews>
+                                </stackView>
+                            </subviews>
+                        </stackView>
+                    </subviews>
+                </stackView>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="zpy-Gy-Neo"/>
+            <point key="canvasLocation" x="358" y="174"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="1" width="1024" height="683"/>
+    </resources>
+</document>

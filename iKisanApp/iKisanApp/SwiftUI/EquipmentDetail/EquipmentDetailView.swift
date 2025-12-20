@@ -23,8 +23,8 @@ struct EquipmentDetailView: View {
                         .padding(.top, 56)
                         .padding(.horizontal, 16)
                     
-                    // Photo Gallery
-                    PhotoGallerySection(viewModel: viewModel)
+                    // Photo Gallery - Using UIKit Cell for consistency with existing flow
+                    PhotosSectionEnhanced(viewModel: viewModel)
                         .padding(.top, 20)
                     
                     // Reviews Section
@@ -80,6 +80,13 @@ struct EquipmentDetailView: View {
             }
         }
         .navigationBarHidden(true)
+        .sheet(isPresented: $viewModel.showingImageGallery) {
+            ImageGalleryView(
+                images: viewModel.displayImages,
+                initialIndex: viewModel.selectedImageIndex
+            )
+            .presentationDragIndicator(.hidden)
+        }
         .onAppear {
             viewModel.loadReviews()
         }
