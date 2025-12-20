@@ -28,9 +28,7 @@ struct Equipment: Codable, Sendable {
     var rating: Double
     var location: String
     var coEquipDetail: coEquipState
-    var equipmentMoreImages: EquipmentMoreImages {
-        return EquipmentMoreImages(images: [])
-    }
+    var equipmentMoreImages: EquipmentMoreImages = EquipmentMoreImages(images: [])
     var modelYear: String
     var mielage: String
     var description: String?
@@ -150,7 +148,10 @@ enum coEquipState: String, Codable {
     case Unavailable
 }
 
-struct ReviewData{
+struct ReviewData: Identifiable {
+    var id: UUID = UUID()
+    var reviewerName: String = "Anonymous"
+    var date: Date = Date()
     //user id for specific user
     var reviewHeading: String
     var reviewDescription: String

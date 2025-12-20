@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import SwiftUI
 
 /// Protocol defining navigation actions from SwiftUI to UIKit
 protocol HomeNavigationCoordinator: AnyObject {
@@ -52,19 +53,22 @@ class UIKitHomeNavigationCoordinator: HomeNavigationCoordinator {
     
     // MARK: - Navigation Methods
     
+    @MainActor
     func navigateToEquipmentDetails(equipment: Equipment, bookingSource: BookingSource) {
         print("🚀 HomeNavigationCoordinator - Navigating to equipment details: \(equipment.name)")
         
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        guard let controller = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController else {
-            print("❌ Failed to instantiate EquipmentDescriptionTableViewController")
-            return
-        }
+        // Use SwiftUI EquipmentDetailView
+        let viewModel = EquipmentDetailViewModel(
+            equipment: equipment,
+            bookingSource: bookingSource,
+            dataController: dataController,
+            navigationCoordinator: self
+        )
         
-        controller.equipment = equipment
-        controller.bookingSource = bookingSource
+        let detailView = EquipmentDetailView(viewModel: viewModel)
+        let hostingController = UIHostingController(rootView: detailView)
         
-        navigationController?.pushViewController(controller, animated: true)
+        navigationController?.pushViewController(hostingController, animated: true)
     }
     
     func navigateToBookingDetails(booking: Booking, equipment: Equipment) {
