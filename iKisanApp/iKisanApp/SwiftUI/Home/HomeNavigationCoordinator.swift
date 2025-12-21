@@ -38,6 +38,19 @@ protocol HomeNavigationCoordinator: AnyObject {
     /// Navigate to search results (if needed for future enhancement)
     /// - Parameter searchQuery: The search term
     func navigateToSearchResults(searchQuery: String)
+    
+    /// Navigate to write review screen
+    /// - Parameters:
+    ///   - equipment: The equipment to review
+    ///   - canUserWriteReview: Whether user is eligible to write review
+    ///   - onReviewSubmitted: Callback when review is submitted
+    func navigateToWriteReview(equipment: Equipment, canUserWriteReview: Bool, onReviewSubmitted: @escaping (ReviewData) -> Void)
+    
+    /// Navigate to all reviews screen
+    /// - Parameters:
+    ///   - equipment: The equipment whose reviews to display
+    ///   - reviews: List of reviews to display
+    func navigateToAllReviews(equipment: Equipment, reviews: [ReviewData])
 }
 
 /// Default implementation for UIKit-based navigation coordinator
@@ -97,6 +110,9 @@ class UIKitHomeNavigationCoordinator: HomeNavigationCoordinator {
     func navigateToReviewBooking(equipment: Equipment, bookingSource: BookingSource) {
         print("🚀 HomeNavigationCoordinator - Navigating to review booking: \(equipment.name)")
         
+        // Ensure navigation bar is visible before pushing
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        
         let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
         guard let viewController = storyboard.instantiateViewController(withIdentifier: "ReviewBookingTableViewController") as? ReviewBookingTableViewController else {
             print("❌ Failed to instantiate ReviewBookingTableViewController")
@@ -121,5 +137,79 @@ class UIKitHomeNavigationCoordinator: HomeNavigationCoordinator {
     func navigateToSearchResults(searchQuery: String) {
         print("🚀 HomeNavigationCoordinator - Search: \(searchQuery)")
         // Future enhancement: Navigate to dedicated search results screen
+    }
+    
+    func navigateToWriteReview(equipment: Equipment, canUserWriteReview: Bool, onReviewSubmitted: @escaping (ReviewData) -> Void) {
+        print("🚀 HomeNavigationCoordinator - Navigating to write review: \(equipment.name)")
+        
+        // Check if user can write a review before showing the review sheet
+        guard let topViewController = navigationController?.topViewController else {
+            print("❌ No top view controller found")
+            return
+        }
+        
+        if !canUserWriteReview {
+            // Show HIG-compliant alert explaining why they can't write a review
+            let alert = UIAlertController(
+                title: "Booking Required",
+                message: "Book this equipment to share your experience with the community.",
+                preferredStyle: .alert
+            )
+            
+            // OK action with proper completion to ensure UI is restored
+            let okAction = UIAlertAction(title: "OK", style: .default) { _ in
+                print("✅ User acknowledged booking requirement alert")
+                // Ensure view state is properly restored after dismissal
+                DispatchQueue.main.async {
+                    topViewController.view.setNeedsLayout()
+                    topViewController.view.layoutIfNeeded()
+                }
+            }
+            
+            alert.addAction(okAction)
+            
+            // Present with completion handler for smooth animation
+            topViewController.present(alert, animated: true) {
+                print("✅ Alert presented successfully")
+            }
+            return
+        }
+        
+        // Create the write review view controller
+        let writeReviewVC = WriteReviewViewController()
+        writeReviewVC.equipment = equipment
+        writeReviewVC.dataController = dataController
+        
+        // Set up callback for when review is submitted
+        writeReviewVC.onReviewSubmitted = onReviewSubmitted
+        
+        // Create a navigation controller to wrap the review view controller
+        let navController = UINavigationController(rootViewController: writeReviewVC)
+        navController.modalPresentationStyle = .pageSheet
+        
+        if #available(iOS 15.0, *) {
+            // For iOS 15+ use sheet presentation controller for better appearance
+            if let sheet = navController.sheetPresentationController {
+                sheet.detents = [.medium()]
+                sheet.prefersGrabberVisible = true
+            }
+        }
+        
+        // Present the modal - this is a modal presentation, not a push, so navigation bar state doesn't matter
+        topViewController.present(navController, animated: true)
+    }
+    
+    func navigateToAllReviews(equipment: Equipment, reviews: [ReviewData]) {
+        print("🚀 HomeNavigationCoordinator - Navigating to all reviews: \(equipment.name)")
+        
+        // Ensure navigation bar is visible before pushing
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        
+        // Create AllReviewsViewController programmatically
+        let allReviewsVC = AllReviewsViewController()
+        allReviewsVC.equipment = equipment
+        allReviewsVC.reviews = reviews
+        
+        navigationController?.pushViewController(allReviewsVC, animated: true)
     }
 }

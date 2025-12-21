@@ -39,6 +39,12 @@ struct ReviewsSection: View {
                 
                 // Write a Review button - Always visible
                 Button(action: {
+                    // Haptic feedback following HIG
+                    let generator = UIImpactFeedbackGenerator(style: .light)
+                    generator.prepare()
+                    generator.impactOccurred()
+                    
+                    print("✍️ Write Review button tapped in SwiftUI ReviewsSection")
                     viewModel.writeReview()
                 }) {
                     VStack(spacing: 4) {
@@ -52,19 +58,31 @@ struct ReviewsSection: View {
                     }
                     .frame(width: 90)
                 }
+                .accessibilityLabel("Write a review")
+                .accessibilityHint("Double tap to write a review for this equipment")
                 
-                // See All button
-                Button(action: {
-                    // Show all reviews
-                }) {
-                    Text("See All")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(red: 0.298, green: 0.498, blue: 0.345))
+                // See All button - Only show if there are reviews
+                if !viewModel.filteredReviews.isEmpty {
+                    Button(action: {
+                        // Haptic feedback following HIG
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.prepare()
+                        generator.impactOccurred()
+                        
+                        print("👁️ See All reviews button tapped in SwiftUI ReviewsSection")
+                        viewModel.showAllReviews()
+                    }) {
+                        Text("See All")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Color(red: 0.298, green: 0.498, blue: 0.345))
+                    }
+                    .accessibilityLabel("See all reviews")
+                    .accessibilityHint("Double tap to view all reviews for this equipment")
                 }
             }
             .padding(.horizontal, 16)
             
-            // Reviews List (Horizontal Scroll)
+            // Reviews List (Horizontal Scroll) or No Reviews Message
             if !viewModel.filteredReviews.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: 12) {
@@ -74,6 +92,27 @@ struct ReviewsSection: View {
                     }
                     .padding(.horizontal, 16)
                 }
+            } else {
+                // No reviews state
+                VStack(spacing: 12) {
+                    Image(systemName: "star.slash")
+                        .font(.system(size: 40, weight: .medium))
+                        .foregroundColor(Color(red: 0.298, green: 0.498, blue: 0.345).opacity(0.5))
+                    
+                    Text("No Reviews Yet")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.primary)
+                    
+                    Text(viewModel.userCanWriteReview ? 
+                         "Be the first to share your experience" : 
+                         "Book this equipment to write a review")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+                .padding(.horizontal, 16)
             }
         }
     }

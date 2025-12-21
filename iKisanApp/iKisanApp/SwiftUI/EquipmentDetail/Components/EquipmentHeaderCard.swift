@@ -98,9 +98,14 @@ struct EquipmentHeaderCard: View {
                 
                 Spacer()
                 
+                // Book button
                 Button(action: {
+                    // Haptic feedback following HIG
                     let generator = UIImpactFeedbackGenerator(style: .medium)
+                    generator.prepare()
                     generator.impactOccurred()
+                    
+                    print("📱 Book button tapped in SwiftUI EquipmentHeaderCard")
                     viewModel.bookEquipment()
                 }) {
                     Text("Book")
@@ -110,6 +115,8 @@ struct EquipmentHeaderCard: View {
                         .background(Color(red: 0.298, green: 0.498, blue: 0.345))
                         .clipShape(Capsule())
                 }
+                .accessibilityLabel("Book this equipment")
+                .accessibilityHint("Double tap to view booking options")
             }
         }
         .padding(16)

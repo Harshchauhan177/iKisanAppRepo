@@ -15,6 +15,7 @@
                 <outlet property="moreLabel" destination="oVf-lF-0a9" id="abc-05-005"/>
                 <outlet property="topLeftImageView" destination="QpF-yU-ahd" id="abc-06-006"/>
                 <outlet property="topRightImageView" destination="tuj-sR-SQB" id="abc-07-007"/>
+                <outlet property="viewAllContentView" destination="RkU-ph-WGu" id="le2-6e-ECi"/>
             </connections>
         </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>

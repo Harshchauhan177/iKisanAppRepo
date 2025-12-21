@@ -18,6 +18,7 @@ class PhotosSectionUiKitCell: UIView {
     //@IBOutlet weak var moreButton: UIButton!
     @IBOutlet weak var moreLabel: UILabel!
     
+    @IBOutlet weak var viewAllContentView: UIView!
     // MARK: - Properties
     var onImageTapped: ((Int) -> Void)?
     var onMoreTapped: (() -> Void)?
@@ -47,6 +48,9 @@ class PhotosSectionUiKitCell: UIView {
     // MARK: - Setup
     private func setupUI() {
         // Apply corner radius to all image views following HIG
+        
+        viewAllContentView?.layer.cornerRadius = 12
+        
         mainImageView?.layer.cornerRadius = 12
         mainImageView?.clipsToBounds = true
         mainImageView?.contentMode = .scaleAspectFill
@@ -69,9 +73,11 @@ class PhotosSectionUiKitCell: UIView {
             imageViews = [main, topLeft, topRight, bottom]
         }
         
-        // Configure more button for accessibility
-       // moreButton?.accessibilityLabel = "View all photos"
-       // moreButton?.accessibilityHint = "Double tap to view all equipment photos"
+        // Configure View All label for accessibility and interaction
+        moreLabel?.isUserInteractionEnabled = true
+        moreLabel?.accessibilityLabel = "View all photos"
+        moreLabel?.accessibilityHint = "Double tap to view all equipment photos"
+        moreLabel?.accessibilityTraits = .button
     }
     
     private func setupGestures() {
@@ -84,8 +90,12 @@ class PhotosSectionUiKitCell: UIView {
             imageView.addGestureRecognizer(tapGesture)
         }
         
-        // Configure more button action
-      //  moreButton?.addTarget(self, action: #selector(moreButtonTapped), for: .touchUpInside)
+        // Add tap gesture to View All label
+        if let label = moreLabel {
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewAllLabelTapped))
+            tapGesture.numberOfTapsRequired = 1
+            label.addGestureRecognizer(tapGesture)
+        }
     }
     
     // MARK: - Configuration
@@ -134,7 +144,7 @@ class PhotosSectionUiKitCell: UIView {
         }
         
         // Update more label to show "View All (count)"
-        moreLabel?.text = "View All (\(totalImages))"
+        moreLabel?.text = "+ \(totalImages) more"
     }
     
     private func loadImage(_ imageName: String, into imageView: UIImageView?) {
@@ -163,11 +173,12 @@ class PhotosSectionUiKitCell: UIView {
         onImageTapped?(index)
     }
     
-//    @objc private func moreButtonTapped() {
-//        // Provide haptic feedback
-//        let generator = UIImpactFeedbackGenerator(style: .light)
-//        generator.impactOccurred()
-//        
-//        onMoreTapped?()
-//    }
+    @objc private func viewAllLabelTapped() {
+        // Provide haptic feedback following HIG
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        
+        // Trigger the callback to show image gallery
+        onMoreTapped?()
+    }
 }

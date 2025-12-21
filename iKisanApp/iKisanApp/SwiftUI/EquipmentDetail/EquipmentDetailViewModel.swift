@@ -138,15 +138,23 @@ class EquipmentDetailViewModel: ObservableObject {
             return
         }
         
-        // Check if user has completed bookings for this equipment
-        let allBookings = dataController.getUpcomingBookings()
-        let completedBookings = allBookings.filter { booking in
-            booking.equipmentID == equipment.equipmentID &&
-            booking.status == .completed &&
-            booking.bookingDate < Date()
+        // Get current user to check their bookings
+        guard let currentUser = dataController.getCurrentUser() else {
+            userCanWriteReview = false
+            print("📝 Review eligibility: No current user found")
+            return
         }
         
-        userCanWriteReview = !completedBookings.isEmpty
+        // Check if user has ANY bookings for this equipment (matching UIKit implementation)
+        let userBookings = dataController.getUserBookings(userID: currentUser.userID, equipmentID: equipment.equipmentID)
+        
+        userCanWriteReview = !userBookings.isEmpty
+        
+        print("📝 Review eligibility check:")
+        print("   Equipment: \(equipment.name)")
+        print("   Current User ID: \(currentUser.userID)")
+        print("   User bookings for this equipment: \(userBookings.count)")
+        print("   Can write review: \(userCanWriteReview)")
     }
     
     // MARK: - Actions
@@ -154,22 +162,205 @@ class EquipmentDetailViewModel: ObservableObject {
     func bookEquipment() {
         // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.prepare()
         generator.impactOccurred()
         
-        print("📱 Booking equipment: \(equipment.name)")
-        navigationCoordinator?.navigateToReviewBooking(
+        print("� EquipmentDetailViewModel - bookEquipment() called")
+        print("   Equipment: \(equipment.name)")
+        print("   Booking Source: \(bookingSource)")
+        print("   Navigation Coordinator exists: \(navigationCoordinator != nil)")
+        print("   Navigation Controller exists: \(navigationController != nil)")
+        
+        // Check if coming from co-equip view-only flow and prevent booking
+        if bookingSource == .coEquipViewOnly {
+            print("⚠️ Blocked: View-only mode from Co-Equip request")
+            showAlert(
+                title: "View Only Mode",
+                message: "This equipment is being viewed from a Co-Equip request card. This is for viewing purposes only and booking is not available from this screen."
+            )
+            return
+        }
+        
+        // Check if coming from co-equip search flow and prevent booking
+        if bookingSource == .coEquip {
+            print("⚠️ Blocked: View-only mode from Co-Equip section")
+            showAlert(
+                title: "View Only Mode",
+                message: "This equipment is being viewed from the Co-Equip section. To book this equipment, please navigate to it from the Home tab."
+            )
+            return
+        }
+        
+        // Check the booking source to determine the flow
+        if bookingSource == .prebooking {
+            print("➡️ Navigating directly to ReviewBooking (Prebooking flow)")
+            // If coming from Prebooking tab, go directly to ReviewBooking with prebooking flow
+            navigateToReviewBooking()
+        } else {
+            print("➡️ Showing booking options alert")
+            // For other sources (like Home tab), show the booking options
+            showBookingOptions()
+        }
+    }
+    
+    private func showBookingOptions() {
+        guard let topViewController = navigationController?.topViewController else {
+            print("❌ showBookingOptions: No top view controller found")
+            print("   Navigation Controller: \(navigationController != nil ? "exists" : "nil")")
+            return
+        }
+        
+        print("✅ Showing booking options alert")
+        
+        let alertController = UIAlertController(
+            title: "Choose Your Booking Type",
+            message: "Book individually or join with nearby farmers for reduced costs.",
+            preferredStyle: .alert
+        )
+        
+        let individualAction = UIAlertAction(title: "Book as Individual", style: .default) { [weak self] _ in
+            print("📝 User selected: Book as Individual")
+            self?.navigateToReviewBooking()
+        }
+        
+        let coEquipAction = UIAlertAction(title: "Book with Co-Equip", style: .default) { [weak self] _ in
+            print("🤝 User selected: Book with Co-Equip")
+            self?.navigateToCoEquipBooking()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { _ in
+            print("❌ User cancelled booking")
+        }
+        
+        // Set action colors to iKisan green following HIG
+        let ikisanGreen = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1)
+        individualAction.setValue(ikisanGreen, forKey: "titleTextColor")
+        coEquipAction.setValue(ikisanGreen, forKey: "titleTextColor")
+        cancelAction.setValue(ikisanGreen, forKey: "titleTextColor")
+        
+        alertController.addAction(individualAction)
+        alertController.addAction(coEquipAction)
+        alertController.addAction(cancelAction)
+        
+        topViewController.present(alertController, animated: true) {
+            print("✅ Booking options alert presented successfully")
+        }
+    }
+    
+    private func navigateToReviewBooking() {
+        print("🔄 Navigating to Review Booking via coordinator")
+        print("   Equipment: \(equipment.name)")
+        print("   Booking Source: \(bookingSource)")
+        
+        guard let coordinator = navigationCoordinator else {
+            print("❌ Navigation coordinator is nil!")
+            return
+        }
+        
+        print("✅ Calling navigationCoordinator.navigateToReviewBooking()")
+        coordinator.navigateToReviewBooking(
             equipment: equipment,
             bookingSource: bookingSource
         )
     }
     
+    private func navigateToCoEquipBooking() {
+        print("🔄 Navigating to Co-Equip Booking")
+        print("   Equipment: \(equipment.name)")
+        
+        guard let navigationController = navigationController,
+              let topViewController = navigationController.topViewController else {
+            print("❌ No navigation controller or top view controller found")
+            return
+        }
+        
+        let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
+        if let viewController = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
+            // Pass the equipment data
+            viewController.cardData = equipment
+            // Set the data controller if needed
+            if let dataController = dataController {
+                viewController.dataController = dataController
+            }
+            print("✅ Pushing InfoTableViewController to navigation stack")
+            navigationController.pushViewController(viewController, animated: true)
+        } else {
+            print("❌ Failed to instantiate InfoTableViewController")
+        }
+    }
+    
+    private func showAlert(title: String, message: String) {
+        guard let topViewController = navigationController?.topViewController else {
+            print("❌ No top view controller found")
+            return
+        }
+        
+        let alert = UIAlertController(
+            title: title,
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        topViewController.present(alert, animated: true)
+    }
+    
+    private var navigationController: UINavigationController? {
+        // Helper to get navigation controller from the coordinator
+        return (navigationCoordinator as? UIKitHomeNavigationCoordinator)?.navigationController
+    }
+    
     func writeReview() {
-        // Haptic feedback
+        // Haptic feedback following HIG
         let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
         generator.impactOccurred()
         
-        print("✍️ Writing review for: \(equipment.name)")
-        // Navigate to review writing screen
+        print("✍️ EquipmentDetailViewModel - writeReview() called")
+        print("   Equipment: \(equipment.name)")
+        print("   User can write review: \(userCanWriteReview)")
+        print("   Navigation Coordinator exists: \(navigationCoordinator != nil)")
+        
+        // Use a slight delay to ensure smooth UI transition
+        // This prevents any visual glitches when presenting alerts/modals
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self = self else { return }
+            
+            // Navigate to review writing screen with callback
+            self.navigationCoordinator?.navigateToWriteReview(
+                equipment: self.equipment,
+                canUserWriteReview: self.userCanWriteReview
+            ) { [weak self] newReview in
+                guard let self = self else { return }
+                print("📝 New review received from WriteReviewViewController")
+                // Add new review to the list
+                self.reviews.append(newReview)
+                self.filteredReviews.append(newReview)
+                // Reload reviews to update UI
+                self.loadReviews()
+            }
+        }
+    }
+    
+    func showAllReviews() {
+        // Haptic feedback following HIG
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
+        generator.impactOccurred()
+        
+        print("📋 EquipmentDetailViewModel - showAllReviews() called")
+        print("   Equipment: \(equipment.name)")
+        print("   Total reviews: \(filteredReviews.count)")
+        print("   Navigation Coordinator exists: \(navigationCoordinator != nil)")
+        
+        guard !filteredReviews.isEmpty else {
+            print("⚠️ No reviews to show")
+            return
+        }
+        
+        navigationCoordinator?.navigateToAllReviews(
+            equipment: equipment,
+            reviews: filteredReviews
+        )
     }
     
     func showAllPhotos() {
