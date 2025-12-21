@@ -468,9 +468,12 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         // Set delegate to receive selected location
         locationPicker.delegate = self
         
+        // Wrap in navigation controller for proper presentation with buttons
+        let navController = UINavigationController(rootViewController: locationPicker)
+        navController.modalPresentationStyle = .fullScreen
+        
         // Present the location picker modally
-        locationPicker.modalPresentationStyle = .fullScreen
-        present(locationPicker, animated: true)
+        present(navController, animated: true)
     }
     
     

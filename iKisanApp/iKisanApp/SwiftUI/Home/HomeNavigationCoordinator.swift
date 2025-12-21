@@ -107,23 +107,25 @@ class UIKitHomeNavigationCoordinator: HomeNavigationCoordinator {
         navigationController?.pushViewController(viewController, animated: true)
     }
     
+    @MainActor
     func navigateToReviewBooking(equipment: Equipment, bookingSource: BookingSource) {
         print("🚀 HomeNavigationCoordinator - Navigating to review booking: \(equipment.name)")
         
         // Ensure navigation bar is visible before pushing
         navigationController?.setNavigationBarHidden(false, animated: false)
         
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        guard let viewController = storyboard.instantiateViewController(withIdentifier: "ReviewBookingTableViewController") as? ReviewBookingTableViewController else {
-            print("❌ Failed to instantiate ReviewBookingTableViewController")
-            return
-        }
+        // Use the new SwiftUI ReviewBookingView
+        let viewModel = ReviewBookingViewModel(
+            equipment: equipment,
+            bookingSource: bookingSource,
+            dataController: dataController,
+            navigationCoordinator: self
+        )
         
-        // Pass the equipment data
-        viewController.equipment = equipment
-        viewController.bookingSource = bookingSource
+        let reviewBookingView = ReviewBookingView(viewModel: viewModel)
+        let hostingController = UIHostingController(rootView: reviewBookingView)
         
-        navigationController?.pushViewController(viewController, animated: true)
+        navigationController?.pushViewController(hostingController, animated: true)
     }
     
     func navigateToProfile() {

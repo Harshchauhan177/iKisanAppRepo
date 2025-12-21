@@ -1268,7 +1268,17 @@ struct UnifiedLocationPickerView: UIViewControllerRepresentable {
         
         locationPicker.addressDelegate = context.coordinator
         
+        // Add Cancel button on the left per HIG
+        let cancelButton = UIBarButtonItem(
+            barButtonSystemItem: .cancel,
+            target: context.coordinator,
+            action: #selector(Coordinator.cancelTapped)
+        )
+        locationPicker.navigationItem.leftBarButtonItem = cancelButton
+        
         let navController = UINavigationController(rootViewController: locationPicker)
+        navController.modalPresentationStyle = .formSheet
+        
         return navController
     }
     
@@ -1291,6 +1301,10 @@ struct UnifiedLocationPickerView: UIViewControllerRepresentable {
         
         func didSelectLocation(latitude: Double, longitude: Double, address: String?) {
             onLocationSelected(latitude, longitude, address)
+        }
+        
+        @objc func cancelTapped() {
+            onDismiss()
         }
     }
 }

@@ -52,12 +52,22 @@ class BookingLocationPickerViewController: UIViewController {
             title = "Select Address Location"
         }
         
-        // Add a Done button
+        // Add a Done button on the right
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .done,
             target: self,
             action: #selector(doneButtonTapped)
         )
+        
+        // Add Cancel button on the left if presented modally (no navigation controller yet)
+        // This will be overridden by SwiftUI wrappers if they set their own
+        if navigationController == nil || presentingViewController != nil {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(
+                barButtonSystemItem: .cancel,
+                target: self,
+                action: #selector(cancelButtonTapped)
+            )
+        }
         
         // Create a SwiftUI view for the location picker
         let locationPickerView = BookingLocationPickerView(
@@ -85,8 +95,34 @@ class BookingLocationPickerViewController: UIViewController {
         ])
     }
     
+    @objc private func cancelButtonTapped() {
+        print("Cancel button tapped - dismissing without saving")
+        
+        // Dismiss appropriately based on presentation context
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Check if we're in a modal presentation
+            if self.presentingViewController != nil {
+                // We're presented modally, dismiss the entire navigation controller
+                if let navController = self.navigationController {
+                    navController.dismiss(animated: true, completion: nil)
+                } else {
+                    // Fallback: dismiss self
+                    self.dismiss(animated: true, completion: nil)
+                }
+            } else if let navController = self.navigationController {
+                // We're in a navigation stack, pop
+                navController.popViewController(animated: true)
+            } else {
+                // Last resort
+                self.dismiss(animated: true, completion: nil)
+            }
+        }
+    }
+    
     @objc private func doneButtonTapped() {
-        print("Done button tapped - attempting to pop from navigation controller")
+        print("Done button tapped - attempting to dismiss or pop")
         
         // Get the selected location from the location manager
         let locationManager = LocationManager.shared
@@ -114,15 +150,26 @@ class BookingLocationPickerViewController: UIViewController {
             print("Error: No location selected when Done was tapped")
         }
         
-        // Since this view controller is pushed onto the navigation stack (not presented modally),
-        // we need to use popViewController instead of dismiss
+        // Dismiss appropriately based on presentation context
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            if let navController = self.navigationController {
+            
+            // Check if we're in a modal presentation (SwiftUI sheet)
+            if self.presentingViewController != nil {
+                // We're presented modally, dismiss the entire navigation controller
+                if let navController = self.navigationController {
+                    navController.dismiss(animated: true, completion: nil)
+                } else {
+                    // Fallback: dismiss self
+                    self.dismiss(animated: true, completion: nil)
+                }
+            } else if let navController = self.navigationController {
+                // We're in a navigation stack, pop
                 print("Popping view controller from navigation stack")
                 navController.popViewController(animated: true)
             } else {
-                print("No navigation controller found, trying dismiss as fallback")
+                // Last resort
+                print("No navigation controller or presenting VC found, trying dismiss as fallback")
                 self.dismiss(animated: true, completion: nil)
             }
         }
