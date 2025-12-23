@@ -29,7 +29,7 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
     @Published var showError: Bool = false
     @Published var payableAmount: Double = 0
     
-    // Razorpay instance
+    // Razorpay instance - strong reference to prevent deallocation during payment
     private var razorpay: RazorpayCheckout?
     private var pendingBooking: Booking?
     
@@ -39,6 +39,10 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
     let bookingSource: BookingSource
     weak var dataController: DataController?
     weak var navigationCoordinator: HomeNavigationCoordinator?
+    
+    // Strong references to prevent deallocation during async operations
+    private var retainedDataController: DataController?
+    private var isPaymentInProgress: Bool = false
     
     // MARK: - Computed Properties
     
@@ -113,8 +117,9 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         self.bookingSource = bookingSource
         self.dataController = dataController
         self.navigationCoordinator = navigationCoordinator
+        self.retainedDataController = dataController
         
-        // Initialize Razorpay
+        // Initialize Razorpay - must be done after all properties are set
         self.razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
         
         // Load existing booking data if modifying
@@ -233,7 +238,14 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
             return
         }
         
+        // Prevent multiple simultaneous payment attempts
+        guard !isPaymentInProgress else {
+            print("⚠️ Payment already in progress")
+            return
+        }
+        
         isProcessing = true
+        isPaymentInProgress = true
         
         // Calculate payable amount (using price per hour as base)
         payableAmount = equipment.pricePerHour * areaInAcres
@@ -275,6 +287,15 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         // Store booking temporarily
         pendingBooking = newBooking
         
+        // Ensure Razorpay is initialized
+        guard let razorpayInstance = razorpay else {
+            errorMessage = "Payment system is not initialized. Please try again."
+            showError = true
+            isProcessing = false
+            isPaymentInProgress = false
+            return
+        }
+        
         // Prepare Razorpay options
         let options: [String: Any] = [
             "amount": String(Int(payableAmount * 100)), // Amount in paise
@@ -283,7 +304,8 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
             "image": equipment.equipmentImage,
             "name": "iKisan",
             "prefill": [
-                "email": AuthManager.shared.currentUser?.email ?? ""
+                "email": AuthManager.shared.currentUser?.email ?? "",
+                "contact": AuthManager.shared.currentUser?.phone ?? ""
             ],
             "theme": [
                 "color": "#4C7F5F" // iKisan green
@@ -295,38 +317,59 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         ]
         
         // Open Razorpay payment
-        razorpay?.open(options)
+        razorpayInstance.open(options)
         
         // Reset processing after a short delay (Razorpay takes control)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.isProcessing = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.isProcessing = false
         }
     }
     
     // MARK: - Razorpay Payment Completion Protocol
     
     nonisolated func onPaymentError(_ code: Int32, description str: String) {
-        Task { @MainActor in
-            isProcessing = false
-            errorMessage = "Payment failed: \(str)"
-            showError = true
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
             
-            // Log error
+            self.isProcessing = false
+            self.isPaymentInProgress = false
+            
+            // Provide user-friendly error messages based on error code
+            let userFriendlyMessage: String
+            switch code {
+            case 0:
+                userFriendlyMessage = "Payment was cancelled. Please try again when ready."
+            case 2:
+                userFriendlyMessage = "Network error. Please check your connection and try again."
+            default:
+                userFriendlyMessage = "Payment failed. Please try again."
+            }
+            
+            self.errorMessage = userFriendlyMessage
+            self.showError = true
+            
+            // Log detailed error for debugging
             print("❌ Payment Error: \(str) (Code: \(code))")
         }
     }
     
     nonisolated func onPaymentSuccess(_ payment_id: String) {
-        Task { @MainActor in
-            guard let booking = pendingBooking else {
+        Task { @MainActor [weak self] in
+            guard let self = self else {
+                print("❌ ViewModel deallocated during payment")
+                return
+            }
+            
+            guard let booking = self.pendingBooking else {
                 print("❌ No pending booking found")
+                self.isPaymentInProgress = false
                 return
             }
             
             print("✅ Payment Success: \(payment_id)")
             
-            // Add booking to data controller
-            if let dataController = dataController {
+            // Add booking to data controller (use retained reference)
+            if let dataController = self.retainedDataController ?? self.dataController {
                 _ = dataController.addBooking(booking)
             }
             
@@ -363,15 +406,22 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
                 )
             }
             
+            // Reset payment flag
+            self.isPaymentInProgress = false
+            
             // Navigate back to appropriate screen
-            navigateAfterPaymentSuccess()
+            self.navigateAfterPaymentSuccess()
         }
     }
     
     private func navigateAfterPaymentSuccess() {
         // Get the navigation controller and navigate back
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController else {
+              let window = windowScene.windows.first,
+              let tabBarController = window.rootViewController as? UITabBarController else {
+            print("⚠️ Unable to access tab bar controller for navigation")
+            // Still show success alert even if navigation fails
+            showSuccessAlert()
             return
         }
         
@@ -404,28 +454,57 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
             navController.popToRootViewController(animated: true)
         }
         
-        // Show success message
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.showSuccessAlert()
+        // Show success message after navigation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.showSuccessAlert()
         }
     }
     
     private func showSuccessAlert() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let topController = windowScene.windows.first?.rootViewController else {
+              let window = windowScene.windows.first,
+              let topController = window.rootViewController else {
+            print("⚠️ Unable to present success alert - no root view controller")
             return
         }
         
+        // Find the topmost presented view controller
+        var presentedController = topController
+        while let presented = presentedController.presentedViewController {
+            presentedController = presented
+        }
+        
+        // HIG: Use positive confirmation with clear messaging
         let alert = UIAlertController(
             title: "Booking Confirmed",
-            message: "Your booking has been confirmed successfully!",
+            message: "Your equipment booking has been confirmed successfully!",
             preferredStyle: .alert
         )
         
-        let okAction = UIAlertAction(title: "OK", style: .default)
-        okAction.setValue(UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
+        let okAction = UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            // Clean up retained references after confirmation
+            self?.retainedDataController = nil
+        }
+        
+        // HIG: Use system colors for consistency
+        if #available(iOS 13.0, *) {
+            okAction.setValue(UIColor.systemGreen, forKey: "titleTextColor")
+        } else {
+            okAction.setValue(UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1), forKey: "titleTextColor")
+        }
+        
         alert.addAction(okAction)
         
-        topController.present(alert, animated: true)
+        presentedController.present(alert, animated: true)
+    }
+    
+    // MARK: - Cleanup
+    
+    deinit {
+        // Clean up to prevent memory leaks
+        razorpay = nil
+        retainedDataController = nil
+        pendingBooking = nil
+        print("✅ ReviewBookingViewModel deallocated")
     }
 }
