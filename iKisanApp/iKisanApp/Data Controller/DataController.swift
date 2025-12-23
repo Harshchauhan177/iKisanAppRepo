@@ -1530,6 +1530,7 @@ class RequestManager {
             
             // Manually parse the data
             var bookings: [Booking] = []
+            var bookingTypeCount: [String: Int] = [:]
             
             for item in bookingsData {
                 if let bookingIDString = item["bookingID"] as? String,
@@ -1555,6 +1556,21 @@ class RequestManager {
                        let userID = UUID(uuidString: userIDString),
                        let equipmentID = UUID(uuidString: equipmentIDString) {
                         
+                        // Map source string to BookingSource enum
+                        let bookingSource: BookingSource
+                        switch sourceString.lowercased() {
+                        case "home":
+                            bookingSource = .home
+                        case "prebooking":
+                            bookingSource = .prebooking
+                        case "coequip":
+                            bookingSource = .coEquip
+                        case "coequipviewonly":
+                            bookingSource = .coEquipViewOnly
+                        default:
+                            bookingSource = .home // Default fallback
+                        }
+                        
                         let booking = Booking(
                             bookingID: bookingID,
                             userID: userID,
@@ -1564,8 +1580,11 @@ class RequestManager {
                             fieldArea: fieldArea,
                             status: BookingStatus(rawValue: statusString) ?? .pending,
                             timeSlot: TimeSlot(rawValue: timeSlotString) ?? .morning,
-                            source: sourceString == "home" ? .home : .prebooking
+                            source: bookingSource
                         )
+                        
+                        // Track booking types
+                        bookingTypeCount[bookingTypeString, default: 0] += 1
                         
                         bookings.append(booking)
                     }
@@ -1573,6 +1592,10 @@ class RequestManager {
             }
             
             print("Successfully parsed \(bookings.count) bookings")
+            print("📊 Booking Types Breakdown:")
+            for (type, count) in bookingTypeCount.sorted(by: { $0.key < $1.key }) {
+                print("  - \(type): \(count)")
+            }
             return bookings
         } catch {
             print("Error fetching bookings: \(error)")
@@ -1743,6 +1766,19 @@ class RequestManager {
                 print("No location data to include in booking")
             }
             
+            // Map BookingSource to database string value
+            let sourceString: String
+            switch booking.source {
+            case .home:
+                sourceString = "home"
+            case .prebooking:
+                sourceString = "prebooking"
+            case .coEquip:
+                sourceString = "coequip"
+            case .coEquipViewOnly:
+                sourceString = "coequipviewonly"
+            }
+            
             // Convert all UUIDs to lowercase strings
             let dto = BookingDTO(
                 id: booking.bookingID.uuidString.lowercased(),
@@ -1753,7 +1789,7 @@ class RequestManager {
                 fieldArea: booking.fieldArea,
                 status: booking.status.rawValue,
                 timeSlot: booking.timeSlot.rawValue,
-                source: booking.source == .home ? "home" : "prebooking",
+                source: sourceString,
                 latitude: latitude,
                 longitude: longitude,
                 address: address

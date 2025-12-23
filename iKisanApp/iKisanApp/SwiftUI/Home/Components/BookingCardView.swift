@@ -45,38 +45,58 @@ struct BookingCardView: View {
                     Color.gray.opacity(0.1)
                 }
             }
-            .frame(width: 90, height: 90)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .frame(width: 80, height: 80)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             
             // Booking Details
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 // Equipment Name
                 Text(equipment.name)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.primary)
                     .lineLimit(1)
                 
                 // Date and Time
                 HStack(spacing: 4) {
                     Image(systemName: "calendar")
-                        .font(.system(size: 12))
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.secondary)
                     
                     Text(formatBookingDate(booking.bookingDate, timeSlot: booking.timeSlot))
-                        .font(.system(size: 14))
+                        .font(.system(size: 13))
                         .foregroundColor(.secondary)
                 }
                 
-                // Status Badge
-                HStack(spacing: 8) {
-                    Text(booking.status.rawValue)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(statusColor(for: booking.status))
-                        .padding(.horizontal, 10)
+                Spacer(minLength: 2)
+                
+                // Status and Booking Type Badges (Stacked vertically for better readability)
+                HStack(spacing: 6) {
+                    // Status Badge
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(statusColor(for: booking.status))
+                            .frame(width: 6, height: 6)
+                        
+                        Text(booking.status.rawValue)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(statusColor(for: booking.status))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(statusColor(for: booking.status).opacity(0.12))
+                    )
+                    
+                    // Booking Type Badge
+                    Text(bookingTypeLabel(for: booking.bookingType))
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
                             Capsule()
-                                .fill(statusColor(for: booking.status).opacity(0.15))
+                                .fill(Color.secondary.opacity(0.1))
                         )
                     
                     Spacer()
@@ -87,16 +107,16 @@ struct BookingCardView: View {
             
             // Chevron indicator
             Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.secondary)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.secondary.opacity(0.5))
         }
-        .padding(16)
+        .padding(14)
         .background(Color(UIColor.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 2)
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.gray.opacity(0.1), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(Color.gray.opacity(0.08), lineWidth: 0.5)
         )
         .onTapGesture {
             onViewTapped()
@@ -106,11 +126,33 @@ struct BookingCardView: View {
     private func statusColor(for status: BookingStatus) -> Color {
         switch status {
         case .confirmed:
-            return Color(red: 0.298, green: 0.498, blue: 0.345)
+            return Color(red: 0.298, green: 0.498, blue: 0.345) // Green
         case .pending:
             return .orange
         case .completed:
-            return .blue
+            return Color(red: 0.0, green: 0.478, blue: 1.0) // Blue
+        }
+    }
+    
+    private func bookingTypeLabel(for bookingType: BookingType) -> String {
+        switch bookingType {
+        case .onDemand:
+            return "On-Demand"
+        case .prebooking:
+            return "Pre-Booking"
+        case .coEquip:
+            return "Co-Equip"
+        }
+    }
+    
+    private func bookingTypeColor(for bookingType: BookingType) -> Color {
+        switch bookingType {
+        case .onDemand:
+            return .purple
+        case .prebooking:
+            return Color(red: 0.0, green: 0.478, blue: 1.0) // iOS system blue
+        case .coEquip:
+            return Color(red: 0.298, green: 0.498, blue: 0.345) // iKisan green
         }
     }
     

@@ -319,11 +319,56 @@ class AcceptRequestTableViewController: UITableViewController {
                     // Update local data
                     dataController.updateRequest(updatedRequest)
                     
+                    // Create a CoEquip booking for this participant
+                    print("🔧 Creating CoEquip booking for participant: \(currentUser.userID)")
+                    
+                    // Determine the TimeSlot enum from the string timeSlot
+                    let bookingTimeSlot: TimeSlot
+                    if let startTimeString = timeSlot.split(separator: "-").first?.trimmingCharacters(in: .whitespaces),
+                       let startHour = Int(startTimeString.split(separator: ":").first ?? "") {
+                        // Morning: 6:00 - 11:59
+                        // Afternoon: 12:00 - 16:59
+                        // Evening: 17:00 - 21:00
+                        if startHour < 12 {
+                            bookingTimeSlot = .morning
+                        } else if startHour < 17 {
+                            bookingTimeSlot = .afternoon
+                        } else {
+                            bookingTimeSlot = .evening
+                        }
+                    } else {
+                        bookingTimeSlot = .morning // Default to morning if parsing fails
+                    }
+                    
+                    let participantBooking = Booking(
+                        bookingID: UUID(),
+                        userID: currentUser.userID,
+                        equipmentID: request.equipmentId,
+                        bookingType: .coEquip,
+                        bookingDate: request.requestedDate,
+                        fieldArea: Double(area) ?? 0.0,
+                        status: .pending, // Participant's booking is pending until creator confirms
+                        timeSlot: bookingTimeSlot,
+                        source: .coEquip,
+                        bookingLocation: Location(
+                            latitude: 0.0,
+                            longitude: 0.0,
+                            address: request.location
+                        )
+                    )
+                    
+                    let bookingSuccess = dataController.addBooking(participantBooking)
+                    if bookingSuccess {
+                        print("✅ CoEquip booking created successfully for participant")
+                    } else {
+                        print("❌ Failed to create CoEquip booking for participant")
+                    }
+                    
                     await MainActor.run {
                         // Show success alert before navigating back
                         let alert = UIAlertController(
                             title: "Success",
-                            message: "Request accepted successfully!",
+                            message: "Request accepted successfully! Your booking has been created.",
                             preferredStyle: .alert
                         )
                         alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in

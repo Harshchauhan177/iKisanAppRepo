@@ -7,6 +7,7 @@
 
 import UIKit
 import CoreLocation
+import SwiftUI
 
 class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UpcomingBookingsCollectionViewCellDelegate, ExploreMoreCollectionViewCellDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource, UISearchResultsUpdating, CLLocationManagerDelegate {
    
@@ -944,18 +945,19 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
     
     @objc func sectionButtonTapped(_ sender: UIButton) {
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        if let viewController = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingsListViewController") as? UpcomingBookingsListViewController {
-            // Pass the data controller and data
-            viewController.dataController = self.dataController
-            
-            // Instead of passing local copies, let the ViewController fetch fresh data
-            // Print debug info
-            print("HomeViewController - Passing dataController to UpcomingBookingsListViewController")
-            print("HomeViewController - Current upcomingBookings count: \(upcomingBookings.count)")
-            
-            navigationController?.pushViewController(viewController, animated: true)
-        }
+        // Use the new SwiftUI UpcomingBookingsListView
+        let viewModel = UpcomingBookingsListViewModel(
+            dataController: self.dataController,
+            navigationCoordinator: nil
+        )
+        
+        let upcomingBookingsView = UpcomingBookingsListView(viewModel: viewModel)
+        let hostingController = UIHostingController(rootView: upcomingBookingsView)
+        
+        print("HomeViewController - Navigating to SwiftUI UpcomingBookingsListView")
+        print("HomeViewController - Current upcomingBookings count: \(upcomingBookings.count)")
+        
+        navigationController?.pushViewController(hostingController, animated: true)
     }
     override func unwind(for unwindSegue: UIStoryboardSegue, towards subsequentVC: UIViewController) {
         

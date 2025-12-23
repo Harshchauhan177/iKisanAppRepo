@@ -343,11 +343,57 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
 extension CoequipViewController: MyRequestTableViewCellDelegate {
     func didTapConfirmButton(cell: MyRequestTableViewCell) {
         guard let indexPath = CoequipTableView.indexPath(for: cell),
-              let dataController = dataController else { return }
+              let dataController = dataController,
+              let currentUser = dataController.getCurrentUser() else { return }
         
         var request = dataController.getAllCoEquipRequests()[indexPath.row]
         request.status = .confirmed
         dataController.updateRequest(request)
+        
+        // Create a CoEquip booking when request is confirmed
+        let coEquipBooking = Booking(
+            bookingID: UUID(),
+            userID: currentUser.userID,
+            equipmentID: request.equipmentId,
+            bookingType: .coEquip,
+            bookingDate: request.requestedDate,
+            fieldArea: request.area,
+            status: .confirmed,
+            timeSlot: request.timeSlot,
+            source: .coEquip,
+            bookingLocation: Location(
+                latitude: 0.0,  // You can get from request.location if needed
+                longitude: 0.0,
+                address: request.location
+            )
+        )
+        
+        // Add the booking to data controller
+        let success = dataController.addBooking(coEquipBooking)
+        
+        if success {
+            print("✅ CoEquip booking created successfully for request: \(request.id)")
+            
+            // Show success alert
+            let alert = UIAlertController(
+                title: "Success",
+                message: "Your Co-Equip booking has been confirmed!",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        } else {
+            print("❌ Failed to create CoEquip booking")
+            
+            // Show error alert
+            let alert = UIAlertController(
+                title: "Error",
+                message: "Failed to create booking. The equipment may already be booked for this time slot.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        }
         
         CoequipTableView.reloadRows(at: [indexPath], with: .automatic)
     }

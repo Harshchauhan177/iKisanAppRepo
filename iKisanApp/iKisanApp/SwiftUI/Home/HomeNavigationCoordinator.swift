@@ -92,19 +92,20 @@ class UIKitHomeNavigationCoordinator: HomeNavigationCoordinator {
         navigationController?.pushViewController(viewController, animated: true)
     }
     
+    @MainActor
     func navigateToAllUpcomingBookings() {
         print("🚀 HomeNavigationCoordinator - Navigating to all upcoming bookings")
         
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        guard let viewController = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingsListViewController") as? UpcomingBookingsListViewController else {
-            print("❌ Failed to instantiate UpcomingBookingsListViewController")
-            return
-        }
+        // Use the new SwiftUI UpcomingBookingsListView
+        let viewModel = UpcomingBookingsListViewModel(
+            dataController: dataController,
+            navigationCoordinator: self
+        )
         
-        // Pass the data controller
-        viewController.dataController = dataController
+        let upcomingBookingsView = UpcomingBookingsListView(viewModel: viewModel)
+        let hostingController = UIHostingController(rootView: upcomingBookingsView)
         
-        navigationController?.pushViewController(viewController, animated: true)
+        navigationController?.pushViewController(hostingController, animated: true)
     }
     
     @MainActor
