@@ -106,7 +106,7 @@ struct EquipmentCategorySection: View {
                 }) {
                     Text("See All")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Color(red: 0/255, green: 122/255, blue: 255/255))
+                        .foregroundColor(Color(red: 0/255, green: 102/255, blue: 51/255))
                 }
             }
             .frame(minHeight: 44)
