@@ -18,7 +18,8 @@ struct EquipmentsForCropsView: View {
     
     var body: some View {
         ZStack {
-            Color(.systemBackground)
+            // Background: #F8F8F8
+            Color(red: 248/255, green: 248/255, blue: 248/255)
                 .ignoresSafeArea()
             
             if viewModel.isLoading {
@@ -27,9 +28,9 @@ struct EquipmentsForCropsView: View {
                 emptyStateView
             } else {
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 24) {
+                    LazyVStack(alignment: .leading, spacing: 0) {
                         ForEach(viewModel.equipmentCategories) { category in
-                            EquipmentCategoryCard(
+                            EquipmentCategorySection(
                                 category: category,
                                 onSeeAll: {
                                     viewModel.selectedCategory = category
@@ -40,8 +41,7 @@ struct EquipmentsForCropsView: View {
                             )
                         }
                     }
-                    .padding(.top, 20)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 80) // Bottom spacing as per spec
                 }
             }
         }
@@ -80,94 +80,115 @@ struct EquipmentsForCropsView: View {
     }
 }
 
-// MARK: - Equipment Category Card
-struct EquipmentCategoryCard: View {
+// MARK: - Equipment Category Section
+struct EquipmentCategorySection: View {
     let category: EquipmentCategory
     let onSeeAll: () -> Void
     let onEquipmentTap: (EquipmentAgri) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
+            // Section Header - minimum height 44px
             HStack(alignment: .center) {
+                // Title: Inter Semi Bold 20px, color #1C1C1E
                 Text(category.title)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(red: 28/255, green: 28/255, blue: 30/255))
                 
                 Spacer()
                 
-                Button(action: onSeeAll) {
+                // "See All" button: Inter Semi Bold 15px, color #007AFF
+                Button(action: {
+                    // Haptic feedback
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                    impactFeedback.impactOccurred()
+                    onSeeAll()
+                }) {
                     Text("See All")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(Color(red: 0.2, green: 0.47, blue: 0.8))
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Color(red: 0/255, green: 122/255, blue: 255/255))
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
+            .frame(minHeight: 44)
+            .padding(.horizontal, 16) // 16px horizontal padding
+            .padding(.vertical, 12) // 12px vertical padding
             
-            // Horizontal ScrollView of equipment
+            // Bottom border: 0.5px solid #E5E5EA
+            Rectangle()
+                .fill(Color(red: 229/255, green: 229/255, blue: 234/255))
+                .frame(height: 0.5)
+            
+            // Horizontal ScrollView - minimum height 180px
             if category.equipmentList.isEmpty {
                 Text("No equipment in this category")
-                    .font(.subheadline)
+                    .font(.system(size: 15))
                     .foregroundColor(.secondary)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 16)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 20)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: 16) {
+                    HStack(spacing: 12) { // 12px spacing between cards
                         ForEach(category.equipmentList) { equipment in
-                            EquipmentCardView(equipment: equipment)
-                                .onTapGesture {
-                                    onEquipmentTap(equipment)
-                                }
+                            EquipmentCard(equipment: equipment)
+                                .simultaneousGesture(
+                                    TapGesture()
+                                        .onEnded {
+                                            onEquipmentTap(equipment)
+                                        }
+                                )
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 12) // 12px horizontal padding
+                    .padding(.vertical, 12)
                 }
+                .frame(minHeight: 180)
             }
         }
     }
 }
 
-// MARK: - Equipment Card View
-struct EquipmentCardView: View {
+// MARK: - Equipment Card
+struct EquipmentCard: View {
     let equipment: EquipmentAgri
     @State private var image: UIImage?
     
     var body: some View {
-        VStack(spacing: 12) {
-            // Equipment Image with rounded corners and white background
-            Group {
+        VStack(spacing: 0) {
+            // Image container (top): 140px × 100px with 8px padding
+            ZStack {
                 if let image = image {
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
+                        .frame(width: 124, height: 84) // 140-16 for 8px padding on each side
+                        .cornerRadius(8) // Rounded style for image
+                        .clipped()
                 } else {
-                    Image(systemName: "tractor")
+                    // Placeholder with icon
+                    Image(systemName: "tractor.fill")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .foregroundColor(.gray)
-                        .padding(24)
+                        .foregroundColor(Color.gray.opacity(0.3))
+                        .frame(width: 50, height: 50)
                 }
             }
-            .frame(width: 140, height: 140)
-            .background(Color(.systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color(.systemGray5), lineWidth: 0.5)
-            )
+            .frame(width: 140, height: 100)
+            .background(Color.white)
             
-            // Equipment Name
+            // Equipment name below: Inter Medium 15px, color #1C1C1E, center-aligned, padding 8px
             Text(equipment.name)
                 .font(.system(size: 15, weight: .medium))
-                .foregroundColor(.primary)
+                .foregroundColor(Color(red: 28/255, green: 28/255, blue: 30/255))
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
-                .frame(width: 140, alignment: .center)
+                .frame(width: 124) // Account for 8px padding on each side
+                .padding(8)
         }
-        .frame(width: 140)
+        .frame(width: 140, height: 160) // Size: 140px × 160px
+        .background(Color.white) // Background: White
+        .cornerRadius(12) // Corner radius: 12px
+        .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2) // Shadow: 0px 2px 8px rgba(0,0,0,0.08)
+        .contentShape(Rectangle()) // Makes entire card tappable
         .task {
             await loadImage()
         }
