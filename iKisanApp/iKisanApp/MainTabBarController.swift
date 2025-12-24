@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 class MainTabBarController: UITabBarController {
 
@@ -61,6 +62,22 @@ class MainTabBarController: UITabBarController {
                     swiftUIHomeVC.dataController = dataController
                     navController.setViewControllers([swiftUIHomeVC], animated: false)
                     print("✅ Successfully replaced with HomeViewControllerSwiftUI")
+                    continue
+                }
+                // ✅ END SWIFTUI
+                
+                // ✅ SWIFTUI ENABLED: Replace UIKit AgriAssistViewController with SwiftUI version
+                if navController.viewControllers.first is AgriAssistViewController {
+                    print("🔄 FOUND AgriAssistViewController at index \(index) - REPLACING WITH SWIFTUI VERSION")
+                    let swiftUIView = NavigationStack {
+                        AgriAssistView()
+                    }
+                    let hostingController = UIHostingController(rootView: swiftUIView)
+                    hostingController.navigationItem.hidesBackButton = true
+                    navController.setViewControllers([hostingController], animated: false)
+                    // Hide the UIKit navigation bar to avoid double titles
+                    navController.setNavigationBarHidden(true, animated: false)
+                    print("✅ Successfully replaced with SwiftUI AgriAssistView")
                     continue
                 }
                 // ✅ END SWIFTUI

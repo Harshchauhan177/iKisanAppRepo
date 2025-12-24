@@ -365,7 +365,7 @@ enum BookingStatus: String, Codable {
 
 //MARK: Model for AgriAssist
 
-struct AgriCrop: Codable, Sendable {
+struct AgriCrop: Codable, Sendable, Identifiable {
     var id: UUID = .init()
     var name: String
     var imageName: String
