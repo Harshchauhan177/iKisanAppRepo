@@ -18,7 +18,7 @@ struct EquipmentsForCropsView: View {
     
     var body: some View {
         ZStack {
-            Color(.systemGroupedBackground)
+            Color(.systemBackground)
                 .ignoresSafeArea()
             
             if viewModel.isLoading {
@@ -27,7 +27,7 @@ struct EquipmentsForCropsView: View {
                 emptyStateView
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 16) {
+                    LazyVStack(alignment: .leading, spacing: 24) {
                         ForEach(viewModel.equipmentCategories) { category in
                             EquipmentCategoryCard(
                                 category: category,
@@ -40,12 +40,13 @@ struct EquipmentsForCropsView: View {
                             )
                         }
                     }
-                    .padding()
+                    .padding(.top, 20)
+                    .padding(.bottom, 20)
                 }
             }
         }
         .navigationTitle("Equipments for \(crop.name)")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .refreshable {
             await viewModel.loadEquipmentCategories()
         }
@@ -86,34 +87,34 @@ struct EquipmentCategoryCard: View {
     let onEquipmentTap: (EquipmentAgri) -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             // Header
-            HStack {
+            HStack(alignment: .center) {
                 Text(category.title)
-                    .font(.headline)
+                    .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.primary)
                 
                 Spacer()
                 
                 Button(action: onSeeAll) {
                     Text("See All")
-                        .font(.subheadline)
-                        .foregroundColor(Color(red: 0.298, green: 0.498, blue: 0.345))
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(Color(red: 0.2, green: 0.47, blue: 0.8))
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
             
             // Horizontal ScrollView of equipment
             if category.equipmentList.isEmpty {
                 Text("No equipment in this category")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 20)
                     .padding(.bottom, 16)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: 12) {
+                    LazyHStack(spacing: 16) {
                         ForEach(category.equipmentList) { equipment in
                             EquipmentCardView(equipment: equipment)
                                 .onTapGesture {
@@ -121,14 +122,10 @@ struct EquipmentCategoryCard: View {
                                 }
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
+                    .padding(.horizontal, 20)
                 }
             }
         }
-        .background(Color(.systemBackground))
-        .cornerRadius(10)
-        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 }
 
@@ -138,8 +135,8 @@ struct EquipmentCardView: View {
     @State private var image: UIImage?
     
     var body: some View {
-        VStack(spacing: 8) {
-            // Equipment Image
+        VStack(spacing: 12) {
+            // Equipment Image with rounded corners and white background
             Group {
                 if let image = image {
                     Image(uiImage: image)
@@ -150,22 +147,27 @@ struct EquipmentCardView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .foregroundColor(.gray)
-                        .padding(20)
+                        .padding(24)
                 }
             }
-            .frame(width: 120, height: 120)
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
+            .frame(width: 140, height: 140)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color(.systemGray5), lineWidth: 0.5)
+            )
             
             // Equipment Name
             Text(equipment.name)
-                .font(.caption)
-                .fontWeight(.medium)
+                .font(.system(size: 15, weight: .medium))
                 .foregroundColor(.primary)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
-                .frame(width: 120)
+                .frame(width: 140, alignment: .center)
         }
+        .frame(width: 140)
         .task {
             await loadImage()
         }
