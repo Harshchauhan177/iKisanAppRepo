@@ -21,7 +21,7 @@ struct AgriAssistView: View {
                 EmptyStateView()
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 16) {
+                    LazyVStack(spacing: 12) {
                         ForEach(viewModel.filteredCrops) { crop in
                             NavigationLink(destination: EquipmentsForCropsView(crop: crop)) {
                                 AgriCropRowView(crop: crop)
@@ -29,9 +29,9 @@ struct AgriAssistView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
-                    .padding(.bottom, 24)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                    .padding(.bottom, 20)
                 }
             }
         }
@@ -54,42 +54,43 @@ struct AgriCropRowView: View {
     @State private var image: UIImage?
     
     var body: some View {
-        HStack(spacing: 16) {
-            // Crop Image - Circular
+        HStack(spacing: 12) {
+            // Crop Image - Circular (Reduced size)
             Group {
                 if let image = image {
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                 } else {
-                    Image(systemName: "leaf")
+                    Image(systemName: "leaf.fill")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .foregroundColor(.green)
-                        .padding(16)
+                        .padding(10)
                 }
             }
-            .frame(width: 64, height: 64)
+            .frame(width: 48, height: 48)
             .background(Color(.systemGray6))
             .clipShape(Circle())
             
             // Crop Name
             Text(crop.name)
-                .font(.system(size: 18, weight: .medium))
+                .font(.system(size: 17, weight: .medium))
                 .foregroundColor(.primary)
+                .lineLimit(1)
             
             Spacer()
             
             // Arrow
             Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(Color(.systemGray3))
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
         .task {
             await loadImage()
         }
