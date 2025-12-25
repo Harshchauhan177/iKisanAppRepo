@@ -46,30 +46,30 @@ struct EquipmentGridCardView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Circular Image Container
+            // Image Container - Full width covering top and sides
             Group {
                 if let image = image {
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                        .frame(width: 100, height: 100)
-                        .clipShape(Circle())
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 120)
+                        .clipped()
                 } else {
                     Image(systemName: "tractor")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .foregroundColor(Color(red: 0.56, green: 0.56, blue: 0.58)) // #8E8E93
-                        .frame(width: 40, height: 40)
-                        .frame(width: 100, height: 100)
-                        .background(Color.white)
-                        .clipShape(Circle())
+                        .frame(width: 50, height: 50)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 120)
+                        .background(Color(red: 0.96, green: 0.96, blue: 0.96)) // Light gray background
                 }
             }
-            .overlay(
-                Circle()
-                    .stroke(Color(red: 0.91, green: 0.91, blue: 0.91), lineWidth: 2) // #E8E8E8
-            )
-            .padding(.top, 24)
+            .frame(maxWidth: .infinity)
+            .frame(height: 120)
+            .background(Color(red: 0.96, green: 0.96, blue: 0.96))
+            .cornerRadius(16, corners: [.topLeft, .topRight])
             
             // Equipment Name
             Text(equipment.name)
@@ -78,7 +78,7 @@ struct EquipmentGridCardView: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .padding(.horizontal, 12)
-                .padding(.top, 16)
+                .padding(.top, 12)
                 .frame(maxWidth: .infinity)
             
             // Like Section
@@ -91,7 +91,7 @@ struct EquipmentGridCardView: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(Color(red: 0.56, green: 0.56, blue: 0.58)) // #8E8E93
             }
-            .padding(.top, 12)
+            .padding(.top, 8)
             .padding(.bottom, 16)
             .contentShape(Rectangle())
             .highPriorityGesture(
@@ -123,7 +123,6 @@ struct EquipmentGridCardView: View {
             )
         }
         .frame(maxWidth: .infinity)
-        .frame(minHeight: 220)
         .background(Color.white)
         .cornerRadius(16)
         .overlay(
@@ -265,5 +264,26 @@ struct EquipmentListRowView: View {
                 equipmentList: []
             )
         )
+    }
+}
+
+// MARK: - View Extension for Selective Corner Radius
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
     }
 }
