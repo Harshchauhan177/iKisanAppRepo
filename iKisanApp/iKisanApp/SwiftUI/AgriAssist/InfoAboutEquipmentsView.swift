@@ -368,73 +368,93 @@ struct RelatedEquipmentSection: View {
 struct RelatedEquipmentCard: View {
     let equipment: EquipmentAgri
     @State private var image: UIImage?
+    @State private var isLiked: Bool = false
+    @State private var likeCount: Int
+    @State private var isUpdatingLike: Bool = false
+    
+    init(equipment: EquipmentAgri) {
+        self.equipment = equipment
+        self._likeCount = State(initialValue: equipment.likedBy)
+    }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Equipment Image (1:1 aspect ratio)
-            ZStack {
-                if let image = image {
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(1, contentMode: .fill)
+        NavigationLink(destination: InfoAboutEquipmentsView(equipment: equipment)) {
+            VStack(alignment: .leading, spacing: 8) {
+                // Equipment Image (1:1 aspect ratio)
+                ZStack {
+                    if let image = image {
+                        Image(uiImage: image)
+                            .resizable()
+                            .aspectRatio(1, contentMode: .fill)
+                            .frame(maxWidth: .infinity)
+                            .clipped()
+                    } else {
+                        Image(systemName: "tractor")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .foregroundColor(.gray.opacity(0.3))
+                            .padding(30)
+                            .frame(maxWidth: .infinity)
+                            .aspectRatio(1, contentMode: .fill)
+                    }
+                }
+                .background(Color(hex: "F2F2F7"))
+                .cornerRadius(12)
+                
+                // Equipment Name
+                Text(equipment.name)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Color(hex: "1C1C1E"))
+                    .lineLimit(1)
+                
+                // Likes - Interactive Button
+                Button(action: {
+                    Task {
+                        await toggleLike()
+                    }
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                            .font(.system(size: 11))
+                            .foregroundColor(isLiked ? Color(hex: "FF3B30") : Color(hex: "8E8E93"))
+                        Text("\(likeCount)")
+                            .font(.system(size: 13))
+                            .foregroundColor(Color(hex: "8E8E93"))
+                    }
+                }
+                .disabled(isUpdatingLike)
+                .opacity(isUpdatingLike ? 0.6 : 1.0)
+                
+                // Book Now Button
+                Button(action: {
+                    // Book action
+                }) {
+                    Text("Book Now")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "007AFF"))
                         .frame(maxWidth: .infinity)
-                        .clipped()
-                } else {
-                    Image(systemName: "tractor")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .foregroundColor(.gray.opacity(0.3))
-                        .padding(30)
-                        .frame(maxWidth: .infinity)
-                        .aspectRatio(1, contentMode: .fill)
+                        .frame(height: 36)
+                        .background(Color.white)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18)
+                                .stroke(Color(hex: "007AFF"), lineWidth: 2)
+                        )
+                        .cornerRadius(18)
                 }
             }
-            .background(Color(hex: "F2F2F7"))
-            .cornerRadius(12)
-            
-            // Equipment Name
-            Text(equipment.name)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(Color(hex: "1C1C1E"))
-                .lineLimit(1)
-            
-            // Likes
-            HStack(spacing: 4) {
-                Image(systemName: "heart")
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "8E8E93"))
-                Text("\(equipment.likedBy)")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(hex: "8E8E93"))
-            }
-            
-            // Book Now Button
-            Button(action: {
-                // Book action
-            }) {
-                Text("Book Now")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "007AFF"))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 36)
-                    .background(Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color(hex: "007AFF"), lineWidth: 2)
-                    )
-                    .cornerRadius(18)
-            }
+            .padding(12)
+            .background(Color.white)
+            .cornerRadius(16)
+            .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color(hex: "E5E5EA"), lineWidth: 1)
+            )
         }
-        .padding(12)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 2)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color(hex: "E5E5EA"), lineWidth: 1)
-        )
+        .buttonStyle(PlainButtonStyle())
         .task {
             await loadImage()
+            await loadLikeState()
         }
     }
     
@@ -445,6 +465,72 @@ struct RelatedEquipmentCard: View {
             ImageCache.shared.loadImage(from: equipment.imageName) { loadedImage in
                 self.image = loadedImage
             }
+        }
+    }
+    
+    private func loadLikeState() async {
+        // Get current user
+        guard let currentUser = AuthManager.shared.currentUser else {
+            print("⚠️ No logged-in user found")
+            return
+        }
+        
+        // Load the current like count from Supabase
+        let count = await RequestManager.shared.getEquipmentAgriLikeCount(equipmentId: equipment.id)
+        
+        // Check if current user has liked this equipment
+        let hasLiked = await RequestManager.shared.hasUserLikedEquipment(userId: currentUser.id, equipmentId: equipment.id)
+        
+        await MainActor.run {
+            self.likeCount = count
+            self.isLiked = hasLiked
+        }
+    }
+    
+    private func toggleLike() async {
+        guard !isUpdatingLike else { return }
+        
+        // Check if user is logged in
+        guard let currentUser = AuthManager.shared.currentUser else {
+            print("⚠️ No logged-in user found")
+            return
+        }
+        
+        isUpdatingLike = true
+        
+        // Optimistic UI update
+        let previousLiked = isLiked
+        let previousCount = likeCount
+        
+        await MainActor.run {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                isLiked.toggle()
+                likeCount = isLiked ? likeCount + 1 : likeCount - 1
+            }
+        }
+        
+        // Haptic feedback
+        let impact = UIImpactFeedbackGenerator(style: .light)
+        impact.impactOccurred()
+        
+        // Update in Supabase using RequestManager
+        let success = await RequestManager.shared.toggleEquipmentLike(userId: currentUser.id, equipmentId: equipment.id)
+        
+        if !success {
+            // Revert the UI change if the update failed
+            await MainActor.run {
+                withAnimation {
+                    isLiked = previousLiked
+                    likeCount = previousCount
+                }
+            }
+            print("❌ Failed to toggle like in database")
+        } else {
+            print("✅ Successfully toggled like for related equipment")
+        }
+        
+        await MainActor.run {
+            isUpdatingLike = false
         }
     }
 }
