@@ -154,26 +154,25 @@ struct EquipmentCard: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Image container (top): 140px × 100px with 8px padding
-            ZStack {
-                if let image = image {
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 124, height: 84) // 140-16 for 8px padding on each side
-                        .cornerRadius(8) // Rounded style for image
-                        .clipped()
-                } else {
-                    // Placeholder with icon
-                    Image(systemName: "tractor.fill")
+            // Image Container - Full width covering top
+            if let image = image {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 140, height: 100)
+                    .clipped()
+            } else {
+                ZStack {
+                    Color(red: 0.96, green: 0.96, blue: 0.96) // Light gray background
+                    
+                    Image(systemName: "tractor")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .foregroundColor(Color.gray.opacity(0.3))
-                        .frame(width: 50, height: 50)
+                        .foregroundColor(Color(red: 0.56, green: 0.56, blue: 0.58)) // #8E8E93
+                        .frame(width: 40, height: 40)
                 }
+                .frame(width: 140, height: 100)
             }
-            .frame(width: 140, height: 100)
-            .background(Color.white)
             
             // Equipment name below: Inter Medium 15px, color #1C1C1E, center-aligned, padding 8px
             Text(equipment.name)
@@ -181,12 +180,13 @@ struct EquipmentCard: View {
                 .foregroundColor(Color(red: 28/255, green: 28/255, blue: 30/255))
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
-                .frame(width: 124) // Account for 8px padding on each side
-                .padding(8)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+                .frame(width: 140, height: 60)
         }
         .frame(width: 140, height: 160) // Size: 140px × 160px
         .background(Color.white) // Background: White
-        .cornerRadius(12) // Corner radius: 12px
+        .clipShape(RoundedRectangle(cornerRadius: 12)) // Corner radius: 12px
         .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2) // Shadow: 0px 2px 8px rgba(0,0,0,0.08)
         .contentShape(Rectangle()) // Makes entire card tappable
         .task {
