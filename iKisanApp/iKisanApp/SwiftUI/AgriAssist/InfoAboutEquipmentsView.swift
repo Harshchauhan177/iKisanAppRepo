@@ -138,7 +138,7 @@ struct InfoAboutEquipmentsView: View {
                 .padding(.top, 24)
                 
                 // Related Equipment Section
-                RelatedEquipmentSection(categoryId: equipment.categoryId)
+                RelatedEquipmentSection(categoryId: equipment.categoryId, currentEquipmentId: equipment.id)
                     .padding(.top, 32)
                     .padding(.bottom, 32)
             }
@@ -203,6 +203,7 @@ struct ExpandablePill: View {
 // MARK: - Related Equipment Section
 struct RelatedEquipmentSection: View {
     let categoryId: UUID
+    let currentEquipmentId: UUID
     @State private var relatedEquipment: [EquipmentAgri] = []
     @State private var isLoading = false
     
@@ -262,6 +263,7 @@ struct RelatedEquipmentSection: View {
                 .from("equipmentAgri")
                 .select("*")
                 .eq("categoryId", value: categoryId)
+                .neq("id", value: currentEquipmentId)
                 .execute()
                 .value
             
