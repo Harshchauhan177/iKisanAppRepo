@@ -63,6 +63,15 @@ class MainTabBarController: UITabBarController {
                     print("✅ Successfully replaced with HomeViewControllerSwiftUI")
                     continue
                 }
+                
+                // ✅ SWIFTUI ENABLED: Replace UIKit CoequipViewController with SwiftUI version
+                if navController.viewControllers.first is CoequipViewController {
+                    print("🔄 FOUND CoequipViewController at index \(index) - REPLACING WITH SWIFTUI VERSION")
+                    let swiftUICoEquipVC = CoEquipHostingController(dataController: dataController)
+                    navController.setViewControllers([swiftUICoEquipVC], animated: false)
+                    print("✅ Successfully replaced with CoEquipHostingController (SwiftUI)")
+                    continue
+                }
                 // ✅ END SWIFTUI
                 
                 // Keep other tabs as UIKit for now
