@@ -10,10 +10,10 @@ import SwiftUI
 struct SameTypeAllEquipmentsView: View {
     let category: EquipmentCategory
     
-    // Define the grid layout with 2 columns
+    // Define the grid layout with 2 columns with fixed width of 172
     private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
+        GridItem(.fixed(172), spacing: 12),
+        GridItem(.fixed(172), spacing: 12)
     ]
     
     var body: some View {
@@ -52,7 +52,7 @@ struct EquipmentGridCardView: View {
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                        .frame(maxWidth: .infinity)
+                        .frame(width: 172)
                         .frame(height: 120)
                         .clipped()
                 } else {
@@ -61,12 +61,12 @@ struct EquipmentGridCardView: View {
                         .aspectRatio(contentMode: .fit)
                         .foregroundColor(Color(red: 0.56, green: 0.56, blue: 0.58)) // #8E8E93
                         .frame(width: 50, height: 50)
-                        .frame(maxWidth: .infinity)
+                        .frame(width: 172)
                         .frame(height: 120)
                         .background(Color(red: 0.96, green: 0.96, blue: 0.96)) // Light gray background
                 }
             }
-            .frame(maxWidth: .infinity)
+            .frame(width: 172)
             .frame(height: 120)
             .background(Color(red: 0.96, green: 0.96, blue: 0.96))
             .cornerRadius(16, corners: [.topLeft, .topRight])
@@ -79,7 +79,7 @@ struct EquipmentGridCardView: View {
                 .lineLimit(2)
                 .padding(.horizontal, 12)
                 .padding(.top, 12)
-                .frame(maxWidth: .infinity)
+                .frame(width: 172)
             
             // Like Section
             HStack(spacing: 4) {
@@ -122,7 +122,7 @@ struct EquipmentGridCardView: View {
                     }
             )
         }
-        .frame(maxWidth: .infinity)
+        .frame(width: 172)
         .background(Color.white)
         .cornerRadius(16)
         .overlay(
