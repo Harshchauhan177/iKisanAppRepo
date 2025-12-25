@@ -7,6 +7,7 @@ struct InfoAboutEquipmentsView: View {
     @State private var isLiked: Bool = false
     @State private var likeCount: Int
     @State private var isUpdatingLike: Bool = false
+    @Environment(\.dismiss) private var dismiss
     
     init(equipment: EquipmentAgri) {
         self.equipment = equipment
@@ -133,7 +134,7 @@ struct InfoAboutEquipmentsView: View {
                         
                         // Buy Now Button
                         Button(action: {
-                            // Buy action
+                            bookNowAction()
                         }) {
                             Text("Buy Now")
                                 .font(.system(size: 17, weight: .semibold))
@@ -165,6 +166,28 @@ struct InfoAboutEquipmentsView: View {
         .task {
             await loadImage()
             await loadLikeState()
+        }
+    }
+    
+    // MARK: - Book Now Action
+    private func bookNowAction() {
+        // Update the search text in HomeViewModel
+        Task { @MainActor in
+            if let homeViewModel = HomeViewModel.shared {
+                homeViewModel.updateSearchText(equipment.name)
+                print("✅ Set search text to: \(equipment.name)")
+            }
+            
+            // Switch to home tab (index 0)
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let tabBarController = window.rootViewController as? UITabBarController {
+                tabBarController.selectedIndex = 0
+                print("✅ Switched to home tab")
+                
+                // Dismiss this view to return to the previous screen
+                dismiss()
+            }
         }
     }
     
@@ -226,7 +249,7 @@ struct InfoAboutEquipmentsView: View {
         // Update in Supabase using RequestManager
         let success = await RequestManager.shared.toggleEquipmentLike(userId: currentUser.id, equipmentId: equipment.id)
         
-        if !success {
+        if (!success) {
             // Revert the UI change if the update failed
             await MainActor.run {
                 withAnimation {
@@ -371,6 +394,7 @@ struct RelatedEquipmentCard: View {
     @State private var isLiked: Bool = false
     @State private var likeCount: Int
     @State private var isUpdatingLike: Bool = false
+    @Environment(\.dismiss) private var dismiss
     
     init(equipment: EquipmentAgri) {
         self.equipment = equipment
@@ -427,7 +451,7 @@ struct RelatedEquipmentCard: View {
                 
                 // Book Now Button
                 Button(action: {
-                    // Book action
+                    bookNowAction()
                 }) {
                     Text("Book Now")
                         .font(.system(size: 14, weight: .semibold))
@@ -455,6 +479,25 @@ struct RelatedEquipmentCard: View {
         .task {
             await loadImage()
             await loadLikeState()
+        }
+    }
+    
+    // MARK: - Book Now Action
+    private func bookNowAction() {
+        // Update the search text in HomeViewModel
+        Task { @MainActor in
+            if let homeViewModel = HomeViewModel.shared {
+                homeViewModel.updateSearchText(equipment.name)
+                print("✅ Set search text to: \(equipment.name)")
+            }
+            
+            // Switch to home tab (index 0)
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let tabBarController = window.rootViewController as? UITabBarController {
+                tabBarController.selectedIndex = 0
+                print("✅ Switched to home tab")
+            }
         }
     }
     

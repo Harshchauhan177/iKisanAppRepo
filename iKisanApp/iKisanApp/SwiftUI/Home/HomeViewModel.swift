@@ -11,6 +11,9 @@ import CoreLocation
 
 @MainActor
 class HomeViewModel: NSObject, ObservableObject {
+    // MARK: - Shared Instance
+    static var shared: HomeViewModel?
+    
     // MARK: - Published Properties
     @Published var allEquipment: [Equipment] = []
     @Published var discountedEquipment: [Equipment] = []
@@ -58,6 +61,8 @@ class HomeViewModel: NSObject, ObservableObject {
     // MARK: - Initialization
     override init() {
         super.init()
+        // Set as shared instance
+        HomeViewModel.shared = self
         setupSearchSubscriber()
         loadUserHistory()
         setupLocationManager()
@@ -242,6 +247,14 @@ class HomeViewModel: NSObject, ObservableObject {
         generateExploreEquipment()
     }
     
+    // MARK: - Public Methods
+    /// Update search text from external views (e.g., AgriAssist)
+    func updateSearchText(_ text: String) {
+        self.searchText = text
+        saveSearchTerm(text)
+        isSearching = false
+    }
+    
     // MARK: - User History Management
     private func loadUserHistory() {
         if let savedSearches = UserDefaults.standard.array(forKey: recentSearchesKey) as? [String] {
@@ -337,15 +350,15 @@ class HomeViewModel: NSObject, ObservableObject {
         let zipCode = placemark.postalCode ?? ""
         
         var addressComponents = [String]()
-        if !street.isEmpty { addressComponents.append(street) }
-        if !city.isEmpty { addressComponents.append(city) }
-        if !state.isEmpty {
-            if !zipCode.isEmpty {
+        if (!street.isEmpty) { addressComponents.append(street) }
+        if (!city.isEmpty) { addressComponents.append(city) }
+        if (!state.isEmpty) {
+            if (!zipCode.isEmpty) {
                 addressComponents.append("\(state) \(zipCode)")
             } else {
                 addressComponents.append(state)
             }
-        } else if !zipCode.isEmpty {
+        } else if (!zipCode.isEmpty) {
             addressComponents.append(zipCode)
         }
         
