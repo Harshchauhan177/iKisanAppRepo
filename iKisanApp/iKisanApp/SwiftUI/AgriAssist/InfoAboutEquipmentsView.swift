@@ -4,6 +4,14 @@ struct InfoAboutEquipmentsView: View {
     let equipment: EquipmentAgri
     @State private var image: UIImage?
     @State private var expandedSection: String? = nil
+    @State private var isLiked: Bool = false
+    @State private var likeCount: Int
+    @State private var isUpdatingLike: Bool = false
+    
+    init(equipment: EquipmentAgri) {
+        self.equipment = equipment
+        self._likeCount = State(initialValue: equipment.likedBy)
+    }
     
     var body: some View {
         ScrollView {
@@ -54,14 +62,22 @@ struct InfoAboutEquipmentsView: View {
                                 .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(Color(hex: "1C1C1E"))
                             
-                            HStack(spacing: 4) {
-                                Image(systemName: "heart.fill")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(Color(hex: "FF3B30"))
-                                Text("\(equipment.likedBy) likes")
-                                    .font(.system(size: 15))
-                                    .foregroundColor(Color(hex: "8E8E93"))
+                            Button(action: {
+                                Task {
+                                    await toggleLike()
+                                }
+                            }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: isLiked ? "heart.fill" : "heart.fill")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(isLiked ? Color(hex: "FF3B30") : Color(hex: "8E8E93"))
+                                    Text("\(likeCount) likes")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(Color(hex: "8E8E93"))
+                                }
                             }
+                            .disabled(isUpdatingLike)
+                            .opacity(isUpdatingLike ? 0.6 : 1.0)
                         }
                         
                         // Expandable Information Pills
@@ -148,6 +164,7 @@ struct InfoAboutEquipmentsView: View {
         .background(Color(hex: "F8F8F8"))
         .task {
             await loadImage()
+            await loadLikeState()
         }
     }
     
@@ -158,6 +175,72 @@ struct InfoAboutEquipmentsView: View {
             ImageCache.shared.loadImage(from: equipment.imageName) { loadedImage in
                 self.image = loadedImage
             }
+        }
+    }
+    
+    private func loadLikeState() async {
+        // Get current user
+        guard let currentUser = AuthManager.shared.currentUser else {
+            print("⚠️ No logged-in user found")
+            return
+        }
+        
+        // Load the current like count from Supabase
+        let count = await RequestManager.shared.getEquipmentAgriLikeCount(equipmentId: equipment.id)
+        
+        // Check if current user has liked this equipment
+        let hasLiked = await RequestManager.shared.hasUserLikedEquipment(userId: currentUser.id, equipmentId: equipment.id)
+        
+        await MainActor.run {
+            self.likeCount = count
+            self.isLiked = hasLiked
+        }
+    }
+    
+    private func toggleLike() async {
+        guard !isUpdatingLike else { return }
+        
+        // Check if user is logged in
+        guard let currentUser = AuthManager.shared.currentUser else {
+            print("⚠️ No logged-in user found")
+            return
+        }
+        
+        isUpdatingLike = true
+        
+        // Optimistic UI update
+        let previousLiked = isLiked
+        let previousCount = likeCount
+        
+        await MainActor.run {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                isLiked.toggle()
+                likeCount = isLiked ? likeCount + 1 : likeCount - 1
+            }
+        }
+        
+        // Haptic feedback
+        let impact = UIImpactFeedbackGenerator(style: .medium)
+        impact.impactOccurred()
+        
+        // Update in Supabase using RequestManager
+        let success = await RequestManager.shared.toggleEquipmentLike(userId: currentUser.id, equipmentId: equipment.id)
+        
+        if !success {
+            // Revert the UI change if the update failed
+            await MainActor.run {
+                withAnimation {
+                    isLiked = previousLiked
+                    likeCount = previousCount
+                }
+            }
+            print("❌ Failed to toggle like in database")
+        } else {
+            print("✅ Successfully toggled like")
+        }
+        
+        await MainActor.run {
+            isUpdatingLike = false
         }
     }
 }
