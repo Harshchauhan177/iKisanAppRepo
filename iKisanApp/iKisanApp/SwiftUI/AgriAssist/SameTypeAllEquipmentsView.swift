@@ -42,7 +42,6 @@ struct EquipmentGridCardView: View {
     @State private var image: UIImage?
     @State private var isLiked: Bool = false
     @State private var likeCount: Int = 0
-    @State private var isPressed: Bool = false
     @State private var isUpdatingLike: Bool = false
     
     var body: some View {
@@ -95,30 +94,33 @@ struct EquipmentGridCardView: View {
             .padding(.top, 12)
             .padding(.bottom, 16)
             .contentShape(Rectangle())
-            .onTapGesture {
-                guard !isUpdatingLike else { return }
-                
-                // Get current user
-                guard let currentUser = AuthManager.shared.currentUser else {
-                    print("⚠️ No logged-in user found")
-                    return
-                }
-                
-                // Optimistically update UI
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                    isLiked.toggle()
-                    likeCount += isLiked ? 1 : -1
-                }
-                
-                // Haptic feedback
-                let impact = UIImpactFeedbackGenerator(style: .medium)
-                impact.impactOccurred()
-                
-                // Update in Supabase
-                Task {
-                    await toggleLikeInDatabase(userId: currentUser.id)
-                }
-            }
+            .highPriorityGesture(
+                TapGesture()
+                    .onEnded { _ in
+                        guard !isUpdatingLike else { return }
+                        
+                        // Get current user
+                        guard let currentUser = AuthManager.shared.currentUser else {
+                            print("⚠️ No logged-in user found")
+                            return
+                        }
+                        
+                        // Optimistically update UI
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            isLiked.toggle()
+                            likeCount += isLiked ? 1 : -1
+                        }
+                        
+                        // Haptic feedback
+                        let impact = UIImpactFeedbackGenerator(style: .medium)
+                        impact.impactOccurred()
+                        
+                        // Update in Supabase
+                        Task {
+                            await toggleLikeInDatabase(userId: currentUser.id)
+                        }
+                    }
+            )
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: 220)
@@ -128,22 +130,7 @@ struct EquipmentGridCardView: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color(red: 0.90, green: 0.90, blue: 0.92), lineWidth: 1) // #E5E5EA
         )
-        .shadow(color: Color.black.opacity(isPressed ? 0.04 : 0.06), radius: isPressed ? 6 : 12, x: 0, y: isPressed ? 1 : 2)
-        .scaleEffect(isPressed ? 0.96 : 1.0)
-        .animation(.easeOut(duration: 0.1), value: isPressed)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    if !isPressed {
-                        isPressed = true
-                        let impact = UIImpactFeedbackGenerator(style: .light)
-                        impact.impactOccurred()
-                    }
-                }
-                .onEnded { _ in
-                    isPressed = false
-                }
-        )
+        .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 2)
         .task {
             await loadImage()
             await loadLikeState()
