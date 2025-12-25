@@ -1150,6 +1150,271 @@ class RequestManager {
         }
     }
     
+    // MARK: - Equipment Agri Like Methods
+    
+    /// Increment the like count for an equipment
+    func likeEquipmentAgri(equipmentId: UUID) async -> Bool {
+        do {
+            print("🔄 Liking equipment with ID: \(equipmentId.uuidString)")
+            
+            // First get current like count - use RPC function for atomic increment
+            let response = try await SupabaseManager.shared.client
+                .rpc("increment_equipment_likes", params: ["equipment_id": equipmentId.uuidString])
+                .execute()
+            
+            print("✅ Equipment liked successfully via RPC")
+            return true
+        } catch {
+            print("❌ RPC failed, trying manual update...")
+            // Fallback to manual update if RPC doesn't exist
+            do {
+                // First get current like count
+                let current: [EquipmentAgriDTO] = try await SupabaseManager.shared.client
+                    .from("equipmentAgri")
+                    .select("id, categoryId, name, imageName, purpose, bestFor, averageCost, needs, likedBy")
+                    .eq("id", value: equipmentId.uuidString)
+                    .execute()
+                    .value
+                
+                guard let currentLikes = current.first?.likedBy else {
+                    print("❌ Equipment not found with ID: \(equipmentId.uuidString)")
+                    return false
+                }
+                
+                print("📊 Current likes: \(currentLikes), incrementing to: \(currentLikes + 1)")
+                
+                // Increment the like count
+                let updateResponse = try await SupabaseManager.shared.client
+                    .from("equipmentAgri")
+                    .update(["likedBy": currentLikes + 1])
+                    .eq("id", value: equipmentId.uuidString)
+                    .execute()
+                
+                print("✅ Equipment liked successfully. New count: \(currentLikes + 1)")
+                print("📊 Update response status: \(updateResponse.response.statusCode)")
+                return true
+            } catch {
+                print("❌ Error liking equipment: \(error)")
+                if let postgrestError = error as? PostgrestError {
+                    print("PostgrestError details:")
+                    print("  - Code: \(postgrestError.code ?? "nil")")
+                    print("  - Message: \(postgrestError.message ?? "nil")")
+                    print("  - Hint: \(postgrestError.hint ?? "nil")")
+                    print("  - Details: \(postgrestError.detail ?? "nil")")
+                }
+                return false
+            }
+        }
+    }
+    
+    /// Decrement the like count for an equipment
+    func unlikeEquipmentAgri(equipmentId: UUID) async -> Bool {
+        do {
+            print("🔄 Unliking equipment with ID: \(equipmentId.uuidString)")
+            
+            // First get current like count
+            let current: [EquipmentAgriDTO] = try await SupabaseManager.shared.client
+                .from("equipmentAgri")
+                .select("id, categoryId, name, imageName, purpose, bestFor, averageCost, needs, likedBy")
+                .eq("id", value: equipmentId.uuidString)
+                .execute()
+                .value
+            
+            guard let currentLikes = current.first?.likedBy else {
+                print("❌ Equipment not found with ID: \(equipmentId.uuidString)")
+                return false
+            }
+            
+            // Decrement the like count (ensure it doesn't go below 0)
+            let newCount = max(0, currentLikes - 1)
+            print("📊 Current likes: \(currentLikes), decrementing to: \(newCount)")
+            
+            let updateResponse = try await SupabaseManager.shared.client
+                .from("equipmentAgri")
+                .update(["likedBy": newCount])
+                .eq("id", value: equipmentId.uuidString)
+                .execute()
+            
+            print("✅ Equipment unliked successfully. New count: \(newCount)")
+            print("📊 Update response status: \(updateResponse.response.statusCode)")
+            return true
+        } catch {
+            print("❌ Error unliking equipment: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details:")
+                print("  - Code: \(postgrestError.code ?? "nil")")
+                print("  - Message: \(postgrestError.message ?? "nil")")
+            }
+            return false
+        }
+    }
+    
+    /// Get the current like count for an equipment
+    func getEquipmentAgriLikeCount(equipmentId: UUID) async -> Int {
+        do {
+            print("🔄 Fetching like count for equipment ID: \(equipmentId.uuidString)")
+            
+            let result: [EquipmentAgriDTO] = try await SupabaseManager.shared.client
+                .from("equipmentAgri")
+                .select("id, categoryId, name, imageName, purpose, bestFor, averageCost, needs, likedBy")
+                .eq("id", value: equipmentId.uuidString)
+                .execute()
+                .value
+            
+            let count = result.first?.likedBy ?? 0
+            print("📊 Like count for equipment: \(count)")
+            return count
+        } catch {
+            print("❌ Error fetching like count: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details:")
+                print("  - Code: \(postgrestError.code ?? "nil")")
+                print("  - Message: \(postgrestError.message ?? "nil")")
+            }
+            return 0
+        }
+    }
+    
+    // MARK: - User-Specific Like Methods
+    
+    /// Check if the current user has liked a specific equipment
+    func hasUserLikedEquipment(userId: UUID, equipmentId: UUID) async -> Bool {
+        do {
+            print("🔄 Checking if user \(userId.uuidString) has liked equipment \(equipmentId.uuidString)")
+            
+            let result: [UserEquipmentLikeDTO] = try await SupabaseManager.shared.client
+                .from("userEquipmentLikes")
+                .select("*")
+                .eq("userId", value: userId.uuidString)
+                .eq("equipmentId", value: equipmentId.uuidString)
+                .execute()
+                .value
+            
+            let hasLiked = !result.isEmpty
+            print("📊 User has liked: \(hasLiked)")
+            return hasLiked
+        } catch {
+            print("❌ Error checking user like: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details:")
+                print("  - Code: \(postgrestError.code ?? "nil")")
+                print("  - Message: \(postgrestError.message ?? "nil")")
+            }
+            return false
+        }
+    }
+    
+    /// Toggle like for equipment (handles both like and unlike)
+    func toggleEquipmentLike(userId: UUID, equipmentId: UUID) async -> Bool {
+        // First check if user has already liked
+        let hasLiked = await hasUserLikedEquipment(userId: userId, equipmentId: equipmentId)
+        
+        if hasLiked {
+            // Unlike: Remove from userEquipmentLikes and decrement count
+            return await unlikeEquipmentForUser(userId: userId, equipmentId: equipmentId)
+        } else {
+            // Like: Add to userEquipmentLikes and increment count
+            return await likeEquipmentForUser(userId: userId, equipmentId: equipmentId)
+        }
+    }
+    
+    /// Add a like record for a user and increment equipment like count
+    private func likeEquipmentForUser(userId: UUID, equipmentId: UUID) async -> Bool {
+        do {
+            print("🔄 Adding like for user \(userId.uuidString) on equipment \(equipmentId.uuidString)")
+            
+            // Insert into userEquipmentLikes table
+            let likeRecord = UserEquipmentLikeDTO(
+                id: nil,
+                userId: userId.uuidString,
+                equipmentId: equipmentId.uuidString,
+                createdAt: nil
+            )
+            
+            try await SupabaseManager.shared.client
+                .from("userEquipmentLikes")
+                .insert(likeRecord)
+                .execute()
+            
+            print("✅ Like record created")
+            
+            // Increment the like count
+            let success = await likeEquipmentAgri(equipmentId: equipmentId)
+            
+            if success {
+                print("✅ Equipment like count incremented")
+            } else {
+                print("⚠️ Failed to increment like count, rolling back...")
+                // Rollback: delete the like record
+                _ = await deleteUserLikeRecord(userId: userId, equipmentId: equipmentId)
+            }
+            
+            return success
+        } catch {
+            print("❌ Error adding like: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("PostgrestError details:")
+                print("  - Code: \(postgrestError.code ?? "nil")")
+                print("  - Message: \(postgrestError.message ?? "nil")")
+                
+                // Check for unique constraint violation (user already liked)
+                if postgrestError.code == "23505" || (postgrestError.message.contains("unique") ?? false) {
+                    print("⚠️ User has already liked this equipment")
+                    return false
+                }
+            }
+            return false
+        }
+    }
+    
+    /// Remove a like record for a user and decrement equipment like count
+    private func unlikeEquipmentForUser(userId: UUID, equipmentId: UUID) async -> Bool {
+        do {
+            print("🔄 Removing like for user \(userId.uuidString) on equipment \(equipmentId.uuidString)")
+            
+            // Delete from userEquipmentLikes table
+            let deleteSuccess = await deleteUserLikeRecord(userId: userId, equipmentId: equipmentId)
+            
+            guard deleteSuccess else {
+                print("❌ Failed to delete like record")
+                return false
+            }
+            
+            print("✅ Like record deleted")
+            
+            // Decrement the like count
+            let success = await unlikeEquipmentAgri(equipmentId: equipmentId)
+            
+            if success {
+                print("✅ Equipment like count decremented")
+            } else {
+                print("⚠️ Failed to decrement like count")
+            }
+            
+            return success
+        } catch {
+            print("❌ Error removing like: \(error)")
+            return false
+        }
+    }
+    
+    /// Delete a user like record from the database
+    private func deleteUserLikeRecord(userId: UUID, equipmentId: UUID) async -> Bool {
+        do {
+            try await SupabaseManager.shared.client
+                .from("userEquipmentLikes")
+                .delete()
+                .eq("userId", value: userId.uuidString)
+                .eq("equipmentId", value: equipmentId.uuidString)
+                .execute()
+            
+            return true
+        } catch {
+            print("❌ Error deleting like record: \(error)")
+            return false
+        }
+    }
+    
     func fetchEquipments() async -> [Equipment] {
         do {
             // Fetch equipment data
@@ -1492,7 +1757,7 @@ class RequestManager {
                 
                 // Check if this is an auth error
                 if postgrestError.code == "PGRST301" || 
-                    (postgrestError.message.contains("JWT") ?? false) {
+                    (postgrestError.message ?? "").contains("JWT") {
                     print("🔐 Authentication error detected. User may need to re-login.")
                 }
             }
@@ -2199,6 +2464,20 @@ struct FAQDTO: Codable {
     let id: String
     let question: String
     let answer: String
+}
+
+struct UserEquipmentLikeDTO: Codable {
+    let id: String?
+    let userId: String
+    let equipmentId: String
+    let createdAt: Date?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId
+        case equipmentId
+        case createdAt
+    }
 }
 
 struct CropEquipmentMappingDTO: Codable {
