@@ -404,12 +404,12 @@ struct RelatedEquipmentCard: View {
     var body: some View {
         NavigationLink(destination: InfoAboutEquipmentsView(equipment: equipment)) {
             VStack(alignment: .leading, spacing: 0) {
-                // Equipment Image (1:1 aspect ratio)
+                // Equipment Image (reduced aspect ratio for shorter height)
                 ZStack {
                     if let image = image {
                         Image(uiImage: image)
                             .resizable()
-                            .aspectRatio(1, contentMode: .fill)
+                            .aspectRatio(1.25, contentMode: .fill)
                             .frame(maxWidth: .infinity)
                             .clipped()
                     } else {
@@ -419,7 +419,7 @@ struct RelatedEquipmentCard: View {
                             .foregroundColor(.gray.opacity(0.3))
                             .padding(30)
                             .frame(maxWidth: .infinity)
-                            .aspectRatio(1, contentMode: .fill)
+                            .aspectRatio(1.25, contentMode: .fill)
                     }
                 }
                 .background(Color(hex: "F2F2F7"))
