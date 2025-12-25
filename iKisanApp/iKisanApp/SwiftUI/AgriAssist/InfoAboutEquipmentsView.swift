@@ -403,7 +403,7 @@ struct RelatedEquipmentCard: View {
     
     var body: some View {
         NavigationLink(destination: InfoAboutEquipmentsView(equipment: equipment)) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
                 // Equipment Image (1:1 aspect ratio)
                 ZStack {
                     if let image = image {
@@ -423,50 +423,53 @@ struct RelatedEquipmentCard: View {
                     }
                 }
                 .background(Color(hex: "F2F2F7"))
-                .cornerRadius(12)
                 
-                // Equipment Name
-                Text(equipment.name)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Color(hex: "1C1C1E"))
-                    .lineLimit(1)
-                
-                // Likes - Interactive Button
-                Button(action: {
-                    Task {
-                        await toggleLike()
+                // Equipment Details Section
+                VStack(alignment: .leading, spacing: 8) {
+                    // Equipment Name
+                    Text(equipment.name)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Color(hex: "1C1C1E"))
+                        .lineLimit(1)
+                    
+                    // Likes - Interactive Button
+                    Button(action: {
+                        Task {
+                            await toggleLike()
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: isLiked ? "heart.fill" : "heart")
+                                .font(.system(size: 11))
+                                .foregroundColor(isLiked ? Color(hex: "FF3B30") : Color(hex: "8E8E93"))
+                            Text("\(likeCount)")
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(hex: "8E8E93"))
+                        }
                     }
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: isLiked ? "heart.fill" : "heart")
-                            .font(.system(size: 11))
-                            .foregroundColor(isLiked ? Color(hex: "FF3B30") : Color(hex: "8E8E93"))
-                        Text("\(likeCount)")
-                            .font(.system(size: 13))
-                            .foregroundColor(Color(hex: "8E8E93"))
+                    .disabled(isUpdatingLike)
+                    .opacity(isUpdatingLike ? 0.6 : 1.0)
+                    
+                    // Book Now Button
+                    Button(action: {
+                        bookNowAction()
+                    }) {
+                        Text("Book Now")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(Color(hex: "007AFF"))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 36)
+                            .background(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .stroke(Color(hex: "007AFF"), lineWidth: 2)
+                            )
+                            .cornerRadius(18)
                     }
                 }
-                .disabled(isUpdatingLike)
-                .opacity(isUpdatingLike ? 0.6 : 1.0)
-                
-                // Book Now Button
-                Button(action: {
-                    bookNowAction()
-                }) {
-                    Text("Book Now")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "007AFF"))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 36)
-                        .background(Color.white)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 18)
-                                .stroke(Color(hex: "007AFF"), lineWidth: 2)
-                        )
-                        .cornerRadius(18)
-                }
+                .padding(12)
+                .background(Color.white)
             }
-            .padding(12)
             .background(Color.white)
             .cornerRadius(16)
             .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 2)
@@ -474,6 +477,7 @@ struct RelatedEquipmentCard: View {
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color(hex: "E5E5EA"), lineWidth: 1)
             )
+            .clipped()
         }
         .buttonStyle(PlainButtonStyle())
         .task {
