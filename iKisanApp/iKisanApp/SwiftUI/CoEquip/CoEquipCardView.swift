@@ -273,7 +273,8 @@ struct CoEquipJoinRequestCard: View {
             joinedUsersCount: 3,
             status: .pending,
             creatorName: nil,
-            creatorId: nil
+            creatorId: nil,
+            underlyingRequest: nil
         )
     )
     .padding()
@@ -291,7 +292,8 @@ struct CoEquipJoinRequestCard: View {
             joinedUsersCount: 0,
             status: .pending,
             creatorName: "Harsh Chauhan",
-            creatorId: UUID()
+            creatorId: UUID(),
+            underlyingRequest: nil
         ),
         creatorName: "Harsh Chauhan",
         onAccept: { print("Accept tapped") },

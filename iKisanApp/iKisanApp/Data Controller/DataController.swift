@@ -424,11 +424,6 @@ class IKisanDataController: DataController {
         
         // Make a local copy of suggestions for quick access
         self.suggestionList = self.equipmentList.filter { $0.isRecommended }
-        
-        // Notify observers that requests have been updated
-        DispatchQueue.main.async {
-            NotificationCenter.default.post(name: .requestsUpdated, object: nil)
-        }
     }
     
     func getAllEquipment() -> [Equipment] {
@@ -750,8 +745,13 @@ class IKisanDataController: DataController {
     }
     
     func getAllCoEquipRequests() -> [Request] {
-        // Simply return the cached requests without triggering a fetch
-        // Fetching should only happen via loadDataFromBackend() or explicit refresh
+        // Trigger a refresh of the requests
+        Task {
+            self.coEquipRequests = await requestManager.fetchRequests()
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .requestsUpdated, object: nil)
+            }
+        }
         return coEquipRequests
     }
     
@@ -2218,6 +2218,7 @@ extension Notification.Name {
     static let bookingAdded = Notification.Name("bookingAdded")
     static let usersLoaded = Notification.Name("usersLoaded")
     static let requestsUpdated = Notification.Name("requestsUpdated")
+    static let equipmentUpdated = Notification.Name("equipmentUpdated")
 }
 
 //

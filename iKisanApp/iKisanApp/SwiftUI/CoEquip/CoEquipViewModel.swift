@@ -27,11 +27,21 @@ struct CoEquipRequest: Identifiable, Hashable {
     let status: CoEquipRequestStatus
     let creatorName: String? // Name of the user who created the request (for join requests)
     let creatorId: UUID? // ID of the creator for fetching
+    let underlyingRequest: Request? // Store the full Request object for navigation
     
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE, dd MMM"
         return formatter.string(from: date)
+    }
+    
+    // Custom hash and equality to exclude underlyingRequest
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: CoEquipRequest, rhs: CoEquipRequest) -> Bool {
+        lhs.id == rhs.id
     }
 }
 
@@ -48,7 +58,7 @@ class CoEquipViewModel: ObservableObject {
     
     // MARK: - Dependencies
     
-    private weak var dataController: DataController?
+    private(set) var dataController: DataController? // Changed from private weak to internal
     private var cancellables = Set<AnyCancellable>()
     private var isLoadingData = false // Flag to prevent recursive loading
     
@@ -216,7 +226,8 @@ class CoEquipViewModel: ObservableObject {
                 joinedUsersCount: joinedCount,
                 status: status,
                 creatorName: creatorName,
-                creatorId: request.userId
+                creatorId: request.userId,
+                underlyingRequest: request
             )
             
             coEquipRequests.append(coEquipRequest)

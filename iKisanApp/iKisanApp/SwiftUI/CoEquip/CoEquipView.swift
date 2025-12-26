@@ -116,21 +116,23 @@ struct CoEquipView: View {
                 ForEach(viewModel.currentRequests) { request in
                     if viewModel.selectedTab == .joinRequests {
                         // Show Join Request card with Accept/Reject buttons
-                        CoEquipJoinRequestCard(
-                            request: request,
-                            creatorName: request.creatorName ?? "Unknown",
-                            onAccept: {
-                                viewModel.acceptRequest(request)
-                            },
-                            onReject: {
-                                viewModel.rejectRequest(request)
-                            }
-                        )
+                        // Wrap in NavigationLink for navigation
+                        NavigationLink(destination: destinationView(for: request)) {
+                            CoEquipJoinRequestCard(
+                                request: request,
+                                creatorName: request.creatorName ?? "Unknown",
+                                onAccept: {
+                                    viewModel.acceptRequest(request)
+                                },
+                                onReject: {
+                                    viewModel.rejectRequest(request)
+                                }
+                            )
+                        }
+                        .buttonStyle(.plain)
                     } else {
                         // Show My Request card with status badge
-                        Button {
-                            handleCardTap(request)
-                        } label: {
+                        NavigationLink(destination: destinationView(for: request)) {
                             CoEquipRequestCard(request: request)
                         }
                         .buttonStyle(.plain)
@@ -183,9 +185,24 @@ struct CoEquipView: View {
     
     // MARK: - Actions
     
-    private func handleCardTap(_ request: CoEquipRequest) {
-        // TODO: Navigate to request details
-        print("Tapped request: \(request.equipmentName)")
+    /// Create destination view for navigation
+    @ViewBuilder
+    private func destinationView(for request: CoEquipRequest) -> some View {
+        if let underlyingRequest = request.underlyingRequest {
+            // Navigate to SwiftUI RequestDetailView
+            RequestDetailView(
+                viewModel: RequestDetailViewModel(
+                    request: underlyingRequest,
+                    dataController: viewModel.dataController,
+                    coordinator: nil
+                )
+            )
+        } else {
+            // Fallback if no underlying request
+            Text("Request details unavailable")
+                .font(.headline)
+                .foregroundColor(.secondary)
+        }
     }
 }
 
