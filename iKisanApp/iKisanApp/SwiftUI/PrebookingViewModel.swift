@@ -26,9 +26,12 @@ class PrebookingViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var searchSuggestions: [Equipment] = []
     
+    // MARK: - Public Properties
+    
+    let dataController: DataController // Changed from private to public
+    
     // MARK: - Private Properties
     
-    private let dataController: DataController
     private var cancellables = Set<AnyCancellable>()
     private var groupedEquipments: [String: [Equipment]] = [:]
     private var groupedSearchResults: [String: [Equipment]] = [:]
