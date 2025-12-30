@@ -194,13 +194,14 @@ struct PrebookingView: View {
     @ViewBuilder
     private var reviewBookingView: some View {
         if let equipment = selectedEquipmentForBooking {
-            ReviewBookingViewControllerWrapper(
-                equipment: equipment,
-                bookingType: .prebooking,
-                source: .prebooking,
-                dataController: viewModel.dataController
+            ReviewBookingView(
+                viewModel: ReviewBookingViewModel(
+                    equipment: equipment,
+                    bookingSource: .prebooking,
+                    dataController: viewModel.dataController,
+                    navigationCoordinator: nil
+                )
             )
-            .navigationBarTitleDisplayMode(.inline)
         }
     }
     
@@ -359,39 +360,6 @@ struct EquipmentDescriptionViewControllerWrapper: UIViewControllerRepresentable 
     }
     
     func updateUIViewController(_ uiViewController: EquipmentDescriptionTableViewController, context: Context) {
-        // No updates needed
-    }
-}
-
-// MARK: - UIKit Wrapper for ReviewBookingTableViewController
-
-struct ReviewBookingViewControllerWrapper: UIViewControllerRepresentable {
-    let equipment: Equipment
-    let bookingType: BookingType
-    let source: BookingSource
-    let dataController: DataController
-    
-    func makeUIViewController(context: Context) -> ReviewBookingTableViewController {
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        
-        guard let reviewController = storyboard.instantiateViewController(
-            withIdentifier: "ReviewBookingTableViewController"
-        ) as? ReviewBookingTableViewController else {
-            return ReviewBookingTableViewController()
-        }
-        
-        // Configure the review booking controller
-        reviewController.equipment = equipment
-        reviewController.bookingSource = source
-        reviewController.selectedDate = Date()
-        
-        // Note: Razorpay will be initialized in viewDidAppear of ReviewBookingTableViewController
-        // No need to initialize it here
-        
-        return reviewController
-    }
-    
-    func updateUIViewController(_ uiViewController: ReviewBookingTableViewController, context: Context) {
         // No updates needed
     }
 }
