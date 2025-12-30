@@ -15,6 +15,12 @@ struct PrebookingView: View {
     @State private var selectedEquipmentForDetails: Equipment?
     @State private var showBookingView = false
     @State private var showEquipmentDetails = false
+    @State private var showCancelConfirmation = false
+    @State private var bookingToCancel: (booking: Booking, equipment: Equipment)?
+    @State private var showCancellationAlert = false
+    @State private var cancellationAlertTitle = ""
+    @State private var cancellationAlertMessage = ""
+    @State private var cancellationSuccess = false
     
     init(dataController: DataController) {
         _viewModel = StateObject(wrappedValue: PrebookingViewModel(dataController: dataController))
@@ -56,6 +62,21 @@ struct PrebookingView: View {
                             } header: {
                                 SectionHeaderView(title: "Your Prebookings")
                             }
+                        } else {
+                            // Debug: Show why section is not appearing
+                            Section {
+                                VStack {
+                                    Text("Debug: No prebookings found")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                    Text("Bookings count: \(viewModel.preBookings.count)")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                                .padding()
+                            } header: {
+                                SectionHeaderView(title: "Debug Info")
+                            }
                         }
                         
                         // FAQ Section
@@ -93,6 +114,7 @@ struct PrebookingView: View {
                 await viewModel.refreshData()
             }
             .onAppear {
+                print("🟢 PrebookingView appeared - loading data")
                 viewModel.loadInitialData()
             }
             .background(
@@ -111,6 +133,46 @@ struct PrebookingView: View {
                 )
                 .hidden()
             )
+            .alert("Cancel Prebooking", isPresented: $showCancelConfirmation) {
+                Button("No, Keep Booking", role: .cancel) { }
+                Button("Yes, Cancel", role: .destructive) {
+                    if let bookingInfo = bookingToCancel {
+                        viewModel.cancelBookingConfirmed(bookingInfo.booking)
+                    }
+                }
+            } message: {
+                if let equipment = bookingToCancel?.equipment {
+                    Text("Are you sure you want to cancel this prebooking for \(equipment.name)?")
+                }
+            }
+            .alert(cancellationAlertTitle, isPresented: $showCancellationAlert) {
+                if cancellationSuccess {
+                    Button("OK", role: .cancel) { }
+                } else {
+                    Button("Try Again", role: .none) {
+                        Task {
+                            await viewModel.refreshData()
+                        }
+                    }
+                    Button("OK", role: .cancel) { }
+                }
+            } message: {
+                Text(cancellationAlertMessage)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BookingCancellationComplete"))) { notification in
+                if let userInfo = notification.userInfo,
+                   let success = userInfo["success"] as? Bool {
+                    cancellationSuccess = success
+                    if success {
+                        cancellationAlertTitle = "Prebooking Cancelled"
+                        cancellationAlertMessage = "Your prebooking has been successfully cancelled."
+                    } else {
+                        cancellationAlertTitle = "Cancellation Failed"
+                        cancellationAlertMessage = userInfo["error"] as? String ?? "An error occurred while canceling your booking."
+                    }
+                    showCancellationAlert = true
+                }
+            }
         }
     }
     
@@ -245,7 +307,8 @@ struct PrebookingView: View {
                         showBookingView = true
                     },
                     onCancel: {
-                        viewModel.cancelBooking(booking, equipment: equipment)
+                        bookingToCancel = (booking, equipment)
+                        showCancelConfirmation = true
                     }
                 )
             }

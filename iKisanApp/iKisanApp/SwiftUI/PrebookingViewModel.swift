@@ -58,9 +58,14 @@ class PrebookingViewModel: ObservableObject {
         recommendedEquipments = dataController.getRecommendedEquipments()
         faqs = dataController.getPreBookingFAQs()
         
+        print("🔵 PrebookingView - loadInitialData called")
+        print("📊 Recommended: \(recommendedEquipments.count), FAQs: \(faqs.count)")
+        
         Task {
             await loadAllEquipment()
             await loadPreBookings()
+            
+            print("📊 After loading - PreBookings: \(preBookings.count), Equipment: \(preBookingEquipments.count)")
         }
     }
     
@@ -181,22 +186,64 @@ class PrebookingViewModel: ObservableObject {
     }
     
     func cancelBooking(_ booking: Booking, equipment: Equipment) {
-        // Show confirmation alert and cancel booking
+        // This will be handled by the view with proper alerts
+        // The view will call cancelBookingConfirmed after user confirmation
+    }
+    
+    func cancelBookingConfirmed(_ booking: Booking) {
         Task {
+            var deletionSuccessful = false
+            var errorMessage = "An unknown error occurred while canceling your booking."
+            
             do {
-                try await SupabaseManager.shared.client
+                // Delete the booking record completely
+                let response = try await SupabaseManager.shared.client
                     .from("bookings")
                     .delete()
                     .eq("bookingID", value: booking.bookingID.uuidString)
                     .execute()
                 
+                // Check if the deletion was successful by verifying the response
+                let data = response.data
+                if let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+                   !jsonArray.isEmpty {
+                    // If we got a non-empty response, the deletion was successful
+                    deletionSuccessful = true
+                    print("Booking deletion successful with response: \(jsonArray)")
+                } else {
+                    // Empty response might indicate no records were found/deleted
+                    errorMessage = "Could not find the booking to cancel. It may have already been removed."
+                    print("Booking deletion returned empty response - no records found/deleted")
+                }
+            } catch {
+                errorMessage = "Error: \(error.localizedDescription)"
+                print("Error during booking deletion API call: \(error)")
+            }
+            
+            // Update UI based on result
+            if deletionSuccessful {
                 // Refresh bookings
                 await loadPreBookings()
                 
                 // Post notification for success
-                NotificationCenter.default.post(name: NSNotification.Name("RefreshBookingsList"), object: nil)
-            } catch {
-                print("Error canceling booking: \(error)")
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("RefreshBookingsList"),
+                    object: nil
+                )
+                
+                // Post notification with success status
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("BookingCancellationComplete"),
+                    object: nil,
+                    userInfo: ["success": true]
+                )
+            } else {
+                // Post notification with error
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("BookingCancellationComplete"),
+                    object: nil,
+                    userInfo: ["success": false, "error": errorMessage]
+                )
             }
         }
     }
@@ -224,29 +271,49 @@ class PrebookingViewModel: ObservableObject {
         // Get user ID from session
         guard let session = try? await SupabaseManager.shared.client.auth.session,
               let userID = UUID(uuidString: session.user.id.uuidString) else {
+            print("❌ Could not get user session for loading prebookings")
             return
         }
         
         do {
+            // Fetch all bookings for the user (don't filter by type in query)
             let bookings: [Booking] = try await SupabaseManager.shared.client
                 .from("bookings")
                 .select("*")
                 .eq("userID", value: userID.uuidString)
-                .eq("bookingType", value: BookingType.prebooking.rawValue)
                 .execute()
                 .value
             
-            preBookings = bookings.filter { $0.status == .pending || $0.status == .confirmed }
+            print("📦 Fetched \(bookings.count) total bookings from Supabase")
             
-            // Get equipment for each booking - FIXED: Changed 'by:' to 'byId:'
-            preBookingEquipments = preBookings.compactMap { booking in
-                dataController.getEquipment(byId: booking.equipmentID)
+            // Filter prebookings locally (matching UIKit implementation exactly)
+            preBookings = bookings.filter { booking in
+                let isPrebooking = booking.bookingType == .prebooking && booking.source == .prebooking
+                let isActiveStatus = booking.status == .pending || booking.status == .confirmed
+                return isPrebooking && isActiveStatus
             }
+            
+            print("✅ Filtered to \(preBookings.count) active prebookings")
+            
+            // Get equipment for each booking
+            preBookingEquipments = preBookings.compactMap { booking in
+                let equipment = dataController.getEquipment(byId: booking.equipmentID)
+                if equipment == nil {
+                    print("⚠️ Could not find equipment with ID: \(booking.equipmentID)")
+                }
+                return equipment
+            }
+            
+            print("✅ Loaded \(preBookingEquipments.count) equipment items for prebookings")
             
             // Extract prebooking dates
             prebookingDates = preBookings.map { Calendar.current.startOfDay(for: $0.bookingDate) }
+            
+            print("📅 Prebooking dates: \(prebookingDates)")
+            
         } catch {
-            print("Error loading prebookings: \(error)")
+            print("❌ Error loading prebookings: \(error)")
+            print("Error details: \(error.localizedDescription)")
         }
     }
     

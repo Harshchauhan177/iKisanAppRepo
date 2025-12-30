@@ -233,11 +233,11 @@ enum Season: String {
 
 //MARK: Model for Booking
 //
-enum BookingSource: Codable {
-    case home
-    case prebooking
-    case coEquip
-    case coEquipViewOnly  // New case for view-only mode from request cards
+enum BookingSource: String, Codable {
+    case home = "home"
+    case prebooking = "prebooking"
+    case coEquip = "coEquip"
+    case coEquipViewOnly = "coEquipViewOnly"
 }
 
 //MARK: Model for FAQ
@@ -258,16 +258,18 @@ struct Booking: Codable {
     var status: BookingStatus
     var timeSlot: TimeSlot
     let source: BookingSource//
-    var latitude: Double = 0.0
-    var longitude: Double = 0.0
+    var latitude: Double?  // Changed to optional
+    var longitude: Double?  // Changed to optional
     var address: String?
     
     // Computed property to get booking location as a Location object
     var bookingLocation: Location? {
         get {
             // Only return a location if we have valid coordinates or an address
-            if latitude != 0.0 || longitude != 0.0 || (address != nil && !address!.isEmpty) {
-                return Location(latitude: latitude, longitude: longitude, address: address)
+            if let lat = latitude, let lon = longitude, (lat != 0.0 || lon != 0.0) {
+                return Location(latitude: lat, longitude: lon, address: address)
+            } else if let address = address, !address.isEmpty {
+                return Location(latitude: 0.0, longitude: 0.0, address: address)
             }
             return nil
         }
@@ -277,8 +279,8 @@ struct Booking: Codable {
                 self.longitude = newLocation.longitude
                 self.address = newLocation.address
             } else {
-                self.latitude = 0.0
-                self.longitude = 0.0
+                self.latitude = nil
+                self.longitude = nil
                 self.address = nil
             }
         }
@@ -294,8 +296,8 @@ struct Booking: Codable {
          status: BookingStatus, 
          timeSlot: TimeSlot, 
          source: BookingSource, 
-         latitude: Double = 0.0,
-         longitude: Double = 0.0,
+         latitude: Double? = nil,
+         longitude: Double? = nil,
          address: String? = nil) {
         self.bookingID = bookingID
         self.userID = userID
@@ -337,8 +339,8 @@ struct Booking: Codable {
             self.longitude = location.longitude
             self.address = location.address
         } else {
-            self.latitude = 0.0
-            self.longitude = 0.0
+            self.latitude = nil
+            self.longitude = nil
             self.address = nil
         }
     }
