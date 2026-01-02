@@ -181,11 +181,15 @@ struct PrebookingView: View {
     @ViewBuilder
     private var equipmentDetailsView: some View {
         if let equipment = selectedEquipmentForDetails {
-            EquipmentDescriptionViewControllerWrapper(
-                equipment: equipment,
-                bookingSource: .prebooking
+            EquipmentDetailView(
+                viewModel: EquipmentDetailViewModel(
+                    equipment: equipment,
+                    bookingSource: .prebooking,
+                    dataController: viewModel.dataController,
+                    navigationCoordinator: nil
+                )
             )
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(true)
         }
     }
     
@@ -334,32 +338,5 @@ struct PrebookingView: View {
         .sheet(item: $viewModel.selectedFAQ) { faq in
             FAQDetailView(faq: faq)
         }
-    }
-}
-
-// MARK: - UIKit Wrapper for EquipmentDescriptionTableViewController
-
-struct EquipmentDescriptionViewControllerWrapper: UIViewControllerRepresentable {
-    let equipment: Equipment
-    let bookingSource: BookingSource
-    
-    func makeUIViewController(context: Context) -> EquipmentDescriptionTableViewController {
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-        
-        guard let equipmentDescriptionVC = storyboard.instantiateViewController(
-            withIdentifier: "EquipmentDescriptionTableViewController"
-        ) as? EquipmentDescriptionTableViewController else {
-            return EquipmentDescriptionTableViewController()
-        }
-        
-        // Configure the equipment description view controller
-        equipmentDescriptionVC.equipment = equipment
-        equipmentDescriptionVC.bookingSource = bookingSource
-        
-        return equipmentDescriptionVC
-    }
-    
-    func updateUIViewController(_ uiViewController: EquipmentDescriptionTableViewController, context: Context) {
-        // No updates needed
     }
 }
