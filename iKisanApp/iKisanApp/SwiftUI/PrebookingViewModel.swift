@@ -181,8 +181,8 @@ class PrebookingViewModel: ObservableObject {
     }
     
     func modifyBooking(_ booking: Booking, equipment: Equipment) {
-        // Navigate to modify booking screen
-        // This will be handled by navigation in the view
+        // Set modification state - this will be used by the view to navigate
+        // The view will pass this booking to ReviewBookingView for modification
     }
     
     func cancelBooking(_ booking: Booking, equipment: Equipment) {

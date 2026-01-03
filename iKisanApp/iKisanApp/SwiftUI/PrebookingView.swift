@@ -22,6 +22,10 @@ struct PrebookingView: View {
     @State private var cancellationAlertMessage = ""
     @State private var cancellationSuccess = false
     
+    // Add state for modification
+    @State private var bookingToModify: Booking?
+    @State private var isModifyingBooking = false
+    
     init(dataController: DataController) {
         _viewModel = StateObject(wrappedValue: PrebookingViewModel(dataController: dataController))
     }
@@ -98,7 +102,7 @@ struct PrebookingView: View {
             .navigationTitle("Pre Booking")
             .searchable(text: $searchText, isPresented: $isSearching, prompt: "Search Equipment")
             .onChange(of: searchText) { newValue in
-                if !newValue.isEmpty {
+                if (!newValue.isEmpty) {
                     viewModel.updateSearchSuggestions(query: newValue)
                 } else {
                     viewModel.clearSearch()
@@ -209,9 +213,18 @@ struct PrebookingView: View {
                     equipment: equipment,
                     bookingSource: .prebooking,
                     dataController: viewModel.dataController,
-                    navigationCoordinator: nil
+                    navigationCoordinator: nil,
+                    existingBooking: bookingToModify,
+                    isModifying: isModifyingBooking,
+                    selectedDate: isModifyingBooking ? bookingToModify?.bookingDate : viewModel.selectedDate
                 )
             )
+            .onDisappear {
+                // Reset modification state when view disappears
+                bookingToModify = nil
+                isModifyingBooking = false
+                selectedEquipmentForBooking = nil
+            }
         }
     }
     
@@ -315,6 +328,8 @@ struct PrebookingView: View {
                     onModify: {
                         // Navigate to booking screen for modification
                         selectedEquipmentForBooking = equipment
+                        bookingToModify = booking
+                        isModifyingBooking = true
                         showBookingView = true
                     },
                     onCancel: {
