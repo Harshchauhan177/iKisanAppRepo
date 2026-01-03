@@ -154,26 +154,68 @@ struct JoinRequestInputView: View {
                 .textCase(.uppercase)
             
             VStack(spacing: 16) {
-                HStack {
+                HStack(spacing: 12) {
                     Image(systemName: "square.grid.3x3.fill")
                         .font(.system(size: 20))
                         .foregroundColor(.brown)
                         .frame(width: 32)
                     
-                    TextField("Enter your area", text: $viewModel.fieldAreaInput)
-                        .keyboardType(.decimalPad)
-                        .font(.system(size: 17))
-                        .focused($isFieldFocused)
-                    
-                    Text("acres")
-                        .font(.system(size: 15))
-                        .foregroundColor(.secondary)
+                    // Text field and unit selector side by side
+                    HStack(spacing: 12) {
+                        TextField("Enter area", text: $viewModel.fieldAreaInput)
+                            .keyboardType(.decimalPad)
+                            .font(.system(size: 17))
+                            .focused($isFieldFocused)
+                            .frame(maxWidth: .infinity)
+                        
+                        // Unit selector dropdown
+                        Menu {
+                            ForEach(AreaUnit.allCases) { unit in
+                                Button {
+                                    viewModel.selectedUnit = unit
+                                } label: {
+                                    HStack {
+                                        Text(unit.rawValue)
+                                        if viewModel.selectedUnit == unit {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(viewModel.selectedUnit.rawValue)
+                                    .font(.system(size: 15, weight: .medium))
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .font(.system(size: 10, weight: .semibold))
+                            }
+                            .foregroundColor(ikisanGreen)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(ikisanGreen.opacity(0.1))
+                            .clipShape(Capsule())
+                        }
+                    }
                 }
                 .padding(16)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color(UIColor.tertiarySystemGroupedBackground))
                 )
+                
+                // Conversion display (if not in acres)
+                if !viewModel.convertedAreaText.isEmpty {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.caption)
+                            .foregroundColor(ikisanGreen)
+                        Text(viewModel.convertedAreaText)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 4)
+                }
                 
                 // Validation message
                 if !viewModel.validationMessage.isEmpty {
@@ -186,6 +228,7 @@ struct JoinRequestInputView: View {
                             .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 4)
                 }
             }
             .padding(16)

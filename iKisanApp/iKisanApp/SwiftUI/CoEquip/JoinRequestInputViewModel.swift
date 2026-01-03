@@ -8,6 +8,43 @@
 import Foundation
 import Combine
 
+/// Area units for agricultural land measurement
+enum AreaUnit: String, CaseIterable, Identifiable {
+    case acre = "Acre"
+    case hectare = "Hectare"
+    case bigha = "Bigha"
+    case guntha = "Guntha"
+    case biswa = "Biswa"
+    
+    var id: String { rawValue }
+    
+    /// Conversion factor to convert this unit to acres
+    var toAcresFactor: Double {
+        switch self {
+        case .acre:
+            return 1.0
+        case .hectare:
+            return 2.47105 // 1 hectare = 2.47105 acres
+        case .bigha:
+            return 0.62 // 1 bigha ≈ 0.62 acres (varies by region, using standard conversion)
+        case .guntha:
+            return 0.025 // 1 guntha ≈ 0.025 acres
+        case .biswa:
+            return 0.031 // 1 biswa ≈ 0.031 acres
+        }
+    }
+    
+    /// Convert a value in this unit to acres
+    func toAcres(_ value: Double) -> Double {
+        return value * toAcresFactor
+    }
+    
+    /// Convert a value from acres to this unit
+    func fromAcres(_ acres: Double) -> Double {
+        return acres / toAcresFactor
+    }
+}
+
 /// ViewModel for join request input modal
 /// Handles validation, capacity calculations, and join confirmation
 @MainActor
@@ -15,6 +52,7 @@ class JoinRequestInputViewModel: ObservableObject {
     // MARK: - Published Properties
     
     @Published var fieldAreaInput: String = ""
+    @Published var selectedUnit: AreaUnit = .acre
     @Published var showError: Bool = false
     @Published var errorMessage: String = ""
     @Published var isProcessing: Bool = false
@@ -22,13 +60,30 @@ class JoinRequestInputViewModel: ObservableObject {
     
     // MARK: - Computed Properties
     
+    /// The area entered by user converted to acres (standardized)
+    var areaInAcres: Double? {
+        guard let value = Double(fieldAreaInput) else { return nil }
+        return selectedUnit.toAcres(value)
+    }
+    
+    /// Display text showing the converted value in acres
+    var convertedAreaText: String {
+        guard let acres = areaInAcres, acres > 0 else { return "" }
+        
+        if selectedUnit == .acre {
+            return "" // No need to show conversion if already in acres
+        }
+        
+        return String(format: "≈ %.2f acres", acres)
+    }
+    
     var isValidInput: Bool {
-        guard let area = Double(fieldAreaInput), area > 0 else {
+        guard let acres = areaInAcres, acres > 0 else {
             return false
         }
         
-        // Check if adding this area would exceed capacity
-        let newTotal = currentTotalArea + area
+        // Check if adding this area (in acres) would exceed capacity
+        let newTotal = currentTotalArea + acres
         return newTotal <= capacity
     }
     
@@ -37,18 +92,23 @@ class JoinRequestInputViewModel: ObservableObject {
             return ""
         }
         
-        guard let area = Double(fieldAreaInput) else {
+        guard let value = Double(fieldAreaInput) else {
             return "Please enter a valid number"
         }
         
-        if area <= 0 {
+        if value <= 0 {
             return "Area must be greater than 0"
         }
         
-        let newTotal = currentTotalArea + area
+        guard let acres = areaInAcres else {
+            return "Invalid area value"
+        }
+        
+        let newTotal = currentTotalArea + acres
         if newTotal > capacity {
             let remaining = capacity - currentTotalArea
-            return "Exceeds capacity. Maximum available: \(String(format: "%.2f", remaining)) acres"
+            let remainingInSelectedUnit = selectedUnit.fromAcres(remaining)
+            return "Exceeds capacity. Maximum available: \(String(format: "%.2f", remainingInSelectedUnit)) \(selectedUnit.rawValue.lowercased())"
         }
         
         return ""
@@ -134,14 +194,14 @@ class JoinRequestInputViewModel: ObservableObject {
     // MARK: - Public Methods
     
     func confirmJoin() async {
-        guard let area = Double(fieldAreaInput), area > 0 else {
+        guard let acres = areaInAcres, acres > 0 else {
             errorMessage = "Please enter a valid field area"
             showError = true
             return
         }
         
         // Final validation before processing
-        let newTotal = currentTotalArea + area
+        let newTotal = currentTotalArea + acres
         guard newTotal <= capacity else {
             errorMessage = "Adding this area would exceed the group capacity"
             showError = true
@@ -150,8 +210,8 @@ class JoinRequestInputViewModel: ObservableObject {
         
         isProcessing = true
         
-        // Call the success handler which will trigger the actual backend update
-        onJoinSuccess(area)
+        // Call the success handler with the standardized area in acres
+        onJoinSuccess(acres)
         
         // Mark as successful
         joinSuccessful = true
