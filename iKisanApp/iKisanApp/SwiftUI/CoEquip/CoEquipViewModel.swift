@@ -75,23 +75,34 @@ class CoEquipViewModel: ObservableObject {
         self.dataController = dataController
         setupNotificationObservers()
         
-        if dataController != nil {
-            // Load from existing data without backend fetch
-            Task {
-                await reloadLocalData()
-            }
-        }
+        // Don't load data immediately - wait for .dataInitiallyLoaded notification
+        // This prevents race conditions with the DataController's async init
     }
     
     // MARK: - Notification Observers
     
     private func setupNotificationObservers() {
+        // Listen for data updates
         NotificationCenter.default.publisher(for: .requestsUpdated)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
+                guard let self = self, !self.isLoadingData else { return }
                 Task { @MainActor in
-                    // Only reload data without triggering backend fetch
-                    await self?.reloadLocalData()
+                    // Only reload local data without triggering backend fetch
+                    await self.reloadLocalData()
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Listen for initial data load completion
+        NotificationCenter.default.publisher(for: .dataInitiallyLoaded)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task { @MainActor in
+                    print("📥 Received dataInitiallyLoaded notification")
+                    // Load the initially fetched data
+                    await self.reloadLocalData()
                 }
             }
             .store(in: &cancellables)
@@ -103,13 +114,11 @@ class CoEquipViewModel: ObservableObject {
     func loadRequests() async {
         // Prevent recursive calls
         guard !isLoadingData else {
-            print("⚠️ CoEquipViewModel: Already loading data, skipping")
             return
         }
         
         guard let dataController = dataController,
               let currentUser = dataController.getCurrentUser() else {
-            print("⚠️ CoEquipViewModel: DataController or current user not available")
             return
         }
         
@@ -117,9 +126,7 @@ class CoEquipViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        print("🔄 CoEquipViewModel: Loading requests from backend...")
-        
-        // Load data from backend
+        // Load data from backend (silently)
         await dataController.loadDataFromBackend()
         
         // Process local data
@@ -127,8 +134,6 @@ class CoEquipViewModel: ObservableObject {
         
         isLoading = false
         isLoadingData = false
-        
-        print("✅ CoEquipViewModel: Loaded \(myRequests.count) my requests and \(joinRequests.count) join requests")
     }
     
     /// Reload data from local cache (without backend fetch)
@@ -143,14 +148,10 @@ class CoEquipViewModel: ObservableObject {
         
         isLoadingData = true
         
-        print("🔄 CoEquipViewModel: Reloading from local data...")
-        
         // Process local data without triggering backend fetch
         await processRequests(currentUser: currentUser)
         
         isLoadingData = false
-        
-        print("✅ CoEquipViewModel: Reloaded \(myRequests.count) my requests and \(joinRequests.count) join requests")
     }
     
     /// Process requests from DataController

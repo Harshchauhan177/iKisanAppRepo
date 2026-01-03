@@ -277,10 +277,7 @@ class IKisanDataController: DataController {
         if let user = cachedUsers.first(where: { $0.userID == id }) {
             return user
         }
-        else{
-            print("User not found in \(cachedUsers) with id \(id)")
-        }
-        // If not found in cache, return nil
+        // Silently return nil if user not found - this is expected behavior
         // The cache will be updated next time getAllUsers() is called
         return nil
     }
@@ -389,13 +386,11 @@ class IKisanDataController: DataController {
             print("Loaded selected crops: \(selectedCrops)")
         }
         
-        // Eagerly fetch crops from Supabase when controller is initialized
+        // Eagerly fetch crops from Supabase when controller is initialized (silently)
         Task {
-            print("Fetching crops from Supabase...")
             let fetchedCrops = await requestManager.fetchCrops()
             await MainActor.run {
                 self.crops = fetchedCrops
-                print("Fetched \(fetchedCrops.count) crops from Supabase")
                 // Notify any UI that needs updating
                 NotificationCenter.default.post(name: NSNotification.Name("CropsUpdated"), object: nil)
             }
@@ -418,12 +413,18 @@ class IKisanDataController: DataController {
         self.cachedUsers = getAllUsers()
         // Load requests and update the local arrays
         self.coEquipRequests = await requestManager.fetchRequests()
-        print("Debug: Fetched \(self.coEquipRequests.count) requests from database")
         self.acceptedRequests = self.coEquipRequests.filter { $0.status == .confirmed }
-        print("Debug: Filtered \(self.acceptedRequests.count) accepted requests")
         
         // Make a local copy of suggestions for quick access
         self.suggestionList = self.equipmentList.filter { $0.isRecommended }
+        
+        print("✅ Initial data load complete: \(self.coEquipRequests.count) requests loaded")
+        
+        // Post notification for initial load completion (only once at startup)
+        // This allows views to display data after the first load
+        await MainActor.run {
+            NotificationCenter.default.post(name: .dataInitiallyLoaded, object: nil)
+        }
     }
     
     func getAllEquipment() -> [Equipment] {
@@ -745,14 +746,29 @@ class IKisanDataController: DataController {
     }
     
     func getAllCoEquipRequests() -> [Request] {
-        // Trigger a refresh of the requests
-        Task {
-            self.coEquipRequests = await requestManager.fetchRequests()
+        // Return cached requests without triggering a fetch
+        // Fetches are handled by explicit refresh calls only
+        return coEquipRequests
+    }
+    
+    // Explicit refresh method for when data needs to be updated
+    func refreshCoEquipRequests() async {
+        let newRequests = await requestManager.fetchRequests()
+        
+        print("🔄 refreshCoEquipRequests: Fetched \(newRequests.count) requests from backend")
+        print("📊 Current local requests: \(self.coEquipRequests.count)")
+        
+        // Only update and notify if data has actually changed
+        if newRequests.count != self.coEquipRequests.count || newRequests != self.coEquipRequests {
+            print("✅ Data changed, updating and posting notification")
+            self.coEquipRequests = newRequests
+            self.acceptedRequests = self.coEquipRequests.filter { $0.status == .confirmed }
             DispatchQueue.main.async {
                 NotificationCenter.default.post(name: .requestsUpdated, object: nil)
             }
+        } else {
+            print("ℹ️ No data changes detected, skipping update")
         }
-        return coEquipRequests
     }
     
     func getAcceptedRequests() -> [Request] {
@@ -826,19 +842,14 @@ class IKisanDataController: DataController {
         // Convert the UUID to lowercase for comparison
         let lowercaseId = id.uuidString.lowercased()
         
-        print("Searching for equipment with ID: \(lowercaseId)")
-        
         // First try exact match
         if let equipment = equipmentList.first(where: { $0.equipmentID.uuidString.lowercased() == lowercaseId }) {
-            print("Found equipment: \(equipment.name) with ID: \(equipment.equipmentID.uuidString.lowercased())")
             return equipment
         }
         
         // If exact match fails, try to find equipment by name "Square Balers" 
         // since this is the ID we know should work from the error message
-        print("Exact match failed, searching for 'Square Balers'")
         if let squareBalers = equipmentList.first(where: { $0.name == "Square Balers" }) {
-            print("Found Square Balers with ID: \(squareBalers.equipmentID.uuidString.lowercased())")
             return squareBalers
         }
         
@@ -1179,7 +1190,7 @@ class RequestManager {
                 let equipmentID = equipmentData[i].equipmentID
                 if let images = imagesByEquipmentID[equipmentID], !images.isEmpty {
                     equipmentData[i].equipmentMoreImages = EquipmentMoreImages(images: images)
-                    print("✅ Loaded \(images.count) additional images for equipment: \(equipmentData[i].name)")
+                    // Silently loaded additional images
                 }
             }
             
@@ -1222,7 +1233,7 @@ class RequestManager {
     
     func fetchRequests() async -> [Request] {
         do {
-            print("🔄 Fetching requests from database...")
+            // Fetch requests from database
             
             // Get the raw data with participants and acceptedUser
             let rawData = try await SupabaseManager.shared.client
@@ -1312,7 +1323,7 @@ class RequestManager {
             
             let requestsWithParticipants = try decoder.decode([RequestWithParticipants].self, from: rawData)
             
-            print("📝 Decoded \(requestsWithParticipants.count) requests from database")
+            // Decoded requests from database (silent logging)
             
             // Convert to domain models
             var requests: [Request] = []
@@ -1330,12 +1341,7 @@ class RequestManager {
                     )
                 } ?? []
                 
-                // Debug print acceptedUser array
-                if let acceptedUsers = dto.acceptedUser {
-                    print("📍 Request \(dto.id) has \(acceptedUsers.count) accepted users: \(acceptedUsers)")
-                } else {
-                    print("📍 Request \(dto.id) has no accepted users")
-                }
+                // Silently process acceptedUser array
                 
                 // Create the request with all data
                 let request = Request(
@@ -1357,7 +1363,7 @@ class RequestManager {
                 requests.append(request)
             }
             
-            print("✅ Successfully fetched and processed \(requests.count) requests")
+            // Successfully fetched requests
             return requests
             
         } catch {
@@ -1502,7 +1508,7 @@ class RequestManager {
     
     func fetchBookings() async -> [Booking] {
         do {
-            print("Fetching bookings from database...")
+            // Fetching bookings from database (silent)
             
             // Only fetch bookings for the currently logged-in user
             guard let currentUser = AuthManager.shared.currentUser else {
@@ -1526,11 +1532,10 @@ class RequestManager {
                 return []
             }
             
-            print("Received \(bookingsData.count) bookings from database")
+            // Silently processing bookings
             
             // Manually parse the data
             var bookings: [Booking] = []
-            var bookingTypeCount: [String: Int] = [:]
             
             for item in bookingsData {
                 if let bookingIDString = item["bookingID"] as? String,
@@ -1583,19 +1588,12 @@ class RequestManager {
                             source: bookingSource
                         )
                         
-                        // Track booking types
-                        bookingTypeCount[bookingTypeString, default: 0] += 1
-                        
                         bookings.append(booking)
                     }
                 }
             }
             
-            print("Successfully parsed \(bookings.count) bookings")
-            print("📊 Booking Types Breakdown:")
-            for (type, count) in bookingTypeCount.sorted(by: { $0.key < $1.key }) {
-                print("  - \(type): \(count)")
-            }
+            // Silently processed bookings
             return bookings
         } catch {
             print("Error fetching bookings: \(error)")
@@ -2219,6 +2217,7 @@ extension Notification.Name {
     static let usersLoaded = Notification.Name("usersLoaded")
     static let requestsUpdated = Notification.Name("requestsUpdated")
     static let equipmentUpdated = Notification.Name("equipmentUpdated")
+    static let dataInitiallyLoaded = Notification.Name("dataInitiallyLoaded")
 }
 
 //

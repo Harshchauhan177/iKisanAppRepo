@@ -239,31 +239,20 @@ class RequestDetailViewModel: ObservableObject {
     /// Farmers who have joined (accepted or confirmed) the request
     var joinedFarmers: [ParticipantInfo] {
         guard isMyRequest, let requestParticipants = request.participants else {
-            print("⚠️ joinedFarmers: No participants or not my request")
-            print("   isMyRequest: \(isMyRequest)")
-            print("   participants count: \(request.participants?.count ?? 0)")
             return []
         }
         
-        print("📊 Processing \(requestParticipants.count) participants")
-        
         // Fetch real participant data with their user information
         let farmers = requestParticipants.compactMap { participant -> ParticipantInfo? in
-            print("   Participant: userId=\(participant.userId), status=\(participant.status)")
-            
             // Only exclude rejected participants (show pending, accepted, and done)
             guard participant.status != .rejected else {
-                print("   ⏭️ Skipping rejected participant")
                 return nil
             }
             
             // Fetch real user data from DataController
             guard let user = dataController?.getUserById(participant.userId) else {
-                print("   ⚠️ User not found for userId: \(participant.userId)")
                 return nil
             }
-            
-            print("   ✅ Adding farmer: \(user.name)")
             
             return ParticipantInfo(
                 id: participant.id,
@@ -275,7 +264,6 @@ class RequestDetailViewModel: ObservableObject {
             )
         }
         
-        print("📊 Total joined farmers: \(farmers.count)")
         return farmers
     }
     
