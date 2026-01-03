@@ -186,7 +186,13 @@ struct PrebookingView: View {
                     equipment: equipment,
                     bookingSource: .prebooking,
                     dataController: viewModel.dataController,
-                    navigationCoordinator: nil
+                    navigationCoordinator: nil,
+                    onBookTapped: {
+                        // When Book button is tapped in details view, navigate to booking
+                        selectedEquipmentForBooking = equipment
+                        showEquipmentDetails = false
+                        showBookingView = true
+                    }
                 )
             )
             .navigationBarHidden(true)
@@ -257,7 +263,7 @@ struct PrebookingView: View {
                 ForEach(viewModel.recommendedEquipments, id: \.equipmentID) { equipment in
                     RecommendedEquipmentCard(equipment: equipment)
                         .onTapGesture {
-                            // Navigate to equipment details (like UIKit version)
+                            // Navigate to equipment details screen first
                             selectedEquipmentForDetails = equipment
                             showEquipmentDetails = true
                         }

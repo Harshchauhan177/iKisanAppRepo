@@ -103,6 +103,7 @@ class EquipmentDetailViewModel: ObservableObject {
     private let dataController: DataController?
     private var bookingSource: BookingSource
     weak var navigationCoordinator: HomeNavigationCoordinator?
+    var onBookTapped: (() -> Void)?  // Callback for SwiftUI navigation
     
     // MARK: - Initialization
     
@@ -110,12 +111,14 @@ class EquipmentDetailViewModel: ObservableObject {
         equipment: Equipment,
         bookingSource: BookingSource,
         dataController: DataController?,
-        navigationCoordinator: HomeNavigationCoordinator?
+        navigationCoordinator: HomeNavigationCoordinator?,
+        onBookTapped: (() -> Void)? = nil
     ) {
         self.equipment = equipment
         self.bookingSource = bookingSource
         self.dataController = dataController
         self.navigationCoordinator = navigationCoordinator
+        self.onBookTapped = onBookTapped
         
         loadReviews()
         checkUserBookingStatus()
@@ -252,8 +255,15 @@ class EquipmentDetailViewModel: ObservableObject {
         print("   Equipment: \(equipment.name)")
         print("   Booking Source: \(bookingSource)")
         
+        // Try using the callback first (for SwiftUI navigation)
+        if let onBookTapped = onBookTapped {
+            print("✅ Using SwiftUI callback for navigation")
+            onBookTapped()
+            return
+        }
+        
         guard let coordinator = navigationCoordinator else {
-            print("❌ Navigation coordinator is nil!")
+            print("❌ Navigation coordinator is nil and no callback provided!")
             return
         }
         
