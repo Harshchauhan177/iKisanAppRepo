@@ -222,35 +222,57 @@ struct CoEquipJoinRequestCard: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Right - Action Buttons (Capsule shaped)
-            VStack(spacing: 12) {
-                // Accept Button
-                Button(action: onAccept) {
-                    Text("Accept")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.white)
-                        .frame(width: 80, height: 36)
-                        .background(ikisanGreen)
-                        .clipShape(Capsule())
+            // Right - Action Buttons or Joined Badge
+            if request.hasJoined {
+                // Show "Joined" badge
+                VStack {
+                    Spacer()
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.subheadline)
+                        Text("Joined")
+                            .font(.subheadline.weight(.semibold))
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .foregroundColor(ikisanGreen)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(ikisanGreen.opacity(0.1))
+                    .clipShape(Capsule())
+                    Spacer()
                 }
-                .buttonStyle(.plain)
-                
-                // Reject Button
-                Button(action: onReject) {
-                    Text("Reject")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.red)
-                        .frame(width: 80, height: 36)
-                        .background(Color.red.opacity(0.08))
-                        .overlay(
-                            Capsule()
-                                .stroke(Color.red, lineWidth: 1)
-                        )
-                        .clipShape(Capsule())
+            } else {
+                // Right - Action Buttons (Capsule shaped)
+                VStack(spacing: 12) {
+                    // Accept Button
+                    Button(action: onAccept) {
+                        Text("Accept")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 80, height: 36)
+                            .background(ikisanGreen)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    
+                    // Reject Button
+                    Button(action: onReject) {
+                        Text("Reject")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.red)
+                            .frame(width: 80, height: 36)
+                            .background(Color.red.opacity(0.08))
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.red, lineWidth: 1)
+                            )
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Spacer()
                 }
-                .buttonStyle(.plain)
-                
-                Spacer()
             }
         }
         .padding(14)
@@ -274,7 +296,8 @@ struct CoEquipJoinRequestCard: View {
             status: .pending,
             creatorName: nil,
             creatorId: nil,
-            underlyingRequest: nil
+            underlyingRequest: nil,
+            hasJoined: false
         )
     )
     .padding()
@@ -293,7 +316,8 @@ struct CoEquipJoinRequestCard: View {
             status: .pending,
             creatorName: "Harsh Chauhan",
             creatorId: UUID(),
-            underlyingRequest: nil
+            underlyingRequest: nil,
+            hasJoined: false
         ),
         creatorName: "Harsh Chauhan",
         onAccept: { print("Accept tapped") },

@@ -101,8 +101,30 @@ struct CoEquipView: View {
                 Text("Create New Request")
                     .font(.title)
             }
+            .sheet(isPresented: $viewModel.showJoinInputSheet) {
+                if let request = viewModel.selectedRequestForJoin {
+                    JoinRequestInputView(
+                        viewModel: JoinRequestInputViewModel(
+                            request: request,
+                            dataController: viewModel.dataController,
+                            onJoinSuccess: { fieldArea in
+                                Task {
+                                    await viewModel.confirmJoin(request: request, fieldArea: fieldArea)
+                                }
+                            }
+                        )
+                    )
+                }
+            }
             .refreshable {
                 await viewModel.refreshData()
+            }
+            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil), presenting: viewModel.errorMessage) { message in
+                Button("OK") {
+                    viewModel.errorMessage = nil
+                }
+            } message: { message in
+                Text(message)
             }
         }
     }

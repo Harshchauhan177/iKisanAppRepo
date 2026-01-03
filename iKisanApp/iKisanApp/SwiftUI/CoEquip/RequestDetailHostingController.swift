@@ -59,28 +59,25 @@ class RequestDetailHostingController: UIHostingController<RequestDetailView>, Co
         }
     }
     
-    func navigateToModifyRequest(request: Request, equipment: Equipment) {
-        // Navigate to InfoTableViewController for modification
-        let storyboard = UIStoryboard(name: "Tab3Coequip", bundle: nil)
-        
-        if let infoVC = storyboard.instantiateViewController(withIdentifier: "InfoTableViewController") as? InfoTableViewController {
-            infoVC.isModifying = true
-            infoVC.existingRequest = request
-            infoVC.cardData = equipment
-            infoVC.dataController = dataController
-            navigationController?.pushViewController(infoVC, animated: true)
-        }
+    func navigateToModifyRequest(request: Request) {
+        // Note: Modify is now handled via sheet in RequestDetailView
+        // This method kept for protocol conformance but not used
+        print("⚠️ navigateToModifyRequest called but now handled via sheet")
     }
     
-    func navigateToEquipmentDetail(equipment: Equipment) {
-        // Fallback to UIKit equipment detail
-        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
+    func navigateToEquipmentDetail(equipment: Equipment, isReadOnly: Bool) {
+        // Navigate to SwiftUI EquipmentDetailView in read-only mode
+        let viewModel = EquipmentDetailViewModel(
+            equipment: equipment,
+            bookingSource: .coEquipViewOnly,
+            dataController: dataController,
+            navigationCoordinator: nil,
+            isReadOnly: isReadOnly
+        )
         
-        if let equipmentDetailVC = storyboard.instantiateViewController(withIdentifier: "EquipmentDescriptionTableViewController") as? EquipmentDescriptionTableViewController {
-            equipmentDetailVC.equipment = equipment
-            equipmentDetailVC.bookingSource = .coEquipViewOnly
-            navigationController?.pushViewController(equipmentDetailVC, animated: true)
-        }
+        let detailView = EquipmentDetailView(viewModel: viewModel)
+        let hostingController = UIHostingController(rootView: detailView)
+        navigationController?.pushViewController(hostingController, animated: true)
     }
     
     func dismissRequestDetail() {

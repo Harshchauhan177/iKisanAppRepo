@@ -212,8 +212,9 @@ struct EquipmentImageRecord: Codable {
 
 //MARK: Model for User
 
-struct User: Codable , Hashable {
+struct User: Codable, Hashable, Identifiable {
     
+    var id: UUID { userID }
     
     let userID: UUID
     var name: String

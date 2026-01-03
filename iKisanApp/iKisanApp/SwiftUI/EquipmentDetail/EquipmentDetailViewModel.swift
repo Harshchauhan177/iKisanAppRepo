@@ -103,6 +103,7 @@ class EquipmentDetailViewModel: ObservableObject {
     private let dataController: DataController?
     private var bookingSource: BookingSource
     weak var navigationCoordinator: HomeNavigationCoordinator?
+    let isReadOnly: Bool // New property for read-only mode
     
     // MARK: - Initialization
     
@@ -110,12 +111,14 @@ class EquipmentDetailViewModel: ObservableObject {
         equipment: Equipment,
         bookingSource: BookingSource,
         dataController: DataController?,
-        navigationCoordinator: HomeNavigationCoordinator?
+        navigationCoordinator: HomeNavigationCoordinator?,
+        isReadOnly: Bool = false
     ) {
         self.equipment = equipment
         self.bookingSource = bookingSource
         self.dataController = dataController
         self.navigationCoordinator = navigationCoordinator
+        self.isReadOnly = isReadOnly
         
         loadReviews()
         checkUserBookingStatus()

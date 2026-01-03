@@ -98,25 +98,35 @@ struct EquipmentHeaderCard: View {
                 
                 Spacer()
                 
-                // Book button
-                Button(action: {
-                    // Haptic feedback following HIG
-                    let generator = UIImpactFeedbackGenerator(style: .medium)
-                    generator.prepare()
-                    generator.impactOccurred()
-                    
-                    print("📱 Book button tapped in SwiftUI EquipmentHeaderCard")
-                    viewModel.bookEquipment()
-                }) {
-                    Text("Book")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
+                // Book button - disabled in read-only mode
+                if viewModel.isReadOnly {
+                    // Show disabled/hidden state in read-only mode
+                    Text("View Only")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.secondary)
                         .frame(width: 90, height: 44)
-                        .background(Color(red: 0.298, green: 0.498, blue: 0.345))
+                        .background(Color(.systemGray5))
                         .clipShape(Capsule())
+                } else {
+                    Button(action: {
+                        // Haptic feedback following HIG
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.prepare()
+                        generator.impactOccurred()
+                        
+                        print("📱 Book button tapped in SwiftUI EquipmentHeaderCard")
+                        viewModel.bookEquipment()
+                    }) {
+                        Text("Book")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 90, height: 44)
+                            .background(Color(red: 0.298, green: 0.498, blue: 0.345))
+                            .clipShape(Capsule())
+                    }
+                    .accessibilityLabel("Book this equipment")
+                    .accessibilityHint("Double tap to view booking options")
                 }
-                .accessibilityLabel("Book this equipment")
-                .accessibilityHint("Double tap to view booking options")
             }
         }
         .padding(16)

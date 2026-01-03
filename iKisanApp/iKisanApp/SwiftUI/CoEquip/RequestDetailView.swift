@@ -70,14 +70,40 @@ struct RequestDetailView: View {
         } message: {
             Text(viewModel.errorMessage)
         }
-        .alert("Confirm Action", isPresented: $viewModel.showConfirmation) {
+        .alert("Confirm Delete", isPresented: $viewModel.showConfirmation) {
             Button("Cancel", role: .cancel) {}
-            Button(viewModel.confirmationAction == .accept ? "Accept" : "Decline", 
-                   role: viewModel.confirmationAction == .decline ? .destructive : nil) {
+            Button(
+                viewModel.confirmationAction == .delete ? "Delete" : (viewModel.confirmationAction == .accept ? "Accept" : "Decline"),
+                role: viewModel.confirmationAction == .delete || viewModel.confirmationAction == .decline ? .destructive : nil
+            ) {
                 viewModel.confirmAction()
             }
         } message: {
             Text(viewModel.confirmationMessage)
+        }
+        .sheet(isPresented: $viewModel.showModifySheet) {
+            if let dataController = viewModel.dataController {
+                ModifyRequestView(
+                    viewModel: ModifyRequestViewModel(
+                        request: viewModel.request,
+                        dataController: dataController
+                    )
+                )
+                .interactiveDismissDisabled(false)
+            }
+        }
+        .navigationDestination(isPresented: $viewModel.showEquipmentDetail) {
+            if let equipment = viewModel.cachedEquipment {
+                EquipmentDetailView(
+                    viewModel: EquipmentDetailViewModel(
+                        equipment: equipment,
+                        bookingSource: .coEquipViewOnly,
+                        dataController: viewModel.dataController,
+                        navigationCoordinator: nil,
+                        isReadOnly: true
+                    )
+                )
+            }
         }
         .overlay {
             if viewModel.isLoading {

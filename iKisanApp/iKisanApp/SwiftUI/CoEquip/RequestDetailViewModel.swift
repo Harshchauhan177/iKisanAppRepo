@@ -21,18 +21,25 @@ class RequestDetailViewModel: ObservableObject {
     @Published var showConfirmation: Bool = false
     @Published var confirmationMessage: String = ""
     @Published var confirmationAction: ConfirmationAction = .accept
+    @Published var showModifySheet: Bool = false
+    @Published var showEquipmentDetail: Bool = false
     
     // MARK: - Dependencies
     
-    private let request: Request
-    private let dataController: DataController?
+    let request: Request // Changed from private to internal for ModifyRequestView access
+    let dataController: DataController? // Changed from private to internal
     private weak var coordinator: CoEquipNavigationCoordinator?
     private var cancellables = Set<AnyCancellable>()
     
     // Cache for frequently accessed data
-    private var cachedEquipment: Equipment?
+    private var _cachedEquipment: Equipment?
     private var cachedRequester: User?
     private var cachedProvider: User?
+    
+    // Public accessor for cached equipment (needed for navigation)
+    var cachedEquipment: Equipment? {
+        return _cachedEquipment
+    }
     
     // MARK: - Initialization
     
@@ -42,10 +49,10 @@ class RequestDetailViewModel: ObservableObject {
         self.coordinator = coordinator
         
         // Pre-fetch and cache data to avoid repeated lookups
-        self.cachedEquipment = dataController?.getEquipmentById(request.equipmentId)
+        self._cachedEquipment = dataController?.getEquipmentById(request.equipmentId)
         self.cachedRequester = dataController?.getUserById(request.userId)
         
-        if let equipment = cachedEquipment {
+        if let equipment = _cachedEquipment {
             self.cachedProvider = dataController?.getUserById(equipment.providerID)
         }
         
@@ -74,10 +81,10 @@ class RequestDetailViewModel: ObservableObject {
     
     private func refreshCachedData() {
         // Refresh cached data when updates occur
-        cachedEquipment = dataController?.getEquipmentById(request.equipmentId)
+        _cachedEquipment = dataController?.getEquipmentById(request.equipmentId)
         cachedRequester = dataController?.getUserById(request.userId)
         
-        if let equipment = cachedEquipment {
+        if let equipment = _cachedEquipment {
             cachedProvider = dataController?.getUserById(equipment.providerID)
         }
         
@@ -89,22 +96,22 @@ class RequestDetailViewModel: ObservableObject {
     
     var equipmentImageURL: String {
         // Return real equipment image URL from cached data
-        return cachedEquipment?.equipmentImage ?? ""
+        return _cachedEquipment?.equipmentImage ?? ""
     }
     
     var equipmentName: String {
         // Return real equipment name from cached data
-        return cachedEquipment?.name ?? "Unknown Equipment"
+        return _cachedEquipment?.name ?? "Unknown Equipment"
     }
     
     var equipmentType: String {
         // Return real equipment type from cached data
-        return cachedEquipment?.type ?? "N/A"
+        return _cachedEquipment?.type ?? "N/A"
     }
     
     var equipmentCapacity: String {
         // Return real equipment capacity from cached data
-        return cachedEquipment?.capacity ?? "N/A"
+        return _cachedEquipment?.capacity ?? "N/A"
     }
     
     var equipmentProviderName: String? {
@@ -300,7 +307,7 @@ class RequestDetailViewModel: ObservableObject {
     
     var pricePerAcreText: String {
         // Return real price from cached equipment data
-        guard let equipment = cachedEquipment else {
+        guard let equipment = _cachedEquipment else {
             return "N/A"
         }
         return "₹\(Int(equipment.pricePerAcre))"
@@ -308,7 +315,7 @@ class RequestDetailViewModel: ObservableObject {
     
     var estimatedTotalPrice: String? {
         // Calculate total price from real data
-        guard let equipment = cachedEquipment else {
+        guard let equipment = _cachedEquipment else {
             return nil
         }
         
@@ -413,7 +420,7 @@ class RequestDetailViewModel: ObservableObject {
     func acceptRequest() {
         // Navigate to acceptance flow where user enters area
         // Using real equipment data from cache
-        guard let equipment = cachedEquipment else {
+        guard let equipment = _cachedEquipment else {
             errorMessage = "Equipment not found"
             showError = true
             return
@@ -453,20 +460,29 @@ class RequestDetailViewModel: ObservableObject {
         Task {
             do {
                 // Delete the request from DataController/backend
-                dataController?.deleteRequest(with: request.id)
+                let success = await dataController?.deleteRequest(with: request.id) ?? false
                 
-                // Post notification to update other views
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("RequestDeleted"),
-                    object: nil,
-                    userInfo: ["requestId": request.id]
-                )
-                
-                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
-                
-                await MainActor.run {
-                    isLoading = false
-                    coordinator?.dismissRequestDetail()
+                if success {
+                    // Post notification to update other views
+                    NotificationCenter.default.post(
+                        name: .requestDeleted,
+                        object: nil,
+                        userInfo: ["requestId": request.id]
+                    )
+                    
+                    // Small delay for better UX
+                    try await Task.sleep(nanoseconds: 300_000_000) // 0.3 second delay
+                    
+                    await MainActor.run {
+                        isLoading = false
+                        coordinator?.dismissRequestDetail()
+                    }
+                } else {
+                    throw NSError(
+                        domain: "RequestDetailViewModel",
+                        code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "Failed to delete request"]
+                    )
                 }
             } catch {
                 await MainActor.run {
@@ -479,25 +495,30 @@ class RequestDetailViewModel: ObservableObject {
     }
     
     func modifyRequest() {
-        // Navigate to modify flow with real equipment data
-        guard let equipment = cachedEquipment else {
-            errorMessage = "Equipment not found"
-            showError = true
-            return
-        }
-        
-        coordinator?.navigateToModifyRequest(request: request, equipment: equipment)
+        // Show ModifyRequestView in a sheet (handled by RequestDetailView)
+        showModifySheet = true
     }
     
     func viewEquipmentDetails() {
-        // Navigate to equipment details with real equipment data
-        guard let equipment = cachedEquipment else {
-            errorMessage = "Equipment not found"
-            showError = true
-            return
+        // For SwiftUI navigation, use @Published property
+        // For UIKit coordinator, use the coordinator method
+        if coordinator != nil {
+            // UIKit-based navigation via coordinator
+            guard let equipment = _cachedEquipment else {
+                errorMessage = "Equipment not found"
+                showError = true
+                return
+            }
+            coordinator?.navigateToEquipmentDetail(equipment: equipment, isReadOnly: true)
+        } else {
+            // SwiftUI-based navigation via published property
+            guard _cachedEquipment != nil else {
+                errorMessage = "Equipment not found"
+                showError = true
+                return
+            }
+            showEquipmentDetail = true
         }
-        
-        coordinator?.navigateToEquipmentDetail(equipment: equipment)
     }
 }
 
@@ -505,8 +526,8 @@ class RequestDetailViewModel: ObservableObject {
 
 protocol CoEquipNavigationCoordinator: AnyObject {
     func navigateToAcceptRequest(request: Request, equipment: Equipment)
-    func navigateToModifyRequest(request: Request, equipment: Equipment)
-    func navigateToEquipmentDetail(equipment: Equipment)
+    func navigateToModifyRequest(request: Request)
+    func navigateToEquipmentDetail(equipment: Equipment, isReadOnly: Bool)
     func dismissRequestDetail()
 }
 

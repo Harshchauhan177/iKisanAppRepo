@@ -195,12 +195,17 @@ class CoequipViewController: UIViewController {
 
     func removeRequest(with id: UUID) {
         guard let dataController = dataController else { return }
-        dataController.deleteRequest(with: id)
-       
-        if currentRequest?.id == id {
-            currentRequest = nil
+        
+        Task {
+            _ = await dataController.deleteRequest(with: id)
+            
+            await MainActor.run {
+                if currentRequest?.id == id {
+                    currentRequest = nil
+                }
+                loadInitialData()
+            }
         }
-        loadInitialData()
     }
 
     @objc private func handleRequestDeletion(_ notification: Notification) {
@@ -369,7 +374,10 @@ extension CoequipViewController: MyRequestTableViewCellDelegate {
         
         var request = dataController.getAllCoEquipRequests()[indexPath.row]
         request.status = .confirmed
-        dataController.updateRequest(request)
+        
+        Task {
+            _ = await dataController.updateRequest(request)
+        }
         
         // Create a CoEquip booking when request is confirmed
         let coEquipBooking = Booking(
@@ -463,7 +471,9 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
             updatedRequest.status = .pending
             
             // Update in data controller
-            dataController.updateRequest(updatedRequest)
+            Task {
+                _ = await dataController.updateRequest(updatedRequest)
+            }
             
             // Perform segue to accept request view
             performSegue(withIdentifier: "goToAcceptRequest", sender: updatedRequest)
