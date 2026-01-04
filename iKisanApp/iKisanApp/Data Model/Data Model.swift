@@ -9,7 +9,7 @@ import Foundation
 
 //MARK: Model for Equipment
 
-struct Equipment: Codable, Sendable {
+struct Equipment: Codable, Sendable, Hashable {
     var equipmentID: UUID
     var equipmentImage: String
     var name: String
@@ -41,6 +41,15 @@ struct Equipment: Codable, Sendable {
 
     func isAvailable(on date: Date) -> Bool {
         return date >= availability.startDate && date <= availability.endDate
+    }
+    
+    // Hashable conformance - use equipmentID for equality and hashing
+    static func == (lhs: Equipment, rhs: Equipment) -> Bool {
+        lhs.equipmentID == rhs.equipmentID
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(equipmentID)
     }
     
     enum CodingKeys: String, CodingKey {

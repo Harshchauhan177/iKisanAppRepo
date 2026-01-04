@@ -86,8 +86,14 @@ struct CoEquipView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showCreateRequest = true
+                    NavigationLink(isActive: $showCreateRequest) {
+                        // Equipment selection is the first step in create request flow
+                        SelectEquipmentView(
+                            viewModel: SelectEquipmentViewModel(
+                                dataController: viewModel.dataController,
+                                initialSearchSuggestion: nil
+                            )
+                        )
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
@@ -95,11 +101,6 @@ struct CoEquipView: View {
                     }
                     .accessibilityLabel("Create new request")
                 }
-            }
-            .sheet(isPresented: $showCreateRequest) {
-                // TODO: Navigate to CreateRequestView
-                Text("Create New Request")
-                    .font(.title)
             }
             .sheet(isPresented: $viewModel.showJoinInputSheet) {
                 if let request = viewModel.selectedRequestForJoin {

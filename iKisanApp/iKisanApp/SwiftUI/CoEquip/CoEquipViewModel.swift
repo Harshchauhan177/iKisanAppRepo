@@ -477,4 +477,12 @@ class CoEquipViewModel: ObservableObject {
             await reloadLocalData()
         }
     }
+    
+    // MARK: - Navigation
+    
+    /// Navigate to create request flow (select equipment)
+    func navigateToCreateRequest() {
+        print("➕ Navigate to create request")
+        // This will be handled by the parent view/coordinator
+    }
 }

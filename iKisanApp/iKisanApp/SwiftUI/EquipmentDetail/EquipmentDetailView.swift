@@ -80,6 +80,42 @@ struct EquipmentDetailView: View {
             }
         }
         .navigationBarHidden(true)
+        .alert("Choose Your Booking Type", isPresented: $viewModel.showBookingOptions) {
+            Button("Book as Individual") {
+                // Haptic feedback
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+                
+                viewModel.handleIndividualBooking()
+            }
+            
+            Button("Book with Co-Equip") {
+                // Haptic feedback
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+                
+                viewModel.handleCoEquipBooking()
+            }
+            
+            Button("Cancel", role: .cancel) {
+                print("❌ User cancelled booking")
+            }
+        } message: {
+            Text("Book individually or join with nearby farmers for reduced costs.")
+        }
+        .navigationDestination(isPresented: $viewModel.navigateToReviewBooking) {
+            ReviewBookingView(
+                viewModel: ReviewBookingViewModel(
+                    equipment: viewModel.equipment,
+                    bookingSource: viewModel.bookingSource,
+                    dataController: viewModel.dataController,
+                    navigationCoordinator: viewModel.navigationCoordinator
+                )
+            )
+        }
+        .navigationDestination(isPresented: $viewModel.navigateToCoEquipCreation) {
+            CoEquipCreationView(equipment: viewModel.equipment)
+        }
         .sheet(isPresented: $viewModel.showingImageGallery) {
             ImageGalleryView(
                 images: viewModel.displayImages,
