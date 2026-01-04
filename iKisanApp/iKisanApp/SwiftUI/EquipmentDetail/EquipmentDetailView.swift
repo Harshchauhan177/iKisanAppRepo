@@ -114,7 +114,11 @@ struct EquipmentDetailView: View {
             )
         }
         .navigationDestination(isPresented: $viewModel.navigateToCoEquipCreation) {
-            CoEquipCreationView(equipment: viewModel.equipment)
+            CoEquipCreationView(
+                equipment: viewModel.equipment,
+                dataController: viewModel.dataController,
+                navigationCoordinator: viewModel.navigationCoordinator
+            )
         }
         .sheet(isPresented: $viewModel.showingImageGallery) {
             ImageGalleryView(
