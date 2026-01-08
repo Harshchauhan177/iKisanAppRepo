@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import Supabase
 
 /// ViewModel for Request Detail view
 /// Manages request data, user interactions, and business logic
@@ -23,6 +24,10 @@ class RequestDetailViewModel: ObservableObject {
     @Published var confirmationAction: ConfirmationAction = .accept
     @Published var showModifySheet: Bool = false
     @Published var showEquipmentDetail: Bool = false
+    
+    // Participants data fetched from database
+    @Published var fetchedParticipants: [ParticipantDisplayInfo] = []
+    @Published var isLoadingParticipants: Bool = false
     
     // MARK: - Dependencies
     
@@ -58,6 +63,209 @@ class RequestDetailViewModel: ObservableObject {
         
         // Setup observers for data updates
         setupDataObservers()
+        
+        // Fetch participants on initialization
+        Task {
+            await fetchGroupParticipants()
+        }
+    }
+    
+    // MARK: - Participant Fetching
+    
+    /// Fetch all participants (invited farmers) for this request from the database
+    func fetchGroupParticipants() async {
+        await MainActor.run {
+            isLoadingParticipants = true
+        }
+        
+        // Check if request has participants populated
+        let participants: [RequestParticipant]
+        
+        if let existingParticipants = request.participants, !existingParticipants.isEmpty {
+            // Case A: Request object has participants (old requests loaded with JOIN)
+            participants = existingParticipants
+            print("✅ Using \(participants.count) participants from request object (loaded with JOIN)")
+        } else {
+            // Case B: Request object has no participants (newly created requests in local cache)
+            // This happens because:
+            // 1. New request is created and saved to database
+            // 2. Request is added to local cache WITHOUT participants array
+            // 3. Participants were inserted separately to request_participants table
+            // 4. Local cache was never refreshed with a JOIN query
+            // Solution: Fetch this specific request from database WITH participants JOIN
+            
+            print("⚠️ No participants in request object - fetching from database for request: \(request.id)")
+            
+            if let freshRequest = await fetchRequestWithParticipants(requestId: request.id) {
+                participants = freshRequest.participants ?? []
+                print("✅ Fetched \(participants.count) participants from database for new request")
+            } else {
+                participants = []
+                print("❌ Failed to fetch participants from database")
+            }
+        }
+        
+        // Convert to display models with user data
+        let displayParticipants = participants.compactMap { participant -> ParticipantDisplayInfo? in
+            // Don't show rejected participants
+            guard participant.status != .rejected else {
+                return nil
+            }
+            
+            // Fetch user data
+            guard let user = dataController?.getUserById(participant.userId) else {
+                print("⚠️ Could not find user with ID: \(participant.userId)")
+                return nil
+            }
+            
+            return ParticipantDisplayInfo(
+                id: participant.id,
+                userId: participant.userId,
+                name: user.name,
+                phone: user.phone,
+                avatarURL: nil, // Add avatar support if available in User model
+                area: participant.area,
+                timeSlot: participant.timeSlot,
+                status: participant.status,
+                joinedAt: participant.joinedAt
+            )
+        }
+        
+        await MainActor.run {
+            self.fetchedParticipants = displayParticipants
+            self.isLoadingParticipants = false
+            print("✅ Loaded \(displayParticipants.count) participants for display")
+            print("   Statuses: \(displayParticipants.map { "\($0.name): \($0.statusText)" }.joined(separator: ", "))")
+        }
+    }
+    
+    /// Fetch a single request from database WITH participants JOIN
+    /// This is needed for newly created requests that exist in local cache without participants
+    private func fetchRequestWithParticipants(requestId: UUID) async -> Request? {
+        do {
+            // Fetch from Supabase with participants JOIN (same query as fetchRequests)
+            let rawData = try await SupabaseManager.shared.client
+                .from("requests")
+                .select("""
+                    *,
+                    request_participants (
+                        id,
+                        requestId,
+                        userId,
+                        status,
+                        area,
+                        timeSlotId,
+                        joinedAt,
+                        created_at,
+                        updated_at
+                    )
+                """)
+                .eq("id", value: requestId.uuidString)
+                .single()
+                .execute()
+                .data
+            
+            // Decode the response with proper date handling
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+                
+                // Create date formatter for the simple format (matches database format)
+                let formatter = DateFormatter()
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                
+                // Try parsing with different formats
+                let formats = [
+                    "yyyy-MM-dd'T'HH:mm:ss",       // Basic format: 2026-01-18T20:34:00
+                    "yyyy-MM-dd'T'HH:mm:ssZ",      // With timezone: 2026-01-18T20:34:00Z
+                    "yyyy-MM-dd'T'HH:mm:ss.SSSZ"   // With milliseconds and timezone
+                ]
+                
+                for format in formats {
+                    formatter.dateFormat = format
+                    if let date = formatter.date(from: dateString) {
+                        return date
+                    }
+                }
+                
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Cannot decode date string \(dateString)"
+                )
+            }
+            
+            struct RequestWithParticipants: Codable {
+                let id: UUID
+                let userId: UUID
+                let equipmentId: UUID
+                let requestedDate: Date
+                let status: String
+                let type: String
+                let area: Double
+                let timeSlot: String
+                let timePeriod: String?
+                let location: String
+                let typeOfRequest: String
+                let acceptedUser: [String]?
+                let request_participants: [ParticipantDTO]?
+                
+                struct ParticipantDTO: Codable {
+                    let id: UUID
+                    let requestId: UUID
+                    let userId: UUID
+                    let status: String
+                    let area: Double?
+                    let timeSlotId: String?
+                    let joinedAt: Date
+                    let created_at: Date?
+                    let updated_at: Date?
+                }
+            }
+
+            
+            let dto = try decoder.decode(RequestWithParticipants.self, from: rawData)
+            
+            // Convert to Request model
+            let participants = dto.request_participants?.map { participantDto in
+                RequestParticipant(
+                    id: participantDto.id,
+                    requestId: participantDto.requestId,
+                    userId: participantDto.userId,
+                    status: ParticipantStatus(rawValue: participantDto.status) ?? .pending,
+                    area: participantDto.area,
+                    timeSlot: participantDto.timeSlotId,
+                    joinedAt: participantDto.joinedAt
+                )
+            } ?? []
+            
+            let freshRequest = Request(
+                id: dto.id,
+                userId: dto.userId,
+                equipmentId: dto.equipmentId,
+                requestedDate: dto.requestedDate,
+                status: BookingStatus(rawValue: dto.status) ?? .pending,
+                type: BookingType(rawValue: dto.type) ?? .onDemand,
+                area: dto.area,
+                timeSlot: TimeSlot(rawValue: dto.timeSlot) ?? .morning,
+                timePeriod: dto.timePeriod,
+                location: dto.location,
+                typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest,
+                participants: participants,
+                acceptedUsers: dto.acceptedUser?.compactMap { UUID(uuidString: $0) } ?? []
+            )
+            
+            return freshRequest
+            
+        } catch {
+            print("❌ Error fetching request with participants: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("   Code: \(postgrestError.code ?? "nil")")
+                print("   Message: \(postgrestError.message ?? "nil")")
+            }
+            return nil
+        }
     }
     
     // MARK: - Data Observers
@@ -68,6 +276,10 @@ class RequestDetailViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.refreshCachedData()
+                // Also refresh participants when requests are updated
+                Task {
+                    await self?.fetchGroupParticipants()
+                }
             }
             .store(in: &cancellables)
         
@@ -205,6 +417,46 @@ class RequestDetailViewModel: ObservableObject {
         let area: Double?
         let timeSlot: String?
         let status: ParticipantStatus
+    }
+    
+    // Display model for participants with avatar and enhanced status
+    struct ParticipantDisplayInfo: Identifiable {
+        let id: UUID
+        let userId: UUID
+        let name: String
+        let phone: String?
+        let avatarURL: String?
+        let area: Double?
+        let timeSlot: String?
+        let status: ParticipantStatus
+        let joinedAt: Date
+        
+        var statusText: String {
+            switch status {
+            case .pending: return "Pending"
+            case .accepted: return "Accepted"
+            case .done: return "Joined"
+            case .rejected: return "Declined"
+            }
+        }
+        
+        var statusIcon: String {
+            switch status {
+            case .pending: return "clock.fill"
+            case .accepted: return "checkmark.circle.fill"
+            case .done: return "checkmark.circle.fill"
+            case .rejected: return "xmark.circle.fill"
+            }
+        }
+        
+        var statusColor: String {
+            switch status {
+            case .pending: return "orange"
+            case .accepted: return "green"
+            case .done: return "green"
+            case .rejected: return "red"
+            }
+        }
     }
     
     var participants: [ParticipantInfo] {

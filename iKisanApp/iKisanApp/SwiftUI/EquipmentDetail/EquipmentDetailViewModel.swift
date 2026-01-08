@@ -28,7 +28,6 @@ class EquipmentDetailViewModel: ObservableObject {
     // Navigation state for SwiftUI native navigation
     @Published var showBookingOptions: Bool = false
     @Published var navigateToReviewBooking: Bool = false
-    @Published var navigateToCoEquipCreation: Bool = false
     
     // MARK: - Computed Properties
     
@@ -108,6 +107,7 @@ class EquipmentDetailViewModel: ObservableObject {
     let dataController: DataController?
     var bookingSource: BookingSource
     weak var navigationCoordinator: HomeNavigationCoordinator?
+    var router: CoEquipNavigationRouter? // Router for navigation
     let isReadOnly: Bool // New property for read-only mode
     
     // MARK: - Initialization
@@ -117,12 +117,14 @@ class EquipmentDetailViewModel: ObservableObject {
         bookingSource: BookingSource,
         dataController: DataController?,
         navigationCoordinator: HomeNavigationCoordinator?,
+        router: CoEquipNavigationRouter? = nil,
         isReadOnly: Bool = false
     ) {
         self.equipment = equipment
         self.bookingSource = bookingSource
         self.dataController = dataController
         self.navigationCoordinator = navigationCoordinator
+        self.router = router
         self.isReadOnly = isReadOnly
         
         loadReviews()
@@ -229,8 +231,8 @@ class EquipmentDetailViewModel: ObservableObject {
     func handleCoEquipBooking() {
         print("🤝 User selected: Book with Co-Equip")
         
-        // Set SwiftUI navigation state
-        navigateToCoEquipCreation = true
+        // Use router to navigate to CreateCoEquipGroupView
+        router?.navigate(to: CoEquipDestination.createGroup(equipment))
     }
     
     // MARK: - Legacy UIKit Navigation (Deprecated - Keep for backward compatibility)

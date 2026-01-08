@@ -16,6 +16,7 @@ struct SelectEquipmentView: View {
     @StateObject var viewModel: SelectEquipmentViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @EnvironmentObject var router: CoEquipNavigationRouter
     @FocusState private var isSearchFieldFocused: Bool // Keyboard management
     @State private var showSuggestions: Bool = false // Explicit control for suggestion visibility
     
@@ -233,26 +234,15 @@ struct SelectEquipmentView: View {
     private var equipmentGridSection: some View {
         LazyVGrid(columns: columns, spacing: 16) {
             ForEach(viewModel.filteredEquipment, id: \.equipmentID) { equipment in
-                NavigationLink(destination: equipmentDetailView(for: equipment)) {
+                Button {
+                    router.navigate(to: CoEquipDestination.equipmentDetail(equipment))
+                } label: {
                     EquipmentSelectionCard(equipment: equipment)
                 }
-                .buttonStyle(.plain) // Remove default NavigationLink styling
+                .buttonStyle(.plain) // Remove default button styling
                 .frame(height: 220) // Slightly increased for better proportions
             }
         }
-    }
-    
-    /// Create equipment detail view for navigation
-    @ViewBuilder
-    private func equipmentDetailView(for equipment: Equipment) -> some View {
-        EquipmentDetailView(
-            viewModel: EquipmentDetailViewModel(
-                equipment: equipment,
-                bookingSource: .home,
-                dataController: viewModel.dataController,
-                navigationCoordinator: nil
-            )
-        )
     }
     
     // MARK: - Search Suggestions Overlay

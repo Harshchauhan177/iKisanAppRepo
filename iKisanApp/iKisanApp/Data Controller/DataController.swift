@@ -83,6 +83,7 @@ protocol DataController: AnyObject {
     
     //coequip Related functions
     func getAllCoEquipRequests() -> [Request]
+    func refreshCoEquipRequests() async
     func getAcceptedRequests() -> [Request]
     func addNewCoEquipRequest(_ request: Request)
     func updateRequest(_ request: Request) async -> Bool
@@ -177,17 +178,6 @@ class IKisanDataController: DataController {
                 .execute()
             
             print("✅ Request participant created successfully")
-            
-            // Update the selectedUsersIds array in the requests table using proper JSON format
-            try await SupabaseManager.shared.client
-                .from("requests")
-                .update([
-                    "selectedUsersIds": [participant.userId.uuidString]
-                ])
-                .eq("id", value: participant.requestId.uuidString)
-                .execute()
-            
-            print("✅ Request selectedUsersIds updated successfully")
             
         } catch let error as PostgrestError {
             print("❌ Error creating request participant: \(error.message)")

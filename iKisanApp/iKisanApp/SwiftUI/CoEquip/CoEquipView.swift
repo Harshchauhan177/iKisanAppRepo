@@ -51,13 +51,14 @@ struct SegmentedPickerView: View {
 /// Main Co-Equip view displaying "My Requests" and "Join Requests"
 struct CoEquipView: View {
     @ObservedObject var viewModel: CoEquipViewModel
+    @StateObject private var router = CoEquipNavigationRouter()
     @State private var showCreateRequest = false
     
     // iKisan brand green
     private let ikisanGreen = Color(red: 0.298, green: 0.498, blue: 0.345)
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $router.path) {
             ZStack {
                 // Background color - standard iOS grouped background
                 Color(.systemGroupedBackground)
@@ -86,20 +87,49 @@ struct CoEquipView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink(isActive: $showCreateRequest) {
-                        // Equipment selection is the first step in create request flow
-                        SelectEquipmentView(
-                            viewModel: SelectEquipmentViewModel(
-                                dataController: viewModel.dataController,
-                                initialSearchSuggestion: nil
-                            )
-                        )
+                    Button {
+                        router.navigate(to: CoEquipDestination.selectEquipment)
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
                             .foregroundColor(ikisanGreen)
                     }
                     .accessibilityLabel("Create new request")
+                }
+            }
+            .navigationDestination(for: CoEquipDestination.self) { destination in
+                switch destination {
+                case .selectEquipment:
+                    SelectEquipmentView(
+                        viewModel: SelectEquipmentViewModel(
+                            dataController: viewModel.dataController,
+                            initialSearchSuggestion: nil
+                        )
+                    )
+                    .environmentObject(router)
+                    
+                case .equipmentDetail(let equipment):
+                    EquipmentDetailView(
+                        viewModel: EquipmentDetailViewModel(
+                            equipment: equipment,
+                            bookingSource: .home,
+                            dataController: viewModel.dataController,
+                            navigationCoordinator: nil,
+                            router: router
+                        )
+                    )
+                    .environmentObject(router)
+                    
+                case .createGroup(let equipment):
+                    CreateCoEquipGroupView(
+                        viewModel: CreateCoEquipGroupViewModel(
+                            equipment: equipment,
+                            dataController: viewModel.dataController,
+                            navigationCoordinator: nil,
+                            router: router
+                        )
+                    )
+                    .environmentObject(router)
                 }
             }
             .sheet(isPresented: $viewModel.showJoinInputSheet) {

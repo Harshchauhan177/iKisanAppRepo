@@ -38,13 +38,18 @@ struct RequestDetailView: View {
                         // Requester Information
                         requesterSection
                         
-                        // Joined Farmers Section (for My Requests only)
-                        if viewModel.hasJoinedFarmers {
+                        // Invited/Joined Farmers - Show real participants from database
+                        if !viewModel.fetchedParticipants.isEmpty {
+                            invitedFarmersSection
+                        }
+                        
+                        // Legacy: Joined Farmers Section (for My Requests only)
+                        if viewModel.hasJoinedFarmers && viewModel.fetchedParticipants.isEmpty {
                             joinedFarmersSection
                         }
                         
-                        // Participants Section (if any)
-                        if viewModel.hasParticipants {
+                        // Legacy: Participants Section (if any)
+                        if viewModel.hasParticipants && viewModel.fetchedParticipants.isEmpty {
                             participantsSection
                         }
                         
@@ -324,6 +329,42 @@ struct RequestDetailView: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color(UIColor.secondarySystemGroupedBackground))
             )
+        }
+    }
+    
+    // MARK: - Invited Farmers Section (New)
+    
+    private var invitedFarmersSection: some View {
+        VStack(spacing: 0) {
+            SectionHeader(title: "Invited Farmers (\(viewModel.fetchedParticipants.count))")
+            
+            if viewModel.isLoadingParticipants {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                        .padding(.vertical, 20)
+                    Spacer()
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                )
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(viewModel.fetchedParticipants.enumerated()), id: \.element.id) { index, participant in
+                        InvitedFarmerRow(participant: participant)
+                        
+                        if index < viewModel.fetchedParticipants.count - 1 {
+                            Divider()
+                                .padding(.leading, 52)
+                        }
+                    }
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                )
+            }
         }
     }
     
@@ -734,6 +775,129 @@ struct JoinedFarmerRow: View {
             return "Joined"
         case .rejected:
             return "Rejected"
+        }
+    }
+}
+
+// MARK: - Invited Farmer Row (New Component)
+
+struct InvitedFarmerRow: View {
+    let participant: RequestDetailViewModel.ParticipantDisplayInfo
+    
+    // iKisan brand green
+    private let ikisanGreen = Color(red: 0.298, green: 0.498, blue: 0.345)
+    
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            // User avatar with status indicator
+            ZStack(alignment: .bottomTrailing) {
+                Circle()
+                    .fill(statusBackgroundColor.opacity(0.15))
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(statusBackgroundColor)
+                    )
+                
+                // Status badge
+                Circle()
+                    .fill(statusBackgroundColor)
+                    .frame(width: 16, height: 16)
+                    .overlay(
+                        Image(systemName: participant.statusIcon)
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.white)
+                    )
+                    .offset(x: 2, y: 2)
+            }
+            
+            // Farmer info
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(participant.name)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    // Status badge
+                    Text(participant.statusText)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(statusBackgroundColor)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(
+                            Capsule()
+                                .fill(statusBackgroundColor.opacity(0.15))
+                        )
+                }
+                
+                // Phone number if available
+                if let phone = participant.phone {
+                    HStack(spacing: 4) {
+                        Image(systemName: "phone.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                        Text(phone)
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                HStack(spacing: 8) {
+                    // Area badge (if provided)
+                    if let area = participant.area, area > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "square.grid.3x3.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                            Text("\(String(format: "%.1f", area)) acres")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color.gray.opacity(0.1))
+                        )
+                    }
+                    
+                    // Time slot badge (if provided)
+                    if let timeSlot = participant.timeSlot, !timeSlot.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                            Text(timeSlot)
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color.gray.opacity(0.1))
+                        )
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+    
+    private var statusBackgroundColor: Color {
+        switch participant.status {
+        case .pending:
+            return .orange
+        case .accepted:
+            return ikisanGreen
+        case .done:
+            return ikisanGreen
+        case .rejected:
+            return .red
         }
     }
 }

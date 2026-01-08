@@ -11,6 +11,7 @@ struct EquipmentDetailView: View {
     
     @StateObject var viewModel: EquipmentDetailViewModel
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var router: CoEquipNavigationRouter
     @State private var scrollOffset: CGFloat = 0
     @State private var showBackButton = true
     
@@ -111,13 +112,6 @@ struct EquipmentDetailView: View {
                     dataController: viewModel.dataController,
                     navigationCoordinator: viewModel.navigationCoordinator
                 )
-            )
-        }
-        .navigationDestination(isPresented: $viewModel.navigateToCoEquipCreation) {
-            CoEquipCreationView(
-                equipment: viewModel.equipment,
-                dataController: viewModel.dataController,
-                navigationCoordinator: viewModel.navigationCoordinator
             )
         }
         .sheet(isPresented: $viewModel.showingImageGallery) {

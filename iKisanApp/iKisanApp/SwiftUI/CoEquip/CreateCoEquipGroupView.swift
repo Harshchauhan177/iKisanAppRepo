@@ -10,6 +10,7 @@ import SwiftUI
 struct CreateCoEquipGroupView: View {
     @StateObject var viewModel: CreateCoEquipGroupViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) private var presentationMode
     @FocusState private var isFieldAreaFocused: Bool
     
     var body: some View {
@@ -319,6 +320,20 @@ struct CreateCoEquipGroupView: View {
                 Text(errorMessage)
             }
         }
+        .onAppear {
+            // Set the dismiss callback when view appears
+            viewModel.onDismiss = { [dismiss] in
+                Task { @MainActor in
+                    dismiss()
+                }
+            }
+        }
+        .onChange(of: viewModel.creationSuccess) { success in
+            if success {
+                // Dismiss when creation is successful
+                dismiss()
+            }
+        }
     }
 }
 
@@ -475,49 +490,15 @@ struct CoEquipDatePickerSheet: View {
     }
 }
 
-// MARK: - Farmer Selection Sheet (Placeholder)
+// MARK: - Farmer Selection Sheet
 
 struct CoEquipFarmerSelectionView: View {
     @ObservedObject var viewModel: CreateCoEquipGroupViewModel
-    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color(.systemGroupedBackground)
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 24) {
-                    Image(systemName: "person.2.crop.square.stack.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.ikisanGreen)
-                    
-                    VStack(spacing: 12) {
-                        Text("Nearby Farmers")
-                            .font(.system(size: 24, weight: .bold))
-                        
-                        Text("Coming Soon")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Text("This feature will show nearby farmers who can join your Co-Equip group. You'll be able to invite them and share equipment costs.")
-                        .font(.system(size: 15))
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                }
-            }
-            .navigationTitle("Select Farmers")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-        }
+        SelectFarmersView(
+            viewModel: SelectFarmersViewModel(parentViewModel: viewModel)
+        )
     }
 }
 
