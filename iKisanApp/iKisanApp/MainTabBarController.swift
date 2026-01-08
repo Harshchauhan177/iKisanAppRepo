@@ -91,6 +91,20 @@ class MainTabBarController: UITabBarController {
                 }
                 // ✅ END SWIFTUI
                 
+                // ✅ SWIFTUI ENABLED: Replace UIKit PrebookingViewController with SwiftUI version
+                if navController.viewControllers.first is PrebookingViewController {
+                    print("🔄 FOUND PrebookingViewController at index \(index) - REPLACING WITH SWIFTUI VERSION")
+                    let swiftUIView = PrebookingView(dataController: dataController)
+                    let hostingController = UIHostingController(rootView: swiftUIView)
+                    hostingController.navigationItem.hidesBackButton = true
+                    navController.setViewControllers([hostingController], animated: false)
+                    // Hide the UIKit navigation bar to avoid double titles
+                    navController.setNavigationBarHidden(true, animated: false)
+                    print("✅ Successfully replaced with SwiftUI PrebookingView")
+                    continue
+                }
+                // ✅ END SWIFTUI
+                
                 // Keep other tabs as UIKit for now
                 if let homeVC = navController.viewControllers.first as? HomeViewController {
                     print("Setting up HomeViewController at index \(index)")
@@ -147,23 +161,24 @@ class MainTabBarController: UITabBarController {
         if let viewControllers = self.viewControllers {
             for (index, viewController) in viewControllers.enumerated() {
                 if let navController = viewController as? UINavigationController,
-                   navController.viewControllers.first is PrebookingViewController {
+                   let hostingController = navController.viewControllers.first as? UIHostingController<PrebookingView> {
+                    prebookingTabIndex = index
+                    break
+                } else if let navController = viewController as? UINavigationController,
+                          navController.viewControllers.first is PrebookingViewController {
                     prebookingTabIndex = index
                     break
                 }
             }
         }
         
-        // If we found the prebooking tab, switch to it and refresh it
-        if let index = prebookingTabIndex,
-           let navController = viewControllers?[index] as? UINavigationController,
-           let prebookingVC = navController.viewControllers.first as? PrebookingViewController {
-            // Force refresh prebookings data
-            prebookingVC.loadPreBookings()
-            
+        // If we found the prebooking tab, switch to it
+        if let index = prebookingTabIndex {
             // Switch to the prebooking tab
             self.selectedIndex = index
             print("Switching to Prebooking tab at index \(index)")
+            
+            // The SwiftUI view will automatically refresh via its notification observers
         } else {
             print("Error: Could not find Prebooking tab")
         }

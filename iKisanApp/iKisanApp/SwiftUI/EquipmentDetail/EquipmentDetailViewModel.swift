@@ -109,6 +109,7 @@ class EquipmentDetailViewModel: ObservableObject {
     weak var navigationCoordinator: HomeNavigationCoordinator?
     var router: CoEquipNavigationRouter? // Router for navigation
     let isReadOnly: Bool // New property for read-only mode
+    var onBookTapped: (() -> Void)?  // Callback for SwiftUI navigation
     
     // MARK: - Initialization
     
@@ -118,7 +119,8 @@ class EquipmentDetailViewModel: ObservableObject {
         dataController: DataController?,
         navigationCoordinator: HomeNavigationCoordinator?,
         router: CoEquipNavigationRouter? = nil,
-        isReadOnly: Bool = false
+        isReadOnly: Bool = false,
+        onBookTapped: (() -> Void)? = nil
     ) {
         self.equipment = equipment
         self.bookingSource = bookingSource
@@ -126,6 +128,7 @@ class EquipmentDetailViewModel: ObservableObject {
         self.navigationCoordinator = navigationCoordinator
         self.router = router
         self.isReadOnly = isReadOnly
+        self.onBookTapped = onBookTapped
         
         loadReviews()
         checkUserBookingStatus()
@@ -288,8 +291,15 @@ class EquipmentDetailViewModel: ObservableObject {
         print("   Equipment: \(equipment.name)")
         print("   Booking Source: \(bookingSource)")
         
+        // Try using the callback first (for SwiftUI navigation)
+        if let onBookTapped = onBookTapped {
+            print("✅ Using SwiftUI callback for navigation")
+            onBookTapped()
+            return
+        }
+        
         guard let coordinator = navigationCoordinator else {
-            print("❌ Navigation coordinator is nil!")
+            print("❌ Navigation coordinator is nil and no callback provided!")
             return
         }
         

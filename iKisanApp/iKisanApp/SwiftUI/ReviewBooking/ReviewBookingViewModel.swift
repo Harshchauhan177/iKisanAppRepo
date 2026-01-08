@@ -29,6 +29,10 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
     @Published var showError: Bool = false
     @Published var payableAmount: Double = 0
     
+    // MARK: - Modification State
+    var isModifying: Bool = false
+    private var existingBooking: Booking?
+    
     // Razorpay instance - strong reference to prevent deallocation during payment
     private var razorpay: RazorpayCheckout?
     private var pendingBooking: Booking?
@@ -111,20 +115,24 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         bookingSource: BookingSource,
         dataController: DataController?,
         navigationCoordinator: HomeNavigationCoordinator?,
-        existingBooking: Booking? = nil
+        existingBooking: Booking? = nil,
+        isModifying: Bool = false,
+        selectedDate: Date? = nil
     ) {
         self.equipment = equipment
         self.bookingSource = bookingSource
         self.dataController = dataController
         self.navigationCoordinator = navigationCoordinator
         self.retainedDataController = dataController
+        self.existingBooking = existingBooking
+        self.isModifying = isModifying
         
         // Initialize Razorpay - must be done after all properties are set
         self.razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
         
         // Load existing booking data if modifying
-        if let booking = existingBooking {
-            self.selectedDate = booking.bookingDate
+        if let booking = existingBooking, isModifying {
+            self.selectedDate = selectedDate ?? booking.bookingDate
             self.fieldArea = String(booking.fieldArea)
             self.selectedTimeSlot = booking.timeSlot
             if let loc = booking.bookingLocation {
@@ -132,6 +140,10 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
                 self.locationText = loc.address ?? "Location selected"
             }
         } else {
+            // Set selected date if provided (for new bookings from calendar)
+            if let date = selectedDate {
+                self.selectedDate = date
+            }
             // Try to load user's default location
             loadUserDefaultLocation()
         }
@@ -238,6 +250,49 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
             return
         }
         
+        // If modifying an existing booking, update it instead of creating a new one
+        if isModifying, var booking = existingBooking {
+            // Update booking details
+            booking.bookingDate = selectedDate
+            booking.fieldArea = areaInAcres
+            booking.timeSlot = selectedTimeSlot
+            booking.bookingLocation = bookingLocation
+            
+            // Update in data controller
+            dataController?.updateBooking(booking)
+            
+            // Update in Supabase
+            Task {
+                do {
+                    try await SupabaseManager.shared.client
+                        .from("bookings")
+                        .update(booking)
+                        .eq("bookingID", value: booking.bookingID.uuidString)
+                        .execute()
+                    
+                    print("✅ Booking modified successfully")
+                    
+                    // Post notification
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("RefreshBookingsList"),
+                        object: nil
+                    )
+                    
+                    // Navigate back
+                    await MainActor.run {
+                        self.navigateBackAfterModification()
+                    }
+                } catch {
+                    await MainActor.run {
+                        self.errorMessage = "Failed to update booking: \(error.localizedDescription)"
+                        self.showError = true
+                        self.isProcessing = false
+                    }
+                }
+            }
+            return
+        }
+        
         // Prevent multiple simultaneous payment attempts
         guard !isPaymentInProgress else {
             print("⚠️ Payment already in progress")
@@ -323,6 +378,54 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.isProcessing = false
         }
+    }
+    
+    private func navigateBackAfterModification() {
+        // Get the navigation controller and pop back
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first,
+              let tabBarController = window.rootViewController as? UITabBarController,
+              let navController = tabBarController.selectedViewController as? UINavigationController else {
+            print("⚠️ Unable to navigate back after modification")
+            return
+        }
+        
+        // Pop to root (prebooking screen)
+        navController.popToRootViewController(animated: true)
+        
+        // Show success message
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.showModificationSuccessAlert()
+        }
+    }
+    
+    private func showModificationSuccessAlert() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first,
+              let topController = window.rootViewController else {
+            print("⚠️ Unable to present success alert")
+            return
+        }
+        
+        // Find the topmost presented view controller
+        var presentedController = topController
+        while let presented = presentedController.presentedViewController {
+            presentedController = presented
+        }
+        
+        let alert = UIAlertController(
+            title: "Booking Modified",
+            message: "Your prebooking has been successfully updated!",
+            preferredStyle: .alert
+        )
+        
+        let okAction = UIAlertAction(title: "OK", style: .default)
+        if #available(iOS 13.0, *) {
+            okAction.setValue(UIColor.systemGreen, forKey: "titleTextColor")
+        }
+        
+        alert.addAction(okAction)
+        presentedController.present(alert, animated: true)
     }
     
     // MARK: - Razorpay Payment Completion Protocol
