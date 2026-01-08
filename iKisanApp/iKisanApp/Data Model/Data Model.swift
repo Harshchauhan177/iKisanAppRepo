@@ -9,7 +9,7 @@ import Foundation
 
 //MARK: Model for Equipment
 
-struct Equipment: Codable, Sendable {
+struct Equipment: Codable, Sendable, Hashable {
     var equipmentID: UUID
     var equipmentImage: String
     var name: String
@@ -43,6 +43,15 @@ struct Equipment: Codable, Sendable {
         return date >= availability.startDate && date <= availability.endDate
     }
     
+    // Hashable conformance - use equipmentID for equality and hashing
+    static func == (lhs: Equipment, rhs: Equipment) -> Bool {
+        lhs.equipmentID == rhs.equipmentID
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(equipmentID)
+    }
+    
     enum CodingKeys: String, CodingKey {
         case equipmentID
         case equipmentImage
@@ -69,7 +78,7 @@ struct Equipment: Codable, Sendable {
     }
 }
 
-struct Request: Codable, Identifiable {
+struct Request: Codable, Identifiable, Equatable {
     let id: UUID
     var userId: UUID
     var equipmentId: UUID
@@ -83,6 +92,23 @@ struct Request: Codable, Identifiable {
     var typeOfRequest: RequestType
     var participants: [RequestParticipant]?
     var acceptedUsers: [UUID]?
+    
+    // Equatable conformance
+    static func == (lhs: Request, rhs: Request) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.userId == rhs.userId &&
+               lhs.equipmentId == rhs.equipmentId &&
+               lhs.requestedDate == rhs.requestedDate &&
+               lhs.status == rhs.status &&
+               lhs.type == rhs.type &&
+               lhs.area == rhs.area &&
+               lhs.timeSlot == rhs.timeSlot &&
+               lhs.timePeriod == rhs.timePeriod &&
+               lhs.location == rhs.location &&
+               lhs.typeOfRequest == rhs.typeOfRequest &&
+               lhs.participants == rhs.participants &&
+               lhs.acceptedUsers == rhs.acceptedUsers
+    }
     
     init(
         id: UUID = UUID(),
@@ -115,7 +141,7 @@ struct Request: Codable, Identifiable {
     }
 }
 
-struct RequestParticipant: Codable, Identifiable {
+struct RequestParticipant: Codable, Identifiable, Equatable {
     let id: UUID
     let requestId: UUID
     let userId: UUID
@@ -123,6 +149,17 @@ struct RequestParticipant: Codable, Identifiable {
     var area: Double?           // Area entered by this participant
     var timeSlot: String?     // Time slot selected by this participant
     var joinedAt: Date
+    
+    // Equatable conformance
+    static func == (lhs: RequestParticipant, rhs: RequestParticipant) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.requestId == rhs.requestId &&
+               lhs.userId == rhs.userId &&
+               lhs.status == rhs.status &&
+               lhs.area == rhs.area &&
+               lhs.timeSlot == rhs.timeSlot &&
+               lhs.joinedAt == rhs.joinedAt
+    }
 }
 
 enum ParticipantStatus: String, Codable {
@@ -184,8 +221,9 @@ struct EquipmentImageRecord: Codable {
 
 //MARK: Model for User
 
-struct User: Codable , Hashable {
+struct User: Codable, Hashable, Identifiable {
     
+    var id: UUID { userID }
     
     let userID: UUID
     var name: String

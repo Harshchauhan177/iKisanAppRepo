@@ -11,6 +11,7 @@ struct EquipmentDetailView: View {
     
     @StateObject var viewModel: EquipmentDetailViewModel
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var router: CoEquipNavigationRouter
     @State private var scrollOffset: CGFloat = 0
     @State private var showBackButton = true
     
@@ -80,6 +81,39 @@ struct EquipmentDetailView: View {
             }
         }
         .navigationBarHidden(true)
+        .alert("Choose Your Booking Type", isPresented: $viewModel.showBookingOptions) {
+            Button("Book as Individual") {
+                // Haptic feedback
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+                
+                viewModel.handleIndividualBooking()
+            }
+            
+            Button("Book with Co-Equip") {
+                // Haptic feedback
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+                
+                viewModel.handleCoEquipBooking()
+            }
+            
+            Button("Cancel", role: .cancel) {
+                print("❌ User cancelled booking")
+            }
+        } message: {
+            Text("Book individually or join with nearby farmers for reduced costs.")
+        }
+        .navigationDestination(isPresented: $viewModel.navigateToReviewBooking) {
+            ReviewBookingView(
+                viewModel: ReviewBookingViewModel(
+                    equipment: viewModel.equipment,
+                    bookingSource: viewModel.bookingSource,
+                    dataController: viewModel.dataController,
+                    navigationCoordinator: viewModel.navigationCoordinator
+                )
+            )
+        }
         .sheet(isPresented: $viewModel.showingImageGallery) {
             ImageGalleryView(
                 images: viewModel.displayImages,

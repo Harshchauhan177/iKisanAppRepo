@@ -51,13 +51,14 @@ struct SegmentedPickerView: View {
 /// Main Co-Equip view displaying "My Requests" and "Join Requests"
 struct CoEquipView: View {
     @ObservedObject var viewModel: CoEquipViewModel
+    @StateObject private var router = CoEquipNavigationRouter()
     @State private var showCreateRequest = false
     
     // iKisan brand green
     private let ikisanGreen = Color(red: 0.298, green: 0.498, blue: 0.345)
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $router.path) {
             ZStack {
                 // Background color - standard iOS grouped background
                 Color(.systemGroupedBackground)
@@ -87,7 +88,7 @@ struct CoEquipView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showCreateRequest = true
+                        router.navigate(to: CoEquipDestination.selectEquipment)
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
@@ -96,13 +97,65 @@ struct CoEquipView: View {
                     .accessibilityLabel("Create new request")
                 }
             }
-            .sheet(isPresented: $showCreateRequest) {
-                // TODO: Navigate to CreateRequestView
-                Text("Create New Request")
-                    .font(.title)
+            .navigationDestination(for: CoEquipDestination.self) { destination in
+                switch destination {
+                case .selectEquipment:
+                    SelectEquipmentView(
+                        viewModel: SelectEquipmentViewModel(
+                            dataController: viewModel.dataController,
+                            initialSearchSuggestion: nil
+                        )
+                    )
+                    .environmentObject(router)
+                    
+                case .equipmentDetail(let equipment):
+                    EquipmentDetailView(
+                        viewModel: EquipmentDetailViewModel(
+                            equipment: equipment,
+                            bookingSource: .home,
+                            dataController: viewModel.dataController,
+                            navigationCoordinator: nil,
+                            router: router
+                        )
+                    )
+                    .environmentObject(router)
+                    
+                case .createGroup(let equipment):
+                    CreateCoEquipGroupView(
+                        viewModel: CreateCoEquipGroupViewModel(
+                            equipment: equipment,
+                            dataController: viewModel.dataController,
+                            navigationCoordinator: nil,
+                            router: router
+                        )
+                    )
+                    .environmentObject(router)
+                }
+            }
+            .sheet(isPresented: $viewModel.showJoinInputSheet) {
+                if let request = viewModel.selectedRequestForJoin {
+                    JoinRequestInputView(
+                        viewModel: JoinRequestInputViewModel(
+                            request: request,
+                            dataController: viewModel.dataController,
+                            onJoinSuccess: { fieldArea in
+                                Task {
+                                    await viewModel.confirmJoin(request: request, fieldArea: fieldArea)
+                                }
+                            }
+                        )
+                    )
+                }
             }
             .refreshable {
                 await viewModel.refreshData()
+            }
+            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil), presenting: viewModel.errorMessage) { message in
+                Button("OK") {
+                    viewModel.errorMessage = nil
+                }
+            } message: { message in
+                Text(message)
             }
         }
     }
@@ -116,21 +169,23 @@ struct CoEquipView: View {
                 ForEach(viewModel.currentRequests) { request in
                     if viewModel.selectedTab == .joinRequests {
                         // Show Join Request card with Accept/Reject buttons
-                        CoEquipJoinRequestCard(
-                            request: request,
-                            creatorName: request.creatorName ?? "Unknown",
-                            onAccept: {
-                                viewModel.acceptRequest(request)
-                            },
-                            onReject: {
-                                viewModel.rejectRequest(request)
-                            }
-                        )
+                        // Wrap in NavigationLink for navigation
+                        NavigationLink(destination: destinationView(for: request)) {
+                            CoEquipJoinRequestCard(
+                                request: request,
+                                creatorName: request.creatorName ?? "Unknown",
+                                onAccept: {
+                                    viewModel.acceptRequest(request)
+                                },
+                                onReject: {
+                                    viewModel.rejectRequest(request)
+                                }
+                            )
+                        }
+                        .buttonStyle(.plain)
                     } else {
                         // Show My Request card with status badge
-                        Button {
-                            handleCardTap(request)
-                        } label: {
+                        NavigationLink(destination: destinationView(for: request)) {
                             CoEquipRequestCard(request: request)
                         }
                         .buttonStyle(.plain)
@@ -183,9 +238,24 @@ struct CoEquipView: View {
     
     // MARK: - Actions
     
-    private func handleCardTap(_ request: CoEquipRequest) {
-        // TODO: Navigate to request details
-        print("Tapped request: \(request.equipmentName)")
+    /// Create destination view for navigation
+    @ViewBuilder
+    private func destinationView(for request: CoEquipRequest) -> some View {
+        if let underlyingRequest = request.underlyingRequest {
+            // Navigate to SwiftUI RequestDetailView
+            RequestDetailView(
+                viewModel: RequestDetailViewModel(
+                    request: underlyingRequest,
+                    dataController: viewModel.dataController,
+                    coordinator: nil
+                )
+            )
+        } else {
+            // Fallback if no underlying request
+            Text("Request details unavailable")
+                .font(.headline)
+                .foregroundColor(.secondary)
+        }
     }
 }
 

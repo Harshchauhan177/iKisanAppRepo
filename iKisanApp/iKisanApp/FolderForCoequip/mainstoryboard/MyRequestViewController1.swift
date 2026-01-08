@@ -163,20 +163,25 @@ class MyRequestViewController1: UIViewController {
     private func deleteRequest() {
         if let requestToDelete = request,
            let dataController = dataController {
-            dataController.deleteRequest(with: requestToDelete.id)
-            if let navigationController = self.navigationController,
-               let coequipVC = navigationController.viewControllers.first(where: { $0 is CoequipViewController }) as? CoequipViewController {
-                coequipVC.loadInitialData()
+            Task {
+                _ = await dataController.deleteRequest(with: requestToDelete.id)
+                
+                await MainActor.run {
+                    if let navigationController = self.navigationController,
+                       let coequipVC = navigationController.viewControllers.first(where: { $0 is CoequipViewController }) as? CoequipViewController {
+                        coequipVC.loadInitialData()
+                    }
+                    let successAlert = UIAlertController(
+                        title: "Success", 
+                        message: "Request deleted successfully", 
+                        preferredStyle: .alert
+                    )
+                    successAlert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                        self?.navigationController?.popViewController(animated: true)
+                    })
+                    present(successAlert, animated: true)
+                }
             }
-            let successAlert = UIAlertController(
-                title: "Success", 
-                message: "Request deleted successfully", 
-                preferredStyle: .alert
-            )
-            successAlert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-                self?.navigationController?.popViewController(animated: true)
-            })
-            present(successAlert, animated: true)
         }
     }
     

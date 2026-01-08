@@ -25,6 +25,10 @@ class EquipmentDetailViewModel: ObservableObject {
     @Published var showingImageGallery: Bool = false
     @Published var selectedImageIndex: Int = 0
     
+    // Navigation state for SwiftUI native navigation
+    @Published var showBookingOptions: Bool = false
+    @Published var navigateToReviewBooking: Bool = false
+    
     // MARK: - Computed Properties
     
     var displayImages: [String] {
@@ -100,9 +104,11 @@ class EquipmentDetailViewModel: ObservableObject {
     
     // MARK: - Dependencies
     
-    private let dataController: DataController?
-    private var bookingSource: BookingSource
+    let dataController: DataController?
+    var bookingSource: BookingSource
     weak var navigationCoordinator: HomeNavigationCoordinator?
+    var router: CoEquipNavigationRouter? // Router for navigation
+    let isReadOnly: Bool // New property for read-only mode
     
     // MARK: - Initialization
     
@@ -110,12 +116,16 @@ class EquipmentDetailViewModel: ObservableObject {
         equipment: Equipment,
         bookingSource: BookingSource,
         dataController: DataController?,
-        navigationCoordinator: HomeNavigationCoordinator?
+        navigationCoordinator: HomeNavigationCoordinator?,
+        router: CoEquipNavigationRouter? = nil,
+        isReadOnly: Bool = false
     ) {
         self.equipment = equipment
         self.bookingSource = bookingSource
         self.dataController = dataController
         self.navigationCoordinator = navigationCoordinator
+        self.router = router
+        self.isReadOnly = isReadOnly
         
         loadReviews()
         checkUserBookingStatus()
@@ -195,22 +205,48 @@ class EquipmentDetailViewModel: ObservableObject {
         if bookingSource == .prebooking {
             print("➡️ Navigating directly to ReviewBooking (Prebooking flow)")
             // If coming from Prebooking tab, go directly to ReviewBooking with prebooking flow
-            navigateToReviewBooking()
+            handleIndividualBooking()
         } else {
-            print("➡️ Showing booking options alert")
-            // For other sources (like Home tab), show the booking options
-            showBookingOptions()
+            print("➡️ Showing native SwiftUI booking alert (centered card)")
+            // For other sources (like Home tab), show the native booking alert
+            showBookingOptions = true
         }
     }
     
-    private func showBookingOptions() {
+    /// Handle Individual Booking selection
+    func handleIndividualBooking() {
+        print("📝 User selected: Book as Individual")
+        
+        // Use SwiftUI navigation if available, fallback to coordinator
+        if navigationCoordinator != nil {
+            // UIKit flow - use existing coordinator
+            performNavigationToReviewBooking()
+        } else {
+            // Pure SwiftUI flow - set navigation state
+            navigateToReviewBooking = true
+        }
+    }
+    
+    /// Handle Co-Equip Booking selection
+    func handleCoEquipBooking() {
+        print("🤝 User selected: Book with Co-Equip")
+        
+        // Use router to navigate to CreateCoEquipGroupView
+        router?.navigate(to: CoEquipDestination.createGroup(equipment))
+    }
+    
+    // MARK: - Legacy UIKit Navigation (Deprecated - Keep for backward compatibility)
+    
+    private func showLegacyBookingOptionsAlert() {
         guard let topViewController = navigationController?.topViewController else {
-            print("❌ showBookingOptions: No top view controller found")
+            print("❌ showLegacyBookingOptionsAlert: No top view controller found")
             print("   Navigation Controller: \(navigationController != nil ? "exists" : "nil")")
+            // Fallback to SwiftUI navigation
+            showBookingOptions = true
             return
         }
         
-        print("✅ Showing booking options alert")
+        print("✅ Showing booking options alert (Legacy UIKit)")
         
         let alertController = UIAlertController(
             title: "Choose Your Booking Type",
@@ -220,12 +256,12 @@ class EquipmentDetailViewModel: ObservableObject {
         
         let individualAction = UIAlertAction(title: "Book as Individual", style: .default) { [weak self] _ in
             print("📝 User selected: Book as Individual")
-            self?.navigateToReviewBooking()
+            self?.handleIndividualBooking()
         }
         
         let coEquipAction = UIAlertAction(title: "Book with Co-Equip", style: .default) { [weak self] _ in
             print("🤝 User selected: Book with Co-Equip")
-            self?.navigateToCoEquipBooking()
+            self?.handleCoEquipBooking()
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { _ in
@@ -247,7 +283,7 @@ class EquipmentDetailViewModel: ObservableObject {
         }
     }
     
-    private func navigateToReviewBooking() {
+    private func performNavigationToReviewBooking() {
         print("🔄 Navigating to Review Booking via coordinator")
         print("   Equipment: \(equipment.name)")
         print("   Booking Source: \(bookingSource)")

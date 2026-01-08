@@ -51,6 +51,9 @@ protocol HomeNavigationCoordinator: AnyObject {
     ///   - equipment: The equipment whose reviews to display
     ///   - reviews: List of reviews to display
     func navigateToAllReviews(equipment: Equipment, reviews: [ReviewData])
+    
+    /// Pop to root view controller (back to Home)
+    func popToRoot()
 }
 
 /// Default implementation for UIKit-based navigation coordinator
@@ -214,5 +217,10 @@ class UIKitHomeNavigationCoordinator: HomeNavigationCoordinator {
         allReviewsVC.reviews = reviews
         
         navigationController?.pushViewController(allReviewsVC, animated: true)
+    }
+    
+    func popToRoot() {
+        print("🚀 HomeNavigationCoordinator - Popping to root")
+        navigationController?.popToRootViewController(animated: true)
     }
 }

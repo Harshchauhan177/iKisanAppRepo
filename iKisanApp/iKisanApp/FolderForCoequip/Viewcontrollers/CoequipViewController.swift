@@ -14,6 +14,9 @@ class CoequipViewController: UIViewController {
     // Pull-to-refresh control
     private var refreshControl = UIRefreshControl()
     
+    // Toggle for using SwiftUI Request Detail view (set to true to use modern SwiftUI view)
+    var useSwiftUIRequestDetail: Bool = true
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -157,6 +160,17 @@ class CoequipViewController: UIViewController {
                 searchVC.dataController = self.dataController
             }
     }
+    
+    // MARK: - SwiftUI Navigation
+    
+    /// Navigate to the modern SwiftUI Request Detail view
+    private func navigateToRequestDetailSwiftUI(request: Request) {
+        let hostingController = RequestDetailHostingController(
+            request: request,
+            dataController: dataController
+        )
+        navigationController?.pushViewController(hostingController, animated: true)
+    }
 
     private func updateUI() {
         updateCachedRequests()
@@ -181,12 +195,17 @@ class CoequipViewController: UIViewController {
 
     func removeRequest(with id: UUID) {
         guard let dataController = dataController else { return }
-        dataController.deleteRequest(with: id)
-       
-        if currentRequest?.id == id {
-            currentRequest = nil
+        
+        Task {
+            _ = await dataController.deleteRequest(with: id)
+            
+            await MainActor.run {
+                if currentRequest?.id == id {
+                    currentRequest = nil
+                }
+                loadInitialData()
+            }
         }
-        loadInitialData()
     }
 
     @objc private func handleRequestDeletion(_ notification: Notification) {
@@ -330,6 +349,13 @@ extension CoequipViewController: UITableViewDataSource, UITableViewDelegate {
         
         let request = requests[indexPath.row]
         
+        // Use SwiftUI Request Detail view if enabled
+        if useSwiftUIRequestDetail {
+            navigateToRequestDetailSwiftUI(request: request)
+            return
+        }
+        
+        // Fallback to legacy UIKit views
         if CoequipSegmentedControl.selectedSegmentIndex == 0 {
             // My requests section - navigate to MyRequestViewController1
             performSegue(withIdentifier: "goToMyRequest1", sender: request)
@@ -348,7 +374,10 @@ extension CoequipViewController: MyRequestTableViewCellDelegate {
         
         var request = dataController.getAllCoEquipRequests()[indexPath.row]
         request.status = .confirmed
-        dataController.updateRequest(request)
+        
+        Task {
+            _ = await dataController.updateRequest(request)
+        }
         
         // Create a CoEquip booking when request is confirmed
         let coEquipBooking = Booking(
@@ -442,7 +471,9 @@ extension CoequipViewController: AcceptRequestTableViewCellDelegate {
             updatedRequest.status = .pending
             
             // Update in data controller
-            dataController.updateRequest(updatedRequest)
+            Task {
+                _ = await dataController.updateRequest(updatedRequest)
+            }
             
             // Perform segue to accept request view
             performSegue(withIdentifier: "goToAcceptRequest", sender: updatedRequest)

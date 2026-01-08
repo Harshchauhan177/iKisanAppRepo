@@ -317,7 +317,7 @@ class AcceptRequestTableViewController: UITableViewController {
                     updatedRequest.acceptedUsers = currentAcceptedUsers.compactMap { UUID(uuidString: $0) }
                     
                     // Update local data
-                    dataController.updateRequest(updatedRequest)
+                    _ = await dataController.updateRequest(updatedRequest)
                     
                     // Create a CoEquip booking for this participant
                     print("🔧 Creating CoEquip booking for participant: \(currentUser.userID)")
@@ -427,7 +427,9 @@ class AcceptRequestTableViewController: UITableViewController {
                 participants: []
             )
             
-            dataController.updateRequest(updatedRequest)
+            Task {
+                _ = await dataController.updateRequest(updatedRequest)
+            }
             
             // Navigate back and reload
             if let navigationController = self?.navigationController {
