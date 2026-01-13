@@ -38,20 +38,8 @@ struct RequestDetailView: View {
                         // Requester Information
                         requesterSection
                         
-                        // Invited/Joined Farmers - Show real participants from database
-                        if !viewModel.fetchedParticipants.isEmpty {
-                            invitedFarmersSection
-                        }
-                        
-                        // Legacy: Joined Farmers Section (for My Requests only)
-                        if viewModel.hasJoinedFarmers && viewModel.fetchedParticipants.isEmpty {
-                            joinedFarmersSection
-                        }
-                        
-                        // Legacy: Participants Section (if any)
-                        if viewModel.hasParticipants && viewModel.fetchedParticipants.isEmpty {
-                            participantsSection
-                        }
+                        // Participants Section - Single source of truth
+                        participantsSection
                         
                         // Area and Pricing
                         areaPricingSection
@@ -309,40 +297,45 @@ struct RequestDetailView: View {
         }
     }
     
-    // MARK: - Joined Farmers Section
+
+
+    // MARK: - Participants Section
     
-    private var joinedFarmersSection: some View {
+    private var participantsSection: some View {
         VStack(spacing: 0) {
-            SectionHeader(title: "Joined Farmers (\(viewModel.joinedFarmersCount))")
-            
-            VStack(spacing: 0) {
-                ForEach(Array(viewModel.joinedFarmers.enumerated()), id: \.element.id) { index, farmer in
-                    JoinedFarmerRow(farmer: farmer)
-                    
-                    if index < viewModel.joinedFarmers.count - 1 {
-                        Divider()
-                            .padding(.leading, 52)
-                    }
-                }
-            }
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-            )
-        }
-    }
-    
-    // MARK: - Invited Farmers Section (New)
-    
-    private var invitedFarmersSection: some View {
-        VStack(spacing: 0) {
-            SectionHeader(title: "Invited Farmers (\(viewModel.fetchedParticipants.count))")
+            SectionHeader(title: "Invited Farmers (\(viewModel.participantCount))")
             
             if viewModel.isLoadingParticipants {
+                // Loading state
                 HStack {
                     Spacer()
-                    ProgressView()
-                        .padding(.vertical, 20)
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: ikisanGreen))
+                        Text("Loading farmers...")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 32)
+                    Spacer()
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                )
+            } else if viewModel.participants.isEmpty {
+                // Empty state
+                HStack {
+                    Spacer()
+                    VStack(spacing: 8) {
+                        Image(systemName: "person.2.slash")
+                            .font(.system(size: 32))
+                            .foregroundColor(.gray.opacity(0.5))
+                        Text("No farmers have joined yet")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 32)
                     Spacer()
                 }
                 .background(
@@ -350,13 +343,14 @@ struct RequestDetailView: View {
                         .fill(Color(UIColor.secondarySystemGroupedBackground))
                 )
             } else {
+                // Display participants
                 VStack(spacing: 0) {
-                    ForEach(Array(viewModel.fetchedParticipants.enumerated()), id: \.element.id) { index, participant in
-                        InvitedFarmerRow(participant: participant)
+                    ForEach(Array(viewModel.participants.enumerated()), id: \.element.id) { index, participant in
+                        ParticipantDetailRow(participant: participant, dataController: viewModel.dataController)
                         
-                        if index < viewModel.fetchedParticipants.count - 1 {
+                        if index < viewModel.participants.count - 1 {
                             Divider()
-                                .padding(.leading, 52)
+                                .padding(.leading, 60)
                         }
                     }
                 }
@@ -368,29 +362,6 @@ struct RequestDetailView: View {
         }
     }
     
-    // MARK: - Participants Section
-    
-    private var participantsSection: some View {
-        VStack(spacing: 0) {
-            SectionHeader(title: "Participants (\(viewModel.participantCount))")
-            
-            VStack(spacing: 0) {
-                ForEach(Array(viewModel.participants.enumerated()), id: \.element.id) { index, participant in
-                    ParticipantRow(participant: participant)
-                    
-                    if index < viewModel.participants.count - 1 {
-                        Divider()
-                            .padding(.leading, 52)
-                    }
-                }
-            }
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-            )
-        }
-    }
-    
     // MARK: - Area and Pricing Section
     
     private var areaPricingSection: some View {
@@ -398,26 +369,39 @@ struct RequestDetailView: View {
             SectionHeader(title: "Details")
             
             VStack(spacing: 0) {
+                // Row 1: Minimum Required Area (Hardcoded to 5.0 acres)
+                DetailRow(
+                    icon: "flag.fill",
+                    label: "Minimum Required Area",
+                    value: viewModel.minimumAreaText,
+                    iconColor: .orange
+                )
+                
+                Divider()
+                    .padding(.leading, 52)
+                
+                // Row 2: Current Total Area (Sum of all participants)
+                DetailRow(
+                    icon: "square.stack.3d.up.fill",
+                    label: "Current Total Area",
+                    value: viewModel.currentTotalAreaText,
+                    iconColor: .teal
+                )
+                
+                Divider()
+                    .padding(.leading, 52)
+                
+                // Row 3: Your Area (Host's contribution for creator, or participant's area)
                 if viewModel.isMyRequest {
                     DetailRow(
-                        icon: "square.grid.3x3.fill",
-                        label: "Minimum Area",
-                        value: viewModel.minimumAreaText,
+                        icon: "map.fill",
+                        label: "Your Area",
+                        value: viewModel.hostAreaText,
                         iconColor: .brown
-                    )
-                    
-                    Divider()
-                        .padding(.leading, 52)
-                    
-                    DetailRow(
-                        icon: "square.stack.3d.up.fill",
-                        label: "Current Total Area",
-                        value: viewModel.currentTotalAreaText,
-                        iconColor: .teal
                     )
                 } else {
                     DetailRow(
-                        icon: "square.grid.3x3.fill",
+                        icon: "map.fill",
                         label: "Your Area",
                         value: viewModel.yourAreaText ?? "Not set",
                         iconColor: .brown
@@ -596,216 +580,97 @@ struct DetailRow: View {
     }
 }
 
-/// Participant row displaying user info
-struct ParticipantRow: View {
-    let participant: RequestDetailViewModel.ParticipantInfo
-    
+/// Loading overlay
+struct LoadingOverlay: View {
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            // User avatar
-            Circle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 40, height: 40)
-                .overlay(
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 18))
-                        .foregroundColor(.gray)
-                )
+        ZStack {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
             
-            // User info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(participant.name)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.primary)
-                
-                if let area = participant.area {
-                    Text("\(String(format: "%.2f", area)) acres")
-                        .font(.system(size: 13))
-                        .foregroundColor(.secondary)
-                }
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.2)
+                    .tint(.white)
+                Text("Processing...")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
             }
-            
-            Spacer()
-            
-            // Time slot or status
-            if let timeSlot = participant.timeSlot {
-                VStack(alignment: .trailing, spacing: 4) {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                    Text(timeSlot)
-                        .font(.system(size: 13))
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
-}
-
-/// Joined farmer row displaying farmer who accepted/joined the request
-struct JoinedFarmerRow: View {
-    let farmer: RequestDetailViewModel.ParticipantInfo
-    
-    // iKisan brand green
-    private let ikisanGreen = Color(red: 0.298, green: 0.498, blue: 0.345)
-    
-    var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            // User avatar with checkmark
-            ZStack(alignment: .bottomTrailing) {
-                Circle()
-                    .fill(ikisanGreen.opacity(0.15))
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(ikisanGreen)
-                    )
-                
-                // Checkmark badge
-                Circle()
-                    .fill(ikisanGreen)
-                    .frame(width: 16, height: 16)
-                    .overlay(
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
-                    )
-                    .offset(x: 2, y: 2)
-            }
-            
-            // Farmer info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(farmer.name)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.primary)
-                
-                HStack(spacing: 12) {
-                    // Area badge
-                    if let area = farmer.area {
-                        HStack(spacing: 4) {
-                            Image(systemName: "square.grid.3x3.fill")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                            Text("\(String(format: "%.1f", area)) acres")
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            Capsule()
-                                .fill(Color.gray.opacity(0.1))
-                        )
-                    }
-                    
-                    // Time slot badge
-                    if let timeSlot = farmer.timeSlot {
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock.fill")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                            Text(timeSlot)
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            Capsule()
-                                .fill(Color.gray.opacity(0.1))
-                        )
-                    }
-                }
-            }
-            
-            Spacer()
-            
-            // Status indicator
-            VStack(alignment: .trailing, spacing: 2) {
-                Image(systemName: statusIcon(for: farmer.status))
-                    .font(.system(size: 20))
-                    .foregroundColor(statusColor(for: farmer.status))
-                
-                Text(statusText(for: farmer.status))
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(statusColor(for: farmer.status))
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-    }
-    
-    // Helper methods for status display
-    private func statusIcon(for status: ParticipantStatus) -> String {
-        switch status {
-        case .pending:
-            return "clock.fill"
-        case .accepted:
-            return "checkmark.circle.fill"
-        case .done:
-            return "checkmark.circle.fill"
-        case .rejected:
-            return "xmark.circle.fill"
-        }
-    }
-    
-    private func statusColor(for status: ParticipantStatus) -> Color {
-        switch status {
-        case .pending:
-            return .orange
-        case .accepted:
-            return ikisanGreen
-        case .done:
-            return ikisanGreen
-        case .rejected:
-            return .red
-        }
-    }
-    
-    private func statusText(for status: ParticipantStatus) -> String {
-        switch status {
-        case .pending:
-            return "Pending"
-        case .accepted:
-            return "Accepted"
-        case .done:
-            return "Joined"
-        case .rejected:
-            return "Rejected"
+            .padding(24)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(.regularMaterial)
+            )
         }
     }
 }
 
-// MARK: - Invited Farmer Row (New Component)
+// MARK: - Participant Detail Row (New Component for RequestParticipant)
 
-struct InvitedFarmerRow: View {
-    let participant: RequestDetailViewModel.ParticipantDisplayInfo
+struct ParticipantDetailRow: View {
+    let participant: RequestParticipant
+    let dataController: DataController?
     
     // iKisan brand green
     private let ikisanGreen = Color(red: 0.298, green: 0.498, blue: 0.345)
+    
+    private var user: User? {
+        dataController?.getUserById(participant.userId)
+    }
+    
+    private var userName: String {
+        user?.name ?? "Unknown"
+    }
+    
+    private var userPhone: String? {
+        user?.phone
+    }
+    
+    private var statusColor: Color {
+        switch participant.status {
+        case .pending: return .orange
+        case .accepted: return ikisanGreen
+        case .done: return ikisanGreen
+        case .rejected: return .red
+        }
+    }
+    
+    private var statusIcon: String {
+        switch participant.status {
+        case .pending: return "clock.fill"
+        case .accepted: return "checkmark.circle.fill"
+        case .done: return "checkmark.circle.fill"
+        case .rejected: return "xmark.circle.fill"
+        }
+    }
+    
+    private var statusText: String {
+        switch participant.status {
+        case .pending: return "Pending"
+        case .accepted: return "Accepted"
+        case .done: return "Joined"
+        case .rejected: return "Declined"
+        }
+    }
     
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             // User avatar with status indicator
             ZStack(alignment: .bottomTrailing) {
                 Circle()
-                    .fill(statusBackgroundColor.opacity(0.15))
+                    .fill(statusColor.opacity(0.15))
                     .frame(width: 44, height: 44)
                     .overlay(
                         Image(systemName: "person.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(statusBackgroundColor)
+                            .foregroundColor(statusColor)
                     )
                 
                 // Status badge
                 Circle()
-                    .fill(statusBackgroundColor)
+                    .fill(statusColor)
                     .frame(width: 16, height: 16)
                     .overlay(
-                        Image(systemName: participant.statusIcon)
+                        Image(systemName: statusIcon)
                             .font(.system(size: 9, weight: .bold))
                             .foregroundColor(.white)
                     )
@@ -813,28 +678,28 @@ struct InvitedFarmerRow: View {
             }
             
             // Farmer info
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text(participant.name)
+                    Text(userName)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.primary)
                     
                     Spacer()
                     
                     // Status badge
-                    Text(participant.statusText)
+                    Text(statusText)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(statusBackgroundColor)
+                        .foregroundColor(statusColor)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
                         .background(
                             Capsule()
-                                .fill(statusBackgroundColor.opacity(0.15))
+                                .fill(statusColor.opacity(0.15))
                         )
                 }
                 
                 // Phone number if available
-                if let phone = participant.phone {
+                if let phone = userPhone {
                     HStack(spacing: 4) {
                         Image(systemName: "phone.fill")
                             .font(.system(size: 11))
@@ -885,44 +750,7 @@ struct InvitedFarmerRow: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
-    
-    private var statusBackgroundColor: Color {
-        switch participant.status {
-        case .pending:
-            return .orange
-        case .accepted:
-            return ikisanGreen
-        case .done:
-            return ikisanGreen
-        case .rejected:
-            return .red
-        }
-    }
-}
-
-/// Loading overlay
-struct LoadingOverlay: View {
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.3)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 16) {
-                ProgressView()
-                    .scaleEffect(1.2)
-                    .tint(.white)
-                Text("Processing...")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white)
-            }
-            .padding(24)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.regularMaterial)
-            )
-        }
+        .padding(.vertical, 14)
     }
 }
 
