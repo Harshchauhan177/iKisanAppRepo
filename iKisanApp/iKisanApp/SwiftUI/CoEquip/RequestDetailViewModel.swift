@@ -80,11 +80,29 @@ class RequestDetailViewModel: ObservableObject {
         }
         
         print("🔄 Fetching participants from database for request: \(request.id)")
+        print("   Request creator: \(request.userId)")
+        print("   Request status: \(request.status)")
         
         // Always fetch from database to ensure fresh data
         if let freshRequest = await fetchRequestWithParticipants(requestId: request.id) {
             let fetchedParticipants = freshRequest.participants ?? []
             print("✅ Fetched \(fetchedParticipants.count) participants from database")
+            
+            if fetchedParticipants.isEmpty {
+                print("⚠️ WARNING: No participants returned from database!")
+                print("   This could indicate:")
+                print("   1. Participants weren't created")
+                print("   2. Database policies are blocking access")
+                print("   3. Foreign key constraints failed")
+            } else {
+                print("📋 Raw participant data:")
+                for (index, p) in fetchedParticipants.enumerated() {
+                    print("   Participant \(index + 1):")
+                    print("     - ID: \(p.id)")
+                    print("     - User ID: \(p.userId)")
+                    print("     - Status: \(p.status)")
+                }
+            }
             
             // Filter out rejected participants
             let activeParticipants = fetchedParticipants.filter { $0.status != .rejected }
@@ -194,6 +212,10 @@ class RequestDetailViewModel: ObservableObject {
                     let joinedAt: Date
                     let created_at: Date?
                     let updated_at: Date?
+                    let paymentStatus: String?
+                    let paymentId: String?
+                    let paymentTimestamp: Date?
+                    let paymentAmount: Double?
                 }
             }
 
@@ -209,7 +231,11 @@ class RequestDetailViewModel: ObservableObject {
                     status: ParticipantStatus(rawValue: participantDto.status) ?? .pending,
                     area: participantDto.area,
                     timeSlot: participantDto.timeSlotId,
-                    joinedAt: participantDto.joinedAt
+                    joinedAt: participantDto.joinedAt,
+                    paymentStatus: PaymentStatus(rawValue: participantDto.paymentStatus ?? "pending") ?? .pending,
+                    paymentId: participantDto.paymentId,
+                    paymentTimestamp: participantDto.paymentTimestamp,
+                    paymentAmount: participantDto.paymentAmount
                 )
             } ?? []
             
@@ -314,6 +340,12 @@ class RequestDetailViewModel: ObservableObject {
             return "Accepted"
         case .completed:
             return "Completed"
+        case .awaitingProvider:
+            return "Awaiting Provider"
+        case .collectingPayment:
+            return "Collecting Payment"
+        case .active:
+            return "Active"
 //        case .cancelled:
 //            return "Cancelled"
         }
@@ -327,6 +359,12 @@ class RequestDetailViewModel: ObservableObject {
             return Color(red: 0.298, green: 0.498, blue: 0.345) // iKisan green
         case .completed:
             return .blue
+        case .awaitingProvider:
+            return .orange
+        case .collectingPayment:
+            return .yellow
+        case .active:
+            return Color(red: 0.298, green: 0.498, blue: 0.345) // iKisan green
 //        case .cancelled:
 //            return .red
         }
@@ -458,7 +496,8 @@ class RequestDetailViewModel: ObservableObject {
     }
     
     var canModify: Bool {
-        return isMyRequest && request.status == .pending
+        // Allow modification for both pending and awaitingProvider states
+        return isMyRequest && (request.status == .pending || request.status == .awaitingProvider)
     }
     
     var canAccept: Bool {
@@ -471,8 +510,8 @@ class RequestDetailViewModel: ObservableObject {
         
         let isParticipant = request.participants?.contains(where: { $0.userId == currentUser.id }) ?? false
         
-        // Can accept if not already a participant and request is pending
-        return !isParticipant && request.status == .pending
+        // Can accept if not already a participant and request is pending or awaiting provider
+        return !isParticipant && (request.status == .pending || request.status == .awaitingProvider)
     }
     
     var canDecline: Bool {
@@ -480,7 +519,8 @@ class RequestDetailViewModel: ObservableObject {
     }
     
     var canDelete: Bool {
-        return isMyRequest && request.status == .pending
+        // Allow deletion for both pending and awaitingProvider states
+        return isMyRequest && (request.status == .pending || request.status == .awaitingProvider)
     }
     
     var canViewEquipment: Bool {

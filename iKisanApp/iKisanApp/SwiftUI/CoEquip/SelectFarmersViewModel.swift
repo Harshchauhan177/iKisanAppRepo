@@ -349,7 +349,7 @@ class SelectFarmersViewModel: ObservableObject {
                 userId: currentUser.id, // Creator of the request
                 equipmentId: equipment.equipmentID,
                 requestedDate: parentVM.selectedDate,
-                status: .pending,
+                status: .awaitingProvider, // Use awaitingProvider to match database enum
                 type: .coEquip, // Co-Equip booking type
                 area: fieldAreaInAcres,
                 timeSlot: timeSlot,

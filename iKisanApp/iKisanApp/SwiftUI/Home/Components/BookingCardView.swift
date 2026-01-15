@@ -131,6 +131,12 @@ struct BookingCardView: View {
             return .orange
         case .completed:
             return Color(red: 0.0, green: 0.478, blue: 1.0) // Blue
+        case .awaitingProvider:
+            return .orange
+        case .collectingPayment:
+            return .yellow
+        case .active:
+            return Color(red: 0.298, green: 0.498, blue: 0.345) // Green
         }
     }
     

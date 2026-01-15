@@ -177,32 +177,38 @@ class CoEquipViewModel: ObservableObject {
         print("   Total requests fetched: \(allRequests.count)")
         print("   Current user ID: \(currentUser.userID)")
         print("   Current user name: \(currentUser.name)")
+        print("")
         
         // Debug: Print all requests with their participants
         for (index, request) in allRequests.enumerated() {
-            print("📋 Request \(index + 1):")
-            print("   ID: \(request.id)")
-            print("   Creator ID: \(request.userId)")
+            let isCreator = request.userId == currentUser.userID
+            print("📋 Request \(index + 1): \(request.id.uuidString.prefix(8))...")
+            print("   Creator ID: \(request.userId.uuidString.prefix(8))... \(isCreator ? "(YOU)" : "")")
             print("   Type: \(request.typeOfRequest)")
             print("   Status: \(request.status)")
+            
             if let participants = request.participants, !participants.isEmpty {
                 print("   Participants: \(participants.count)")
+                var foundCurrentUser = false
                 for participant in participants {
                     let isCurrentUser = participant.userId == currentUser.userID
-                    print("     - User: \(participant.userId)\(isCurrentUser ? " ⭐ (YOU)" : "")")
+                    if isCurrentUser { foundCurrentUser = true }
+                    print("     - User: \(participant.userId.uuidString.prefix(8))... \(isCurrentUser ? "⭐ (YOU)" : "")")
                     print("       Status: \(participant.status)")
                 }
+                if !foundCurrentUser && !isCreator {
+                    print("   ⚠️ Current user is NOT a participant and NOT the creator!")
+                }
             } else {
-                print("   Participants: none")
+                print("   ⚠️ Participants: NONE (empty array or nil)")
             }
+            
             if let acceptedUsers = request.acceptedUsers, !acceptedUsers.isEmpty {
                 print("   Accepted Users: \(acceptedUsers.count)")
                 for userId in acceptedUsers {
                     let isCurrentUser = userId == currentUser.userID
-                    print("     - \(userId)\(isCurrentUser ? " ⭐ (YOU)" : "")")
+                    print("     - \(userId.uuidString.prefix(8))...\(isCurrentUser ? " ⭐ (YOU)" : "")")
                 }
-            } else {
-                print("   Accepted Users: none")
             }
             print("")
         }
@@ -217,33 +223,31 @@ class CoEquipViewModel: ObservableObject {
         
         print("✅ My requests count: \(myRequestsData.count)")
         
-        // Process join requests - Show ALL incoming invitations where current user is a participant
-        // This includes:
-        // 1. Requests where user is explicitly listed as a participant with .pending OR .done status
-        // 2. Requests where user is in acceptedUsers array (alternative invitation mechanism)
-        // EXCLUDE requests created by the current user (those are in "My Requests")
-        // 
-        // FIX: Changed to show BOTH pending AND done requests so that "Joined" badge remains visible
-        // NOTE: Database uses "done" status instead of "accepted"
+        // Process join requests - Show requests where current user is invited as a participant
+        // An invited farmer should see the creator's request because they are listed as a participant
         let joinRequestsData = allRequests
             .filter { request in
-                // Exclude requests created by current user
+                // Must NOT be created by current user (those go in My Requests)
                 guard request.userId != currentUser.userID else {
                     return false
                 }
                 
                 // Check if user is a participant with pending OR done status
-                // This ensures the card stays visible after accepting
                 let isParticipant = request.participants?.contains { participant in
                     participant.userId == currentUser.userID && 
                     (participant.status == .pending || participant.status == .done)
                 } ?? false
                 
-                // Check if user is in acceptedUsers array (another way users can be invited)
+                // Also check acceptedUsers array as backup mechanism
                 let isInAcceptedUsers = request.acceptedUsers?.contains(currentUser.userID) ?? false
                 
-                // Show request if user is invited through either mechanism
-                return isParticipant || isInAcceptedUsers
+                let shouldShow = isParticipant || isInAcceptedUsers
+                
+                if shouldShow {
+                    print("  ✅ Including request \(request.id.uuidString.prefix(8)) - isParticipant: \(isParticipant), participants count: \(request.participants?.count ?? 0)")
+                }
+                
+                return shouldShow
             }
             .sorted { $0.requestedDate > $1.requestedDate }
         
@@ -309,6 +313,12 @@ class CoEquipViewModel: ObservableObject {
                 status = .confirmed
             case .completed:
                 status = .completed
+            case .awaitingProvider:
+                status = .pending // Map to pending as it's still waiting
+            case .collectingPayment:
+                status = .confirmed // Map to confirmed as provider accepted
+            case .active:
+                status = .confirmed // Map to confirmed as it's active
             }
             
             let coEquipRequest = CoEquipRequest(

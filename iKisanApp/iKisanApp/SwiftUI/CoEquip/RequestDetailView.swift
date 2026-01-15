@@ -41,6 +41,11 @@ struct RequestDetailView: View {
                         // Participants Section - Single source of truth
                         participantsSection
                         
+                        // Payment Section (if collecting payment)
+                        if viewModel.request.status == .collectingPayment {
+                            paymentSection
+                        }
+                        
                         // Area and Pricing
                         areaPricingSection
                     }
@@ -528,6 +533,54 @@ struct RequestDetailView: View {
             in: RoundedRectangle(cornerRadius: 0, style: .continuous)
         )
         .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: -2)
+    }
+    
+    // MARK: - Payment Section
+    
+    private var paymentSection: some View {
+        VStack(spacing: 12) {
+            NavigationLink {
+                if let equipment = viewModel.cachedEquipment {
+                    GroupPaymentView(
+                        request: viewModel.request,
+                        equipment: equipment
+                    )
+                }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Image(systemName: "creditcard.fill")
+                                .foregroundColor(.orange)
+                            Text("Payment Required")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                        }
+                        
+                        if let deadline = viewModel.request.paymentDeadline {
+                            let remaining = deadline.timeIntervalSinceNow
+                            if remaining > 0 {
+                                Text("\(Int(remaining / 3600))h \(Int((remaining.truncatingRemainder(dividingBy: 3600)) / 60))m remaining")
+                                    .font(.subheadline)
+                                    .foregroundColor(.orange)
+                            } else {
+                                Text("Payment deadline expired")
+                                    .font(.subheadline)
+                                    .foregroundColor(.red)
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(Color(UIColor.secondarySystemGroupedBackground))
+                .cornerRadius(12)
+            }
+        }
     }
 }
 

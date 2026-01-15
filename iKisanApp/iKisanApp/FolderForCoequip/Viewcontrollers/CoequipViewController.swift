@@ -373,56 +373,24 @@ extension CoequipViewController: MyRequestTableViewCellDelegate {
               let currentUser = dataController.getCurrentUser() else { return }
         
         var request = dataController.getAllCoEquipRequests()[indexPath.row]
-        request.status = .confirmed
+        // Change status to collecting_payment to trigger 4-hour timer
+        request.status = .collectingPayment
         
         Task {
             _ = await dataController.updateRequest(request)
         }
         
-        // Create a CoEquip booking when request is confirmed
-        let coEquipBooking = Booking(
-            bookingID: UUID(),
-            userID: currentUser.userID,
-            equipmentID: request.equipmentId,
-            bookingType: .coEquip,
-            bookingDate: request.requestedDate,
-            fieldArea: request.area,
-            status: .confirmed,
-            timeSlot: request.timeSlot,
-            source: .coEquip,
-            bookingLocation: Location(
-                latitude: 0.0,  // You can get from request.location if needed
-                longitude: 0.0,
-                address: request.location
-            )
+        // Don't create booking yet - wait for payment completion
+        // The booking will be created when status changes to 'active' after all payments
+        
+        // Show payment required alert
+        let alert = UIAlertController(
+            title: "Request Accepted",
+            message: "Group payment collection started. Participants have 4 hours to complete payment.",
+            preferredStyle: .alert
         )
-        
-        // Add the booking to data controller
-        let success = dataController.addBooking(coEquipBooking)
-        
-        if success {
-            print("✅ CoEquip booking created successfully for request: \(request.id)")
-            
-            // Show success alert
-            let alert = UIAlertController(
-                title: "Success",
-                message: "Your Co-Equip booking has been confirmed!",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-        } else {
-            print("❌ Failed to create CoEquip booking")
-            
-            // Show error alert
-            let alert = UIAlertController(
-                title: "Error",
-                message: "Failed to create booking. The equipment may already be booked for this time slot.",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-        }
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
         
         CoequipTableView.reloadRows(at: [indexPath], with: .automatic)
     }

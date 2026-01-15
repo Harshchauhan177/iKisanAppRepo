@@ -171,26 +171,96 @@ class IKisanDataController: DataController {
             throw NSError(domain: "DataController", code: 400, userInfo: [NSLocalizedDescriptionKey: "Missing required fields for request participant"])
         }
         
+        print("📤 Inserting participant into database:")
+        print("   - Table: request_participants")
+        print("   - Participant ID: \(participant.id)")
+        print("   - Request ID: \(participant.requestId)")
+        print("   - User ID: \(participant.userId)")
+        print("   - Status: \(participant.status.rawValue)")
+        
+        // Create DTO with database fields (including payment fields)
+        struct ParticipantDTO: Codable {
+            let id: UUID
+            let requestId: UUID
+            let userId: UUID
+            let status: String
+            let area: Double?
+            let timeSlot: String?
+            let joinedAt: Date
+            let paymentStatus: String
+            let paymentId: String?
+            let paymentTimestamp: Date?
+            let paymentAmount: Double?
+            
+            enum CodingKeys: String, CodingKey {
+                case id
+                case requestId
+                case userId
+                case status
+                case area
+                case timeSlot
+                case joinedAt
+                case paymentStatus = "payment_status"
+                case paymentId = "payment_id"
+                case paymentTimestamp = "payment_timestamp"
+                case paymentAmount = "payment_amount"
+            }
+        }
+        
+        let dto = ParticipantDTO(
+            id: participant.id,
+            requestId: participant.requestId,
+            userId: participant.userId,
+            status: participant.status.rawValue,
+            area: participant.area,
+            timeSlot: participant.timeSlot,
+            joinedAt: participant.joinedAt,
+            paymentStatus: participant.paymentStatus.rawValue,
+            paymentId: participant.paymentId,
+            paymentTimestamp: participant.paymentTimestamp,
+            paymentAmount: participant.paymentAmount
+        )
+        
         do {
             let response = try await SupabaseManager.shared.client
                 .from("request_participants")
-                .insert(participant)
+                .insert(dto)
                 .execute()
             
-            print("✅ Request participant created successfully")
+            print("✅ Request participant created successfully in database")
+            print("   Response status: \(response.response.statusCode)")
+            
+            // Verify it was actually inserted by trying to read it back
+            let verifyData = try await SupabaseManager.shared.client
+                .from("request_participants")
+                .select("id,requestId,userId,status")
+                .eq("id", value: participant.id.uuidString)
+                .execute()
+                .data
+            
+            if let jsonString = String(data: verifyData, encoding: .utf8) {
+                print("✅ Verified participant exists in database: \(jsonString)")
+            }
             
         } catch let error as PostgrestError {
-            print("❌ Error creating request participant: \(error.message)")
+            print("❌ PostgrestError creating request participant:")
+            print("   Code: \(error.code ?? "nil")")
+            print("   Message: \(error.message ?? "nil")")
+            print("   Hint: \(error.hint ?? "nil")")
+            print("   Details: \(error.detail ?? "nil")")
+            
             if error.message.contains("unique_request_user") {
                 throw NSError(domain: "DataController", code: 409, userInfo: [NSLocalizedDescriptionKey: "This user is already a participant in this request"])
             } else if error.message.contains("request_participants_requestId_fkey") {
-                throw NSError(domain: "DataController", code: 404, userInfo: [NSLocalizedDescriptionKey: "Invalid request ID reference"])
+                throw NSError(domain: "DataController", code: 404, userInfo: [NSLocalizedDescriptionKey: "Invalid request ID reference. The request \(participant.requestId) may not exist in the database yet."])
             } else if error.message.contains("request_participants_userId_fkey") {
-                throw NSError(domain: "DataController", code: 404, userInfo: [NSLocalizedDescriptionKey: "Invalid user ID reference"])
+                throw NSError(domain: "DataController", code: 404, userInfo: [NSLocalizedDescriptionKey: "Invalid user ID reference. The user \(participant.userId) does not exist in the database."])
             }
             throw error
         } catch {
-            print("❌ Error creating request participant: \(error.localizedDescription)")
+            print("❌ Unexpected error creating request participant:")
+            print("   Type: \(type(of: error))")
+            print("   Description: \(error.localizedDescription)")
             throw error
         }
     }
@@ -1331,6 +1401,26 @@ class RequestManager {
                     let joinedAt: Date
                     let created_at: Date?
                     let updated_at: Date?
+                    let paymentStatus: String?
+                    let paymentId: String?
+                    let paymentTimestamp: Date?
+                    let paymentAmount: Double?
+                    
+                    enum CodingKeys: String, CodingKey {
+                        case id
+                        case requestId
+                        case userId
+                        case status
+                        case area
+                        case timeSlotId
+                        case joinedAt
+                        case created_at
+                        case updated_at
+                        case paymentStatus = "payment_status"
+                        case paymentId = "payment_id"
+                        case paymentTimestamp = "payment_timestamp"
+                        case paymentAmount = "payment_amount"
+                    }
                 }
                 
                 enum CodingKeys: String, CodingKey {
@@ -1354,7 +1444,11 @@ class RequestManager {
                         status: ParticipantStatus(rawValue: participantDto.status) ?? .pending,
                         area: participantDto.area,
                         timeSlot: participantDto.timeSlotId,
-                        joinedAt: participantDto.joinedAt
+                        joinedAt: participantDto.joinedAt,
+                        paymentStatus: PaymentStatus(rawValue: participantDto.paymentStatus ?? "pending") ?? .pending,
+                        paymentId: participantDto.paymentId,
+                        paymentTimestamp: participantDto.paymentTimestamp,
+                        paymentAmount: participantDto.paymentAmount
                     )
                 } ?? []
                 
@@ -1372,7 +1466,14 @@ class RequestManager {
                     timeSlot: TimeSlot(rawValue: dto.timeSlot) ?? .morning,
                     timePeriod: dto.timePeriod,
                     location: dto.location,
-                    typeOfRequest: dto.typeOfRequest == "myRequest" ? .myRequest : .acceptedRequest,
+                    typeOfRequest: {
+                        switch dto.typeOfRequest {
+                        case "myRequest": return .myRequest
+                        case "sentRequest": return .sentRequest
+                        case "acceptedRequest": return .acceptedRequest
+                        default: return .acceptedRequest
+                        }
+                    }(),
                     participants: participants,
                     acceptedUsers: dto.acceptedUser?.compactMap { UUID(uuidString: $0) } ?? []
                 )
@@ -1898,12 +1999,20 @@ class RequestManager {
             print("🔄 [RequestManager] Starting request update for ID: \(request.id)")
             
             // 1. Update the main request record
+            // Convert status to match database enum
+            var statusValue = request.status.rawValue
+            // Map .pending to .awaiting_provider since database doesn't have "pending"
+            if statusValue == "pending" {
+                statusValue = "awaiting_provider"
+                print("⚠️ [RequestManager] Mapped .pending to .awaiting_provider for database")
+            }
+            
             let dto = RequestDTO(
                 id: request.id,
                 userId: request.userId,
                 equipmentId: request.equipmentId,
                 requestedDate: request.requestedDate,
-                status: request.status.rawValue,
+                status: statusValue,
                 type: request.type.rawValue,
                 area: request.area,
                 timeSlot: request.timeSlot.rawValue,
@@ -1925,7 +2034,7 @@ class RequestManager {
                 print("🔄 [RequestManager] Updating \(participants.count) participants")
                 
                 for participant in participants {
-                    // Create participant DTO for upsert
+                    // Create participant DTO for upsert (including payment fields)
                     struct ParticipantDTO: Codable {
                         let id: UUID
                         let requestId: UUID
@@ -1934,6 +2043,24 @@ class RequestManager {
                         let area: Double?
                         let timeSlotId: String?
                         let joinedAt: Date
+                        let paymentStatus: String?
+                        let paymentId: String?
+                        let paymentTimestamp: Date?
+                        let paymentAmount: Double?
+                        
+                        enum CodingKeys: String, CodingKey {
+                            case id
+                            case requestId
+                            case userId
+                            case status
+                            case area
+                            case timeSlotId
+                            case joinedAt
+                            case paymentStatus = "payment_status"
+                            case paymentId = "payment_id"
+                            case paymentTimestamp = "payment_timestamp"
+                            case paymentAmount = "payment_amount"
+                        }
                     }
                     
                     let participantDTO = ParticipantDTO(
@@ -1943,7 +2070,11 @@ class RequestManager {
                         status: participant.status.rawValue,
                         area: participant.area,
                         timeSlotId: participant.timeSlot,
-                        joinedAt: participant.joinedAt
+                        joinedAt: participant.joinedAt,
+                        paymentStatus: participant.paymentStatus.rawValue,
+                        paymentId: participant.paymentId,
+                        paymentTimestamp: participant.paymentTimestamp,
+                        paymentAmount: participant.paymentAmount
                     )
                     
                     // Upsert participant (insert or update)

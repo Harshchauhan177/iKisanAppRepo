@@ -93,6 +93,9 @@ struct Request: Codable, Identifiable, Equatable {
     var participants: [RequestParticipant]?
     var acceptedUsers: [UUID]?
     
+    // Payment-related fields for groups
+    var paymentDeadline: Date?  // 4-hour deadline for payment collection
+    
     // Equatable conformance
     static func == (lhs: Request, rhs: Request) -> Bool {
         return lhs.id == rhs.id &&
@@ -105,9 +108,7 @@ struct Request: Codable, Identifiable, Equatable {
                lhs.timeSlot == rhs.timeSlot &&
                lhs.timePeriod == rhs.timePeriod &&
                lhs.location == rhs.location &&
-               lhs.typeOfRequest == rhs.typeOfRequest &&
-               lhs.participants == rhs.participants &&
-               lhs.acceptedUsers == rhs.acceptedUsers
+               lhs.paymentDeadline == rhs.paymentDeadline
     }
     
     init(
@@ -123,7 +124,8 @@ struct Request: Codable, Identifiable, Equatable {
         location: String,
         typeOfRequest: RequestType,
         participants: [RequestParticipant],
-        acceptedUsers: [UUID]? = nil
+        acceptedUsers: [UUID]? = nil,
+        paymentDeadline: Date? = nil
     ) {
         self.id = id
         self.userId = userId
@@ -138,6 +140,24 @@ struct Request: Codable, Identifiable, Equatable {
         self.typeOfRequest = typeOfRequest
         self.participants = participants
         self.acceptedUsers = acceptedUsers
+        self.paymentDeadline = paymentDeadline
+    }
+    
+    /// Check if this group is currently collecting payments
+    var isCollectingPayment: Bool {
+        return status == .collectingPayment
+    }
+    
+    /// Calculate time remaining until payment deadline
+    var timeRemainingForPayment: TimeInterval? {
+        guard let deadline = paymentDeadline else { return nil }
+        return deadline.timeIntervalSinceNow
+    }
+    
+    /// Check if payment deadline has expired
+    var hasPaymentExpired: Bool {
+        guard let remaining = timeRemainingForPayment else { return false }
+        return remaining < 0
     }
 }
 
@@ -147,8 +167,14 @@ struct RequestParticipant: Codable, Identifiable, Equatable {
     let userId: UUID
     var status: ParticipantStatus
     var area: Double?           // Area entered by this participant
-    var timeSlot: String?     // Time slot selected by this participant
+    var timeSlot: String?       // Time slot selected by this participant
     var joinedAt: Date
+    
+    // Payment-related fields
+    var paymentStatus: PaymentStatus
+    var paymentId: String?       // Razorpay Payment ID
+    var paymentTimestamp: Date?  // When payment was completed
+    var paymentAmount: Double?   // Amount paid by this participant
     
     // Equatable conformance
     static func == (lhs: RequestParticipant, rhs: RequestParticipant) -> Bool {
@@ -158,7 +184,29 @@ struct RequestParticipant: Codable, Identifiable, Equatable {
                lhs.status == rhs.status &&
                lhs.area == rhs.area &&
                lhs.timeSlot == rhs.timeSlot &&
-               lhs.joinedAt == rhs.joinedAt
+               lhs.joinedAt == rhs.joinedAt &&
+               lhs.paymentStatus == rhs.paymentStatus &&
+               lhs.paymentId == rhs.paymentId &&
+               lhs.paymentTimestamp == rhs.paymentTimestamp &&
+               lhs.paymentAmount == rhs.paymentAmount
+    }
+    
+    // Initializer with default payment status
+    init(id: UUID, requestId: UUID, userId: UUID, status: ParticipantStatus, 
+         area: Double? = nil, timeSlot: String? = nil, joinedAt: Date,
+         paymentStatus: PaymentStatus = .pending, paymentId: String? = nil,
+         paymentTimestamp: Date? = nil, paymentAmount: Double? = nil) {
+        self.id = id
+        self.requestId = requestId
+        self.userId = userId
+        self.status = status
+        self.area = area
+        self.timeSlot = timeSlot
+        self.joinedAt = joinedAt
+        self.paymentStatus = paymentStatus
+        self.paymentId = paymentId
+        self.paymentTimestamp = paymentTimestamp
+        self.paymentAmount = paymentAmount
     }
 }
 
@@ -167,6 +215,32 @@ enum ParticipantStatus: String, Codable {
     case accepted
     case rejected
     case done
+}
+
+/// Payment status for group participants
+enum PaymentStatus: String, Codable, CaseIterable {
+    case pending = "pending"
+    case paid = "paid"
+    case failed = "failed"
+    case refunded = "refunded"
+    
+    var displayName: String {
+        switch self {
+        case .pending: return "Pending Payment"
+        case .paid: return "Paid"
+        case .failed: return "Payment Failed"
+        case .refunded: return "Refunded"
+        }
+    }
+    
+    var iconName: String {
+        switch self {
+        case .pending: return "clock.fill"
+        case .paid: return "checkmark.circle.fill"
+        case .failed: return "xmark.circle.fill"
+        case .refunded: return "arrow.counterclockwise.circle.fill"
+        }
+    }
 }
 // Also make sure RequestType is Codable
 enum RequestType: Codable {
@@ -296,16 +370,18 @@ struct Booking: Codable {
     var status: BookingStatus
     var timeSlot: TimeSlot
     let source: BookingSource//
-    var latitude: Double = 0.0
-    var longitude: Double = 0.0
+    var latitude: Double?
+    var longitude: Double?
     var address: String?
     
     // Computed property to get booking location as a Location object
     var bookingLocation: Location? {
         get {
             // Only return a location if we have valid coordinates or an address
-            if latitude != 0.0 || longitude != 0.0 || (address != nil && !address!.isEmpty) {
-                return Location(latitude: latitude, longitude: longitude, address: address)
+            let lat = latitude ?? 0.0
+            let lon = longitude ?? 0.0
+            if lat != 0.0 || lon != 0.0 || (address != nil && !address!.isEmpty) {
+                return Location(latitude: lat, longitude: lon, address: address)
             }
             return nil
         }
@@ -315,8 +391,8 @@ struct Booking: Codable {
                 self.longitude = newLocation.longitude
                 self.address = newLocation.address
             } else {
-                self.latitude = 0.0
-                self.longitude = 0.0
+                self.latitude = nil
+                self.longitude = nil
                 self.address = nil
             }
         }
@@ -332,8 +408,8 @@ struct Booking: Codable {
          status: BookingStatus, 
          timeSlot: TimeSlot, 
          source: BookingSource, 
-         latitude: Double = 0.0,
-         longitude: Double = 0.0,
+         latitude: Double? = nil,
+         longitude: Double? = nil,
          address: String? = nil) {
         self.bookingID = bookingID
         self.userID = userID
@@ -375,9 +451,42 @@ struct Booking: Codable {
             self.longitude = location.longitude
             self.address = location.address
         } else {
-            self.latitude = 0.0
-            self.longitude = 0.0
+            self.latitude = nil
+            self.longitude = nil
             self.address = nil
+        }
+    }
+}
+
+enum BookingStatus: String, Codable {
+    case pending = "pending"
+    case confirmed = "confirmed"
+    case completed = "completed"
+    
+    // Group payment workflow states
+    case awaitingProvider = "awaiting_provider"  // Group filled, waiting for provider acceptance
+    case collectingPayment = "collecting_payment" // Provider accepted, participants must pay within 4 hours
+    case active = "active"                        // All paid, work in progress
+    
+    var displayName: String {
+        switch self {
+        case .pending: return "Pending"
+        case .confirmed: return "Confirmed"
+        case .completed: return "Completed"
+        case .awaitingProvider: return "Awaiting Provider"
+        case .collectingPayment: return "Collecting Payment"
+        case .active: return "Active"
+        }
+    }
+    
+    var iconName: String {
+        switch self {
+        case .pending: return "clock"
+        case .confirmed: return "checkmark.circle"
+        case .completed: return "checkmark.circle.fill"
+        case .awaitingProvider: return "person.crop.circle.badge.clock"
+        case .collectingPayment: return "creditcard"
+        case .active: return "play.circle.fill"
         }
     }
 }
@@ -387,19 +496,15 @@ enum TimeSlot: String, Codable {
     case afternoon = "Afternoon"
     case evening = "Evening"
 }
+
 enum BookingType: String, Codable {
     case onDemand = "On-Demand"
     case prebooking = "Prebooking"
     case coEquip = "Co-Equip"
 }
 
-enum BookingStatus: String, Codable {
-    case pending = "Pending"
-    case confirmed = "Confirmed"
-    case completed = "Completed"
-}
-
-
+// BookingStatus enum defined above (lines 459-490)
+// Removed duplicate definition to fix ambiguity
 
 //MARK: Model for AgriAssist
 
@@ -467,12 +572,13 @@ let sampleUsers: [User] = [
 ]
 //
 
-func getSampleUsers() {
-    Task {
-        let crops: [AgriCrop] = try! await SupabaseManager.shared.client
-            .from("agriCrops")
-            .select("*")
-            .execute()
-            .value
-    }
-}
+// Commented out to avoid import dependency
+// func getSampleUsers() {
+//     Task {
+//         let crops: [AgriCrop] = try! await SupabaseManager.shared.client
+//             .from("agriCrops")
+//             .select("*")
+//             .execute()
+//             .value
+//     }
+// }

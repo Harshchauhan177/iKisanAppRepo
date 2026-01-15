@@ -52,8 +52,8 @@ class MyRequestTableViewCell: UITableViewCell {
         
         // Control button visibility based on request status
         // Initially show pending button, hide confirm button
-        // When provider accepts (status changes from pending), show confirm button and hide pending button
-        if request.status == .pending {
+        // When provider accepts (status changes from pending/awaitingProvider), show confirm button and hide pending button
+        if request.status == .pending || request.status == .awaitingProvider {
             PendingButtonTapped.isHidden = false
             ConfirmButtonLabel.isHidden = true
         } else {

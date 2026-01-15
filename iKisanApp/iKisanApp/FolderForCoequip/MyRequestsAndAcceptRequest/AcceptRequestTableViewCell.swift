@@ -140,8 +140,8 @@ class AcceptRequestTableViewCell: UITableViewCell {
             // Show pending state elements
             acceptButton.isHidden = false
             rejectButton.isHidden = false
-            acceptButton.isEnabled = participant.status == .pending
-            rejectButton.isEnabled = participant.status == .pending
+            acceptButton.isEnabled = (participant.status == .pending)
+            rejectButton.isEnabled = (participant.status == .pending)
             joinedStatusLabel?.isHidden = true
             leaveButton?.isHidden = true
         }

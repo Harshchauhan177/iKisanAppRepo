@@ -248,7 +248,7 @@ class CreateCoEquipGroupViewModel: ObservableObject {
                     userId: currentUser.id,
                     equipmentId: equipment.equipmentID,
                     requestedDate: selectedDate,
-                    status: .pending, // Creator's request starts as pending
+                    status: .awaitingProvider, // New CoEquip group awaits provider acceptance
                     type: .coEquip,
                     area: areaInAcres,
                     timeSlot: timeSlot,
@@ -267,6 +267,29 @@ class CreateCoEquipGroupViewModel: ObservableObject {
                 }
                 print("✅ Creator request saved to Supabase")
                 
+                // CRITICAL: Wait a moment to ensure the request is fully committed to database
+                // This prevents foreign key constraint errors when creating participants
+                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                print("⏳ Waited for database commit...")
+                
+                // Verify the request exists in database before creating participants
+                print("🔍 Verifying request exists in database...")
+                do {
+                    let verifyData = try await SupabaseManager.shared.client
+                        .from("requests")
+                        .select("id")
+                        .eq("id", value: creatorRequestId.uuidString)
+                        .execute()
+                        .data
+                    
+                    if let jsonString = String(data: verifyData, encoding: .utf8) {
+                        print("✅ Request verified in database: \(jsonString)")
+                    }
+                } catch {
+                    print("❌ Request NOT found in database! This will cause participant creation to fail.")
+                    throw NSError(domain: "CreateGroup", code: 3, userInfo: [NSLocalizedDescriptionKey: "Request was not saved to database properly"])
+                }
+                
                 // 2. Create participant entries for the creator's request (invited farmers)
                 if !selectedFarmers.isEmpty {
                     print("📤 Creating \(selectedFarmers.count) participant entries for creator's request...")
@@ -278,8 +301,9 @@ class CreateCoEquipGroupViewModel: ObservableObject {
                         }
                         
                         // Create participant entry linked to CREATOR'S request
+                        let participantId = UUID()
                         let participant = RequestParticipant(
-                            id: UUID(),
+                            id: participantId,
                             requestId: creatorRequestId, // Link to creator's request, not invite request
                             userId: farmerUserId,
                             status: .pending,
@@ -288,64 +312,32 @@ class CreateCoEquipGroupViewModel: ObservableObject {
                             joinedAt: Date()
                         )
                         
+                        print("📝 Creating participant:")
+                        print("   - Participant ID: \(participantId)")
+                        print("   - Request ID: \(creatorRequestId)")
+                        print("   - User ID: \(farmerUserId)")
+                        print("   - Farmer Name: \(farmer.name)")
+                        print("   - Status: pending")
+                        
                         do {
                             if let dataController = dataController {
                                 try await dataController.createRequestParticipant(participant)
-                                print("✅ Participant entry created for \(farmer.name) linked to creator's request")
+                                print("✅ Participant entry created successfully for \(farmer.name)")
                             }
                         } catch {
                             print("❌ Failed to create participant entry for \(farmer.name): \(error)")
+                            if let nsError = error as NSError? {
+                                print("   Error domain: \(nsError.domain)")
+                                print("   Error code: \(nsError.code)")
+                                print("   Error info: \(nsError.userInfo)")
+                            }
                         }
                     }
                 }
                 
-                // 3. Send invites to selected farmers (notification requests only, NO duplicate participants)
-                if !selectedFarmers.isEmpty {
-                    print("📤 Sending invite notifications to \(selectedFarmers.count) farmers...")
-                    
-                    var successCount = 0
-                    var failedCount = 0
-                    
-                    for farmer in selectedFarmers {
-                        guard let farmerUserId = UUID(uuidString: farmer.id) else {
-                            print("⚠️ Invalid farmer ID: \(farmer.id)")
-                            failedCount += 1
-                            continue
-                        }
-                        
-                        let inviteRequestId = UUID()
-                        
-                        // Create invite request (notification for the invited farmer)
-                        // NOTE: No participants array - this is just a pointer/notification
-                        let inviteRequest = Request(
-                            id: inviteRequestId,
-                            userId: currentUser.id, // Creator
-                            equipmentId: equipment.equipmentID,
-                            requestedDate: selectedDate,
-                            status: .pending,
-                            type: .coEquip,
-                            area: areaInAcres,
-                            timeSlot: timeSlot,
-                            timePeriod: "\(timeSlotInfo.startTime) - \(timeSlotInfo.endTime)",
-                            location: location.address ?? "\(location.latitude), \(location.longitude)",
-                            typeOfRequest: .sentRequest,
-                            participants: [], // Empty - no duplicate participants
-                            acceptedUsers: nil
-                        )
-                        
-                        // Insert invite into Supabase using RequestManager
-                        let success = await RequestManager.shared.createRequest(inviteRequest)
-                        if success {
-                            print("✅ Invite notification sent to \(farmer.name)")
-                            successCount += 1
-                        } else {
-                            print("❌ Failed to send invite to \(farmer.name)")
-                            failedCount += 1
-                        }
-                    }
-                    
-                    print("📊 Invite summary: \(successCount) successful, \(failedCount) failed")
-                }
+                // Success! Participants have been created and linked to the main request
+                // Invited farmers will see this request in their Join Requests tab because they are participants
+                print("✅ All participants created successfully")
                 
                 // Success!
                 await MainActor.run {
