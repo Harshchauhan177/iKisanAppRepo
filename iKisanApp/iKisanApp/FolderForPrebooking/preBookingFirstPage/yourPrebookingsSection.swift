@@ -7,6 +7,7 @@
 
 
 import UIKit
+import Foundation
 
 protocol PreBookingSection3CellDelegate: AnyObject {
     func didTapModifyButton(for booking: Booking, equipment: Equipment)
@@ -129,9 +130,14 @@ extension BookingStatus {
             return .systemBlue
         case .confirmed:
             return .systemGreen
-     
         case .completed:
             return .systemGray
+        case .awaitingProvider:
+            return .systemOrange
+        case .collectingPayment:
+            return .systemYellow
+        case .active:
+            return .systemGreen
         }
     }
 }

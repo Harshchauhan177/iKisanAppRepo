@@ -25,8 +25,8 @@ class RequestDetailViewModel: ObservableObject {
     @Published var showModifySheet: Bool = false
     @Published var showEquipmentDetail: Bool = false
     
-    // Participants data fetched from database
-    @Published var fetchedParticipants: [ParticipantDisplayInfo] = []
+    // Single source of truth for participants - always fetched from database
+    @Published var participants: [RequestParticipant] = []
     @Published var isLoadingParticipants: Bool = false
     
     // MARK: - Dependencies
@@ -73,69 +73,60 @@ class RequestDetailViewModel: ObservableObject {
     // MARK: - Participant Fetching
     
     /// Fetch all participants (invited farmers) for this request from the database
+    /// Always fetches from backend to ensure data consistency
     func fetchGroupParticipants() async {
         await MainActor.run {
             isLoadingParticipants = true
         }
         
-        // Check if request has participants populated
-        let participants: [RequestParticipant]
+        print("🔄 Fetching participants from database for request: \(request.id)")
+        print("   Request creator: \(request.userId)")
+        print("   Request status: \(request.status)")
         
-        if let existingParticipants = request.participants, !existingParticipants.isEmpty {
-            // Case A: Request object has participants (old requests loaded with JOIN)
-            participants = existingParticipants
-            print("✅ Using \(participants.count) participants from request object (loaded with JOIN)")
-        } else {
-            // Case B: Request object has no participants (newly created requests in local cache)
-            // This happens because:
-            // 1. New request is created and saved to database
-            // 2. Request is added to local cache WITHOUT participants array
-            // 3. Participants were inserted separately to request_participants table
-            // 4. Local cache was never refreshed with a JOIN query
-            // Solution: Fetch this specific request from database WITH participants JOIN
+        // Always fetch from database to ensure fresh data
+        if let freshRequest = await fetchRequestWithParticipants(requestId: request.id) {
+            let fetchedParticipants = freshRequest.participants ?? []
+            print("✅ Fetched \(fetchedParticipants.count) participants from database")
             
-            print("⚠️ No participants in request object - fetching from database for request: \(request.id)")
-            
-            if let freshRequest = await fetchRequestWithParticipants(requestId: request.id) {
-                participants = freshRequest.participants ?? []
-                print("✅ Fetched \(participants.count) participants from database for new request")
+            if fetchedParticipants.isEmpty {
+                print("⚠️ WARNING: No participants returned from database!")
+                print("   This could indicate:")
+                print("   1. Participants weren't created")
+                print("   2. Database policies are blocking access")
+                print("   3. Foreign key constraints failed")
             } else {
-                participants = []
-                print("❌ Failed to fetch participants from database")
-            }
-        }
-        
-        // Convert to display models with user data
-        let displayParticipants = participants.compactMap { participant -> ParticipantDisplayInfo? in
-            // Don't show rejected participants
-            guard participant.status != .rejected else {
-                return nil
+                print("📋 Raw participant data:")
+                for (index, p) in fetchedParticipants.enumerated() {
+                    print("   Participant \(index + 1):")
+                    print("     - ID: \(p.id)")
+                    print("     - User ID: \(p.userId)")
+                    print("     - Status: \(p.status)")
+                }
             }
             
-            // Fetch user data
-            guard let user = dataController?.getUserById(participant.userId) else {
-                print("⚠️ Could not find user with ID: \(participant.userId)")
-                return nil
-            }
+            // Filter out rejected participants
+            let activeParticipants = fetchedParticipants.filter { $0.status != .rejected }
             
-            return ParticipantDisplayInfo(
-                id: participant.id,
-                userId: participant.userId,
-                name: user.name,
-                phone: user.phone,
-                avatarURL: nil, // Add avatar support if available in User model
-                area: participant.area,
-                timeSlot: participant.timeSlot,
-                status: participant.status,
-                joinedAt: participant.joinedAt
-            )
-        }
-        
-        await MainActor.run {
-            self.fetchedParticipants = displayParticipants
-            self.isLoadingParticipants = false
-            print("✅ Loaded \(displayParticipants.count) participants for display")
-            print("   Statuses: \(displayParticipants.map { "\($0.name): \($0.statusText)" }.joined(separator: ", "))")
+            await MainActor.run {
+                self.participants = activeParticipants
+                self.isLoadingParticipants = false
+                print("✅ Loaded \(activeParticipants.count) active participants")
+                
+                // Log participant details for debugging
+                if !activeParticipants.isEmpty {
+                    let statusSummary = activeParticipants.map { participant in
+                        let userName = dataController?.getUserById(participant.userId)?.name ?? "Unknown"
+                        return "\(userName): \(participant.status.rawValue)"
+                    }.joined(separator: ", ")
+                    print("   Participants: \(statusSummary)")
+                }
+            }
+        } else {
+            print("❌ Failed to fetch participants from database")
+            await MainActor.run {
+                self.participants = []
+                self.isLoadingParticipants = false
+            }
         }
     }
     
@@ -221,6 +212,10 @@ class RequestDetailViewModel: ObservableObject {
                     let joinedAt: Date
                     let created_at: Date?
                     let updated_at: Date?
+                    let paymentStatus: String?
+                    let paymentId: String?
+                    let paymentTimestamp: Date?
+                    let paymentAmount: Double?
                 }
             }
 
@@ -236,7 +231,11 @@ class RequestDetailViewModel: ObservableObject {
                     status: ParticipantStatus(rawValue: participantDto.status) ?? .pending,
                     area: participantDto.area,
                     timeSlot: participantDto.timeSlotId,
-                    joinedAt: participantDto.joinedAt
+                    joinedAt: participantDto.joinedAt,
+                    paymentStatus: PaymentStatus(rawValue: participantDto.paymentStatus ?? "pending") ?? .pending,
+                    paymentId: participantDto.paymentId,
+                    paymentTimestamp: participantDto.paymentTimestamp,
+                    paymentAmount: participantDto.paymentAmount
                 )
             } ?? []
             
@@ -341,6 +340,12 @@ class RequestDetailViewModel: ObservableObject {
             return "Accepted"
         case .completed:
             return "Completed"
+        case .awaitingProvider:
+            return "Awaiting Provider"
+        case .collectingPayment:
+            return "Collecting Payment"
+        case .active:
+            return "Active"
 //        case .cancelled:
 //            return "Cancelled"
         }
@@ -354,6 +359,12 @@ class RequestDetailViewModel: ObservableObject {
             return Color(red: 0.298, green: 0.498, blue: 0.345) // iKisan green
         case .completed:
             return .blue
+        case .awaitingProvider:
+            return .orange
+        case .collectingPayment:
+            return .yellow
+        case .active:
+            return Color(red: 0.298, green: 0.498, blue: 0.345) // iKisan green
 //        case .cancelled:
 //            return .red
         }
@@ -410,147 +421,36 @@ class RequestDetailViewModel: ObservableObject {
     
     // MARK: - Computed Properties - Participants
     
-    struct ParticipantInfo: Identifiable {
-        let id: UUID
-        let userId: UUID
-        let name: String
-        let area: Double?
-        let timeSlot: String?
-        let status: ParticipantStatus
-    }
-    
-    // Display model for participants with avatar and enhanced status
-    struct ParticipantDisplayInfo: Identifiable {
-        let id: UUID
-        let userId: UUID
-        let name: String
-        let phone: String?
-        let avatarURL: String?
-        let area: Double?
-        let timeSlot: String?
-        let status: ParticipantStatus
-        let joinedAt: Date
-        
-        var statusText: String {
-            switch status {
-            case .pending: return "Pending"
-            case .accepted: return "Accepted"
-            case .done: return "Joined"
-            case .rejected: return "Declined"
-            }
-        }
-        
-        var statusIcon: String {
-            switch status {
-            case .pending: return "clock.fill"
-            case .accepted: return "checkmark.circle.fill"
-            case .done: return "checkmark.circle.fill"
-            case .rejected: return "xmark.circle.fill"
-            }
-        }
-        
-        var statusColor: String {
-            switch status {
-            case .pending: return "orange"
-            case .accepted: return "green"
-            case .done: return "green"
-            case .rejected: return "red"
-            }
-        }
-    }
-    
-    var participants: [ParticipantInfo] {
-        // Fetch real participants from request data
-        guard let requestParticipants = request.participants else {
-            return []
-        }
-        
-        // Only show participants who have completed joining (status = .done)
-        return requestParticipants.compactMap { participant in
-            guard participant.status == .done,
-                  let user = dataController?.getUserById(participant.userId) else {
-                return nil
-            }
-            
-            return ParticipantInfo(
-                id: participant.id,
-                userId: participant.userId,
-                name: user.name,
-                area: participant.area,
-                timeSlot: participant.timeSlot,
-                status: participant.status
-            )
-        }
-    }
-    
     var hasParticipants: Bool {
-        // Check if there are any completed participants
         return !participants.isEmpty
     }
     
     var participantCount: Int {
-        // Count of completed participants only
         return participants.count
-    }
-    
-    // MARK: - Joined Farmers (for My Requests)
-    
-    /// Farmers who have joined (accepted or confirmed) the request
-    var joinedFarmers: [ParticipantInfo] {
-        guard isMyRequest, let requestParticipants = request.participants else {
-            return []
-        }
-        
-        // Fetch real participant data with their user information
-        let farmers = requestParticipants.compactMap { participant -> ParticipantInfo? in
-            // Only exclude rejected participants (show pending, accepted, and done)
-            guard participant.status != .rejected else {
-                return nil
-            }
-            
-            // Fetch real user data from DataController
-            guard let user = dataController?.getUserById(participant.userId) else {
-                return nil
-            }
-            
-            return ParticipantInfo(
-                id: participant.id,
-                userId: participant.userId,
-                name: user.name,
-                area: participant.area,
-                timeSlot: participant.timeSlot,
-                status: participant.status
-            )
-        }
-        
-        return farmers
-    }
-    
-    var hasJoinedFarmers: Bool {
-        return !joinedFarmers.isEmpty
-    }
-    
-    var joinedFarmersCount: Int {
-        return joinedFarmers.count
     }
     
     // MARK: - Computed Properties - Area and Pricing
     
     var minimumAreaText: String {
-        // Return real minimum area from request
-        return String(format: "%.2f acres", request.area)
+        // Hardcoded minimum required area (business rule)
+        return "5.0 acres"
     }
     
     var currentTotalAreaText: String {
-        // Calculate total area from real joined farmers data
-        let total = joinedFarmers.reduce(0.0) { $0 + ($1.area ?? 0.0) }
+        // Calculate total area from participants
+        let total = participants.reduce(0.0) { $0 + ($1.area ?? 0.0) }
         return String(format: "%.2f acres", total)
     }
     
+    var hostAreaText: String {
+        // Return the creator's (host's) area contribution from request
+        return String(format: "%.2f acres", request.area)
+    }
+    
     var yourAreaText: String? {
-        // Return current user's area from real participant data
+        // Return current user's area from participants
         guard let currentUser = AuthManager.shared.currentUser,
-              let participant = request.participants?.first(where: { $0.userId == currentUser.id }),
+              let participant = participants.first(where: { $0.userId == currentUser.id }),
               let area = participant.area else {
             return nil
         }
@@ -566,19 +466,19 @@ class RequestDetailViewModel: ObservableObject {
     }
     
     var estimatedTotalPrice: String? {
-        // Calculate total price from real data
+        // Calculate total price from participants
         guard let equipment = _cachedEquipment else {
             return nil
         }
         
         let area: Double
         if isMyRequest {
-            // For creator: sum all joined farmers' areas
-            area = joinedFarmers.reduce(0.0) { $0 + ($1.area ?? 0.0) }
+            // For creator: sum all participants' areas
+            area = participants.reduce(0.0) { $0 + ($1.area ?? 0.0) }
         } else {
             // For participant: show only their area cost
             guard let currentUser = AuthManager.shared.currentUser,
-                  let participant = request.participants?.first(where: { $0.userId == currentUser.id }),
+                  let participant = participants.first(where: { $0.userId == currentUser.id }),
                   let participantArea = participant.area else {
                 return nil
             }
@@ -596,7 +496,8 @@ class RequestDetailViewModel: ObservableObject {
     }
     
     var canModify: Bool {
-        return isMyRequest && request.status == .pending
+        // Allow modification for both pending and awaitingProvider states
+        return isMyRequest && (request.status == .pending || request.status == .awaitingProvider)
     }
     
     var canAccept: Bool {
@@ -609,8 +510,8 @@ class RequestDetailViewModel: ObservableObject {
         
         let isParticipant = request.participants?.contains(where: { $0.userId == currentUser.id }) ?? false
         
-        // Can accept if not already a participant and request is pending
-        return !isParticipant && request.status == .pending
+        // Can accept if not already a participant and request is pending or awaiting provider
+        return !isParticipant && (request.status == .pending || request.status == .awaitingProvider)
     }
     
     var canDecline: Bool {
@@ -618,7 +519,8 @@ class RequestDetailViewModel: ObservableObject {
     }
     
     var canDelete: Bool {
-        return isMyRequest && request.status == .pending
+        // Allow deletion for both pending and awaitingProvider states
+        return isMyRequest && (request.status == .pending || request.status == .awaitingProvider)
     }
     
     var canViewEquipment: Bool {
