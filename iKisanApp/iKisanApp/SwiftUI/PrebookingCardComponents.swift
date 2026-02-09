@@ -152,6 +152,12 @@ struct PrebookingCard: View {
             return Color(red: 0.298, green: 0.498, blue: 0.345)
         case .completed:
             return .gray
+        case .awaitingProvider:
+            return .orange
+        case .collectingPayment:
+            return .yellow
+        case .active:
+            return .green
         }
     }
     
@@ -253,7 +259,7 @@ struct FAQRow: View {
             }
         }
         .background(Color.white)
-        .cornerRadius(isFirst ? 10 : 0, corners: [.topLeft, .topRight])
-        .cornerRadius(isLast ? 10 : 0, corners: [.bottomLeft, .bottomRight])
+        .clipShape(RoundedCorner(radius: isFirst ? 10 : 0, corners: [.topLeft, .topRight]))
+        .clipShape(RoundedCorner(radius: isLast ? 10 : 0, corners: [.bottomLeft, .bottomRight]))
     }
 }
