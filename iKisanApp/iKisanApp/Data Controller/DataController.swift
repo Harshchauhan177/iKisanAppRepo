@@ -161,13 +161,65 @@ enum EquipmentData {
 
 
 class IKisanDataController: DataController {
+
+    private func syncSelectedUsersIdsForRequestVisibility(requestId: UUID, participantUserId: UUID) async {
+        do {
+            let fetchResponse = try await SupabaseManager.shared.client
+                .from("requests")
+                .select("id,selectedUsersIds")
+                .eq("id", value: requestId.uuidString)
+                .execute()
+
+            let fetchStatus = fetchResponse.response.statusCode
+            print("🧪 [COEQUIP_CHECK] Visibility fetch HTTP status=\(fetchStatus) for requestID=\(requestId)")
+
+            guard (200...299).contains(fetchStatus),
+                  let rows = try JSONSerialization.jsonObject(with: fetchResponse.data) as? [[String: Any]],
+                  let firstRow = rows.first else {
+                print("⚠️ [COEQUIP_CHECK] Could not read selectedUsersIds for requestID=\(requestId)")
+                return
+            }
+
+            var selectedUserIds = firstRow["selectedUsersIds"] as? [String] ?? []
+            let participantIdString = participantUserId.uuidString
+
+            if selectedUserIds.contains(participantIdString) {
+                print("✅ [COEQUIP_CHECK] selectedUsersIds already contains participant userID=\(participantUserId)")
+                return
+            }
+
+            selectedUserIds.append(participantIdString)
+
+            let updateResponse = try await SupabaseManager.shared.client
+                .from("requests")
+                .update(["selectedUsersIds": selectedUserIds])
+                .eq("id", value: requestId.uuidString)
+                .execute()
+
+            let updateStatus = updateResponse.response.statusCode
+            print("🧪 [COEQUIP_CHECK] Visibility update HTTP status=\(updateStatus) for requestID=\(requestId)")
+
+            if (200...299).contains(updateStatus) {
+                print("✅ [COEQUIP_CHECK] Updated selectedUsersIds with participant userID=\(participantUserId)")
+            } else {
+                print("⚠️ [COEQUIP_CHECK] Failed to update selectedUsersIds for requestID=\(requestId)")
+            }
+        } catch {
+            print("⚠️ [COEQUIP_CHECK] selectedUsersIds sync failed for requestID=\(requestId): \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("⚠️ [COEQUIP_CHECK] selectedUsersIds sync PostgrestError code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+        }
+    }
    
    
     func createRequestParticipant(_ participant: RequestParticipant) async throws {
+        print("🧪 [COEQUIP_CHECK] createRequestParticipant started for participantID=\(participant.id)")
         // Validate required fields
         guard participant.id != nil,
               participant.requestId != nil,
               participant.userId != nil else {
+            print("❌ [COEQUIP_CHECK] Missing required fields in participant payload")
             throw NSError(domain: "DataController", code: 400, userInfo: [NSLocalizedDescriptionKey: "Missing required fields for request participant"])
         }
         
@@ -226,6 +278,12 @@ class IKisanDataController: DataController {
                 .from("request_participants")
                 .insert(dto)
                 .execute()
+
+            let statusCode = response.response.statusCode
+            print("🧪 [COEQUIP_CHECK] request_participants insert HTTP status=\(statusCode)")
+            guard (200...299).contains(statusCode) else {
+                throw NSError(domain: "DataController", code: statusCode, userInfo: [NSLocalizedDescriptionKey: "request_participants insert failed with non-2xx status \(statusCode)"])
+            }
             
             print("✅ Request participant created successfully in database")
             print("   Response status: \(response.response.statusCode)")
@@ -241,6 +299,11 @@ class IKisanDataController: DataController {
             if let jsonString = String(data: verifyData, encoding: .utf8) {
                 print("✅ Verified participant exists in database: \(jsonString)")
             }
+
+            await syncSelectedUsersIdsForRequestVisibility(
+                requestId: participant.requestId,
+                participantUserId: participant.userId
+            )
             
         } catch let error as PostgrestError {
             print("❌ PostgrestError creating request participant:")
@@ -540,15 +603,22 @@ class IKisanDataController: DataController {
     }
     
     func addBooking(_ booking: Booking) -> Bool {
+        print("🧪 [BOOKING_CHECK] addBooking invoked for bookingID=\(booking.bookingID)")
+
         // Ensure we have a logged in user
         guard let currentUser = AuthManager.shared.currentUser else {
-            print("Error: No logged in user found")
+            print("❌ [BOOKING_CHECK] No logged in user found")
+            return false
+        }
+
+        guard booking.fieldArea > 0 else {
+            print("❌ [BOOKING_CHECK] Invalid fieldArea=\(booking.fieldArea). Must be > 0")
             return false
         }
         
         // Verify the equipment exists
         guard let equipment = getEquipment(byId: booking.equipmentID) else {
-            print("Error: Equipment with ID \(booking.equipmentID) not found")
+            print("❌ [BOOKING_CHECK] Equipment with ID \(booking.equipmentID) not found")
             return false
         }
         
@@ -585,7 +655,13 @@ class IKisanDataController: DataController {
         
         // Save to Supabase
         Task {
-            await RequestManager.shared.createBooking(bookingWithUserId)
+            print("🧪 [BOOKING_CHECK] Starting backend createBooking for bookingID=\(bookingWithUserId.bookingID)")
+            let backendSuccess = await RequestManager.shared.createBooking(bookingWithUserId)
+            if backendSuccess {
+                print("✅ [BOOKING_CHECK] Backend booking create confirmed for bookingID=\(bookingWithUserId.bookingID)")
+            } else {
+                print("❌ [BOOKING_CHECK] Backend booking create failed for bookingID=\(bookingWithUserId.bookingID). Local booking may be out of sync")
+            }
         }
         
         return true
@@ -836,6 +912,7 @@ class IKisanDataController: DataController {
     }
     
     func addNewCoEquipRequest(_ request: Request) {
+        print("🧪 [COEQUIP_CHECK] addNewCoEquipRequest started for requestID=\(request.id)")
         print("🔄 Starting to add new request...")
         print("📝 Request details:")
         print("  - ID: \(request.id)")
@@ -857,6 +934,11 @@ class IKisanDataController: DataController {
                     print("✅ Request successfully saved to Supabase")
                 } else {
                     print("❌ Failed to save request to Supabase")
+                    print("❌ [COEQUIP_CHECK] Rolling back local request cache for requestID=\(request.id)")
+                    await MainActor.run {
+                        self.coEquipRequests.removeAll { $0.id == request.id }
+                        self.acceptedRequests.removeAll { $0.id == request.id }
+                    }
                 }
             }
         } else {
@@ -1012,12 +1094,22 @@ class IKisanDataController: DataController {
     }
     
     func createRequest(_ request: Request) {
+        print("🧪 [COEQUIP_CHECK] createRequest(local+backend) invoked for requestID=\(request.id)")
         coEquipRequests.append(request)
         
         // Save to backend
         Task {
-            _ = await requestManager.createRequest(request)
-    }
+            let backendSuccess = await requestManager.createRequest(request)
+            if backendSuccess {
+                print("✅ [COEQUIP_CHECK] Backend request create confirmed for requestID=\(request.id)")
+            } else {
+                print("❌ [COEQUIP_CHECK] Backend request create failed for requestID=\(request.id); rolling back local cache")
+                await MainActor.run {
+                    self.coEquipRequests.removeAll { $0.id == request.id }
+                    self.acceptedRequests.removeAll { $0.id == request.id }
+                }
+            }
+        }
     }
     
     func createRequest(_ request: Request, with selectedUsers: [User]) {
@@ -1247,6 +1339,171 @@ class RequestManager {
             self.equipmentItems = await fetchEquipments()
         }
     }
+
+    private func backendBookingStatusValue(for status: BookingStatus) -> String {
+        switch status {
+        case .pending:
+            return "Pending"
+        case .confirmed:
+            return "Confirmed"
+        case .completed:
+            return "Completed"
+        case .awaitingProvider:
+            return "awaiting_provider"
+        case .collectingPayment:
+            return "collecting_payment"
+        case .active:
+            return "active"
+        }
+    }
+
+    private func appBookingStatus(from backendStatus: String) -> BookingStatus {
+        switch backendStatus {
+        case "pending", "Pending":
+            return .pending
+        case "confirmed", "Confirmed":
+            return .confirmed
+        case "completed", "Completed":
+            return .completed
+        case "awaiting_provider":
+            return .awaitingProvider
+        case "collecting_payment":
+            return .collectingPayment
+        case "active":
+            return .active
+        default:
+            return .pending
+        }
+    }
+
+    private func backendRequestStatusValue(for status: BookingStatus) -> String {
+        switch status {
+        case .pending:
+            return "Pending"
+        case .confirmed:
+            return "Confirmed"
+        case .completed:
+            return "Completed"
+        case .awaitingProvider:
+            return "awaiting_provider"
+        case .collectingPayment:
+            return "collecting_payment"
+        case .active:
+            return "active"
+        }
+    }
+
+    private func mapRequestTypeForBackend(_ type: BookingType) -> String {
+        switch type {
+        case .onDemand:
+            return "On-Demand"
+        case .prebooking:
+            return "Prebooking"
+        case .coEquip:
+            return "Co-Equip"
+        }
+    }
+
+    private func mapRequestTimeSlotForBackend(_ timeSlot: TimeSlot) -> String {
+        switch timeSlot {
+        case .morning:
+            return "Morning"
+        case .afternoon:
+            return "Afternoon"
+        case .evening:
+            return "Evening"
+        }
+    }
+
+    private func mapRequestTypeOfRequestForBackend(_ requestType: RequestType) -> String {
+        switch requestType {
+        case .myRequest:
+            return "myRequest"
+        case .acceptedRequest:
+            return "acceptedRequest"
+        case .sentRequest:
+            return "sentRequest"
+        }
+    }
+
+    private func validateCoEquipRequestPayload(_ request: Request, status: String, type: String, timeSlot: String, typeOfRequest: String) -> [String] {
+        var issues: [String] = []
+
+        if request.area <= 0 {
+            issues.append("area must be > 0, got \(request.area)")
+        }
+
+        if request.location.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            issues.append("location is empty")
+        }
+
+        let allowedStatuses: Set<String> = ["Pending", "Confirmed", "Completed", "awaiting_provider", "collecting_payment", "active"]
+        if !allowedStatuses.contains(status) {
+            issues.append("status '\(status)' may not match backend booking_status_enum")
+        }
+
+        let allowedTypes: Set<String> = ["On-Demand", "Prebooking", "Co-Equip"]
+        if !allowedTypes.contains(type) {
+            issues.append("type '\(type)' may not match backend booking_type_enum")
+        }
+
+        let allowedTimeSlots: Set<String> = ["Morning", "Afternoon", "Evening"]
+        if !allowedTimeSlots.contains(timeSlot) {
+            issues.append("timeSlot '\(timeSlot)' may not match backend time_slot_enum")
+        }
+
+        let allowedRequestTypes: Set<String> = ["myRequest", "acceptedRequest", "sentRequest"]
+        if !allowedRequestTypes.contains(typeOfRequest) {
+            issues.append("typeOfRequest '\(typeOfRequest)' may not match backend request_type_enum")
+        }
+
+        return issues
+    }
+
+    private func logCoEquipRequestPayload(_ dto: RequestDTO) {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+
+        if let payload = try? encoder.encode(dto),
+           let payloadString = String(data: payload, encoding: .utf8) {
+            print("🧪 [COEQUIP_CHECK] Outgoing requests payload: \(payloadString)")
+        } else {
+            print("⚠️ [COEQUIP_CHECK] Failed to serialize requests payload for logging")
+        }
+    }
+
+    private func verifyCoEquipRequestExistsInBackend(requestID: UUID) async -> Bool {
+        do {
+            let response = try await SupabaseManager.shared.client
+                .from("requests")
+                .select("id,status,type,timeSlot,typeOfRequest")
+                .eq("id", value: requestID.uuidString)
+                .execute()
+
+            let statusCode = response.response.statusCode
+            print("🧪 [COEQUIP_CHECK] Verification query HTTP status=\(statusCode)")
+
+            guard (200...299).contains(statusCode) else {
+                print("❌ [COEQUIP_CHECK] Verification query returned non-2xx status=\(statusCode)")
+                return false
+            }
+
+            guard let rows = try JSONSerialization.jsonObject(with: response.data) as? [[String: Any]],
+                  let firstRow = rows.first else {
+                print("❌ [COEQUIP_CHECK] No requests row found after insert for requestID=\(requestID)")
+                return false
+            }
+
+            print("✅ [COEQUIP_CHECK] Backend request row found after insert: \(firstRow)")
+            return true
+        } catch {
+            print("❌ [COEQUIP_CHECK] Verification query failed: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("❌ [COEQUIP_CHECK] Verification PostgrestError code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            return false
+        }
+    }
     
     func fetchEquipments() async -> [Equipment] {
         do {
@@ -1460,7 +1717,7 @@ class RequestManager {
                     userId: dto.userId,
                     equipmentId: dto.equipmentId,
                     requestedDate: dto.requestedDate,
-                    status: BookingStatus(rawValue: dto.status) ?? .pending,
+                    status: appBookingStatus(from: dto.status),
                     type: BookingType(rawValue: dto.type) ?? .onDemand,
                     area: dto.area,
                     timeSlot: TimeSlot(rawValue: dto.timeSlot) ?? .morning,
@@ -1701,7 +1958,7 @@ class RequestManager {
                             bookingType: BookingType(rawValue: bookingTypeString) ?? .onDemand,
                             bookingDate: bookingDate,
                             fieldArea: fieldArea,
-                            status: BookingStatus(rawValue: statusString) ?? .pending,
+                            status: appBookingStatus(from: statusString),
                             timeSlot: TimeSlot(rawValue: timeSlotString) ?? .morning,
                             source: bookingSource
                         )
@@ -1864,9 +2121,90 @@ class RequestManager {
     }
     
     // MARK: Create/Update methods
+
+    private let backendAllowedBookingStatuses: Set<String> = [
+        "pending", "confirmed", "completed", "awaiting_provider", "collecting_payment", "active",
+        "Pending", "Confirmed", "Completed", "awaiting_provider", "collecting_payment", "active"
+    ]
+
+    private let backendAllowedBookingSources: Set<String> = [
+        "home", "prebooking", "coequip", "coequipviewonly"
+    ]
+
+    private func validateBookingPayloadForSync(_ booking: Booking, sourceString: String) -> [String] {
+        var issues: [String] = []
+
+        if booking.fieldArea <= 0 {
+            issues.append("fieldArea must be > 0, got \(booking.fieldArea)")
+        }
+
+        if !backendAllowedBookingStatuses.contains(booking.status.rawValue) {
+            issues.append("status '\(booking.status.rawValue)' may not match backend booking_status_enum")
+        }
+
+        if !backendAllowedBookingSources.contains(sourceString) {
+            issues.append("source '\(sourceString)' may not match backend booking_source_enum")
+        }
+
+        if booking.bookingType.rawValue.contains(" ") || booking.bookingType.rawValue.contains("-") {
+            issues.append("bookingType '\(booking.bookingType.rawValue)' uses spaces/hyphen; verify backend booking_type_enum exact value")
+        }
+
+        if booking.timeSlot.rawValue.first?.isLowercase == false {
+            issues.append("timeSlot '\(booking.timeSlot.rawValue)' is title-cased; verify backend time_slot_enum exact value")
+        }
+
+        return issues
+    }
+
+    private func logBookingPayload(_ dto: BookingDTO) {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+
+        if let payload = try? encoder.encode(dto),
+           let payloadString = String(data: payload, encoding: .utf8) {
+            print("🧪 [BOOKING_CHECK] Outgoing payload: \(payloadString)")
+        } else {
+            print("⚠️ [BOOKING_CHECK] Failed to serialize booking payload for logging")
+        }
+    }
+
+    private func verifyBookingExistsInBackend(bookingID: String) async -> Bool {
+        do {
+            let response = try await SupabaseManager.shared.client
+                .from("bookings")
+                .select("bookingID,status,bookingType,timeSlot,source")
+                .eq("bookingID", value: bookingID)
+                .execute()
+
+            let statusCode = response.response.statusCode
+            print("🧪 [BOOKING_CHECK] Verification query HTTP status=\(statusCode)")
+
+            guard (200...299).contains(statusCode) else {
+                print("❌ [BOOKING_CHECK] Verification query returned non-2xx status=\(statusCode)")
+                return false
+            }
+
+            guard let rows = try JSONSerialization.jsonObject(with: response.data) as? [[String: Any]],
+                  let firstRow = rows.first else {
+                print("❌ [BOOKING_CHECK] No booking row found after upsert for bookingID=\(bookingID)")
+                return false
+            }
+
+            print("✅ [BOOKING_CHECK] Backend row found after upsert: \(firstRow)")
+            return true
+        } catch {
+            print("❌ [BOOKING_CHECK] Verification query failed: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("❌ [BOOKING_CHECK] Verification PostgrestError code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
+            return false
+        }
+    }
     
     func createBooking(_ booking: Booking) async -> Bool {
         do {
+            print("🧪 [BOOKING_CHECK] createBooking started for bookingID=\(booking.bookingID)")
             // Log the raw UUID values before conversion
             print("Raw UUIDs - Booking ID: \(booking.bookingID), User ID: \(booking.userID), Equipment ID: \(booking.equipmentID)")
             
@@ -1894,6 +2232,19 @@ class RequestManager {
             case .coEquipViewOnly:
                 sourceString = "coequipviewonly"
             }
+
+            let statusForBackend = backendBookingStatusValue(for: booking.status)
+            print("🧪 [BOOKING_CHECK] Enum values being sent -> status(local)=\(booking.status.rawValue), status(backend)=\(statusForBackend), type=\(booking.bookingType.rawValue), timeSlot=\(booking.timeSlot.rawValue), source=\(sourceString)")
+
+            let payloadIssues = validateBookingPayloadForSync(booking, sourceString: sourceString)
+            if !payloadIssues.isEmpty {
+                print("⚠️ [BOOKING_CHECK] Payload preflight found \(payloadIssues.count) potential issue(s):")
+                for issue in payloadIssues {
+                    print("   - \(issue)")
+                }
+            } else {
+                print("✅ [BOOKING_CHECK] Payload preflight passed")
+            }
             
             // Convert all UUIDs to lowercase strings
             let dto = BookingDTO(
@@ -1903,13 +2254,15 @@ class RequestManager {
                 type: booking.bookingType.rawValue,
                 date: booking.bookingDate,
                 fieldArea: booking.fieldArea,
-                status: booking.status.rawValue,
+                status: statusForBackend,
                 timeSlot: booking.timeSlot.rawValue,
                 source: sourceString,
                 latitude: latitude,
                 longitude: longitude,
                 address: address
             )
+
+            logBookingPayload(dto)
             
             print("Creating booking in database - ID: \(dto.id), User: \(dto.userId), Equipment: \(dto.equipmentId)")
             
@@ -1921,10 +2274,24 @@ class RequestManager {
             }
             
             // Use upsert instead of insert to handle both create and update
-            try await SupabaseManager.shared.client
+            let response = try await SupabaseManager.shared.client
                 .from("bookings")
                 .upsert(dto)
                 .execute()
+
+            let statusCode = response.response.statusCode
+            print("🧪 [BOOKING_CHECK] Upsert HTTP status=\(statusCode)")
+
+            guard (200...299).contains(statusCode) else {
+                print("❌ [BOOKING_CHECK] Upsert returned non-2xx status=\(statusCode)")
+                return false
+            }
+
+            let backendVerified = await verifyBookingExistsInBackend(bookingID: dto.id)
+            guard backendVerified else {
+                print("❌ [BOOKING_CHECK] Post-upsert verification failed for bookingID=\(dto.id)")
+                return false
+            }
             
             print("Booking successfully created!")
             return true
@@ -1933,15 +2300,19 @@ class RequestManager {
             if let postgrestError = error as? PostgrestError {
                 print("PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
             }
+            if let encodingError = error as? EncodingError {
+                print("❌ [BOOKING_CHECK] EncodingError while preparing booking payload: \(encodingError)")
+            }
             return false
         }
     }
     
     func updateBookingStatus(_ bookingId: UUID, status: BookingStatus) async -> Bool {
         do {
+            let statusForBackend = backendBookingStatusValue(for: status)
             try await SupabaseManager.shared.client
                 .from("bookings")
-                .update(["status": status.rawValue])
+                .update(["status": statusForBackend])
                 .eq("bookingID", value: bookingId.uuidString)
                 .execute()
             
@@ -1957,23 +2328,53 @@ class RequestManager {
     
     func createRequest(_ request: Request) async -> Bool {
         do {
-            print("🔄 Creating request in Supabase...")
-            print("📝 Converting to DTO...")
+            print("🧪 [COEQUIP_CHECK] createRequest started for requestID=\(request.id)")
+
+            let statusForBackend = backendRequestStatusValue(for: request.status)
+            let typeForBackend = mapRequestTypeForBackend(request.type)
+            let timeSlotForBackend = mapRequestTimeSlotForBackend(request.timeSlot)
+            let typeOfRequestForBackend = mapRequestTypeOfRequestForBackend(request.typeOfRequest)
+
+            print("🧪 [COEQUIP_CHECK] Enum values being sent -> status(local)=\(request.status.rawValue), status(backend)=\(statusForBackend), type(local)=\(request.type.rawValue), type(backend)=\(typeForBackend), timeSlot(local)=\(request.timeSlot.rawValue), timeSlot(backend)=\(timeSlotForBackend), typeOfRequest=\(typeOfRequestForBackend)")
+
+            let payloadIssues = validateCoEquipRequestPayload(
+                request,
+                status: statusForBackend,
+                type: typeForBackend,
+                timeSlot: timeSlotForBackend,
+                typeOfRequest: typeOfRequestForBackend
+            )
+
+            if !payloadIssues.isEmpty {
+                print("⚠️ [COEQUIP_CHECK] Payload preflight found \(payloadIssues.count) potential issue(s):")
+                for issue in payloadIssues {
+                    print("   - \(issue)")
+                }
+            } else {
+                print("✅ [COEQUIP_CHECK] Payload preflight passed")
+            }
+
+            if (request.participants?.isEmpty ?? true) {
+                print("⚠️ [COEQUIP_CHECK] Request is being created without participants in payload.")
+                print("⚠️ [COEQUIP_CHECK] If RLS uses requests.selectedUsersIds, non-creator users/providers may not see this request until visibility fields are synced.")
+            }
             
             let dto = RequestDTO(
                 id: request.id,
                 userId: request.userId,
                 equipmentId: request.equipmentId,
                 requestedDate: request.requestedDate,
-                status: request.status.rawValue,
-                type: request.type.rawValue,
+                status: statusForBackend,
+                type: typeForBackend,
                 area: request.area,
-                timeSlot: request.timeSlot.rawValue,
+                timeSlot: timeSlotForBackend,
                 timePeriod: request.timePeriod,
                 location: request.location,
-                typeOfRequest: request.typeOfRequest == .myRequest ? "myRequest" : "acceptedRequest"
+                typeOfRequest: typeOfRequestForBackend
                 
             )
+
+            logCoEquipRequestPayload(dto)
             
             print("📤 Sending to Supabase...")
             print("Table: requests")
@@ -1983,6 +2384,20 @@ class RequestManager {
                 .from("requests")
                 .insert(dto)
                 .execute()
+
+            let statusCode = response.response.statusCode
+            print("🧪 [COEQUIP_CHECK] Requests insert HTTP status=\(statusCode)")
+
+            guard (200...299).contains(statusCode) else {
+                print("❌ [COEQUIP_CHECK] Requests insert returned non-2xx status=\(statusCode)")
+                return false
+            }
+
+            let backendVerified = await verifyCoEquipRequestExistsInBackend(requestID: request.id)
+            guard backendVerified else {
+                print("❌ [COEQUIP_CHECK] Post-insert verification failed for requestID=\(request.id)")
+                return false
+            }
             
             print("✅ Request successfully created in Supabase")
             print("📊 Response: \(response)")
@@ -1990,6 +2405,9 @@ class RequestManager {
         } catch {
             print("❌ Error creating request in Supabase: \(error)")
             print("Error details: \(error.localizedDescription)")
+            if let postgrestError = error as? PostgrestError {
+                print("❌ [COEQUIP_CHECK] PostgrestError details: code=\(postgrestError.code ?? "nil"), message=\(postgrestError.message ?? "nil"), hint=\(postgrestError.hint ?? "nil"), detail=\(postgrestError.detail ?? "nil")")
+            }
             return false
         }
     }
