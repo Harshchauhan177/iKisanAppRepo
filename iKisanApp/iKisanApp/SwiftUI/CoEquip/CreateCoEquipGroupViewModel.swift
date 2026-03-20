@@ -266,7 +266,11 @@ class CreateCoEquipGroupViewModel: ObservableObject {
                     throw NSError(domain: "CreateGroup", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to create creator request"])
                 }
                 print("✅ Creator request saved to Supabase")
-                
+
+                // BACKUP: Ensure provider is in selectedUsersIds (in case equipment wasn't in cache during createRequest)
+                print("🔄 [COEQUIP_CHECK] Ensuring provider visibility...")
+                await syncProviderVisibility(requestId: creatorRequestId, providerId: equipment.providerID)
+
                 // CRITICAL: Wait a moment to ensure the request is fully committed to database
                 // This prevents foreign key constraint errors when creating participants
                 try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
@@ -404,6 +408,49 @@ class CreateCoEquipGroupViewModel: ObservableObject {
                     showError = true
                 }
             }
+        }
+    }
+
+    // MARK: - Helper Methods
+
+    /// Ensures the equipment provider is added to selectedUsersIds for proper visibility
+    private func syncProviderVisibility(requestId: UUID, providerId: UUID) async {
+        do {
+            // Fetch current selectedUsersIds from database
+            let fetchResponse = try await SupabaseManager.shared.client
+                .from("requests")
+                .select("id,selectedUsersIds")
+                .eq("id", value: requestId.uuidString)
+                .execute()
+
+            guard let rows = try JSONSerialization.jsonObject(with: fetchResponse.data) as? [[String: Any]],
+                  let firstRow = rows.first else {
+                print("⚠️ [COEQUIP_CHECK] Could not fetch selectedUsersIds for requestID=\(requestId)")
+                return
+            }
+
+            var selectedUserIds = firstRow["selectedUsersIds"] as? [String] ?? []
+            let providerIdString = providerId.uuidString
+
+            if selectedUserIds.contains(providerIdString) {
+                print("✅ [COEQUIP_CHECK] Provider already in selectedUsersIds")
+                return
+            }
+
+            // Add provider to the array
+            selectedUserIds.append(providerIdString)
+
+            // Update the database
+            try await SupabaseManager.shared.client
+                .from("requests")
+                .update(["selectedUsersIds": selectedUserIds])
+                .eq("id", value: requestId.uuidString)
+                .execute()
+
+            print("✅ [COEQUIP_CHECK] Added provider to selectedUsersIds for requestID=\(requestId)")
+
+        } catch {
+            print("⚠️ [COEQUIP_CHECK] Failed to sync provider visibility: \(error)")
         }
     }
 }

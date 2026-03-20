@@ -2358,7 +2358,23 @@ class RequestManager {
                 print("⚠️ [COEQUIP_CHECK] Request is being created without participants in payload.")
                 print("⚠️ [COEQUIP_CHECK] If RLS uses requests.selectedUsersIds, non-creator users/providers may not see this request until visibility fields are synced.")
             }
-            
+
+            // NEW: Fetch equipment to get provider ID and build selectedUsersIds array
+            var selectedUsersIds: [String] = [request.userId.uuidString] // Always include creator
+
+            // Try to get equipment from the equipmentItems array
+            if let equipment = self.equipmentItems.first(where: { $0.equipmentID == request.equipmentId }) {
+                let providerIdString = equipment.providerID.uuidString
+                if !selectedUsersIds.contains(providerIdString) {
+                    selectedUsersIds.append(providerIdString)
+                    print("✅ [COEQUIP_CHECK] Added equipment provider to selectedUsersIds: \(providerIdString)")
+                }
+            } else {
+                print("⚠️ [COEQUIP_CHECK] Could not find equipment in cache to add provider to selectedUsersIds")
+            }
+
+            print("🔍 [COEQUIP_CHECK] selectedUsersIds being sent: \(selectedUsersIds)")
+
             let dto = RequestDTO(
                 id: request.id,
                 userId: request.userId,
@@ -2370,8 +2386,9 @@ class RequestManager {
                 timeSlot: timeSlotForBackend,
                 timePeriod: request.timePeriod,
                 location: request.location,
-                typeOfRequest: typeOfRequestForBackend
-                
+                typeOfRequest: typeOfRequestForBackend,
+                selectedUsersIds: selectedUsersIds
+
             )
 
             logCoEquipRequestPayload(dto)
@@ -2622,8 +2639,9 @@ struct RequestDTO: Codable {
     let timePeriod: String?
     let location: String
     let typeOfRequest: String
-    
-    
+    let selectedUsersIds: [String]?
+
+
     enum CodingKeys: String, CodingKey {
         case id
         case userId
@@ -2636,14 +2654,14 @@ struct RequestDTO: Codable {
         case timePeriod
         case location
         case typeOfRequest
-        
-       
+        case selectedUsersIds
+
     }
     
     // Add this initializer for encoding
-    init(id: UUID, userId: UUID, equipmentId: UUID, requestedDate: Date, status: String, 
-         type: String, area: Double, timeSlot: String, timePeriod: String?, location: String, 
-         typeOfRequest: String) {
+    init(id: UUID, userId: UUID, equipmentId: UUID, requestedDate: Date, status: String,
+         type: String, area: Double, timeSlot: String, timePeriod: String?, location: String,
+         typeOfRequest: String, selectedUsersIds: [String]? = nil) {
         self.id = id
         self.userId = userId
         self.equipmentId = equipmentId
@@ -2655,6 +2673,7 @@ struct RequestDTO: Codable {
         self.timePeriod = timePeriod
         self.location = location
         self.typeOfRequest = typeOfRequest
+        self.selectedUsersIds = selectedUsersIds
     }
     
     init(from decoder: Decoder) throws {
@@ -2691,7 +2710,8 @@ struct RequestDTO: Codable {
         timePeriod = try container.decodeIfPresent(String.self, forKey: .timePeriod)
         location = try container.decode(String.self, forKey: .location)
         typeOfRequest = try container.decode(String.self, forKey: .typeOfRequest)
-       
+        selectedUsersIds = try container.decodeIfPresent([String].self, forKey: .selectedUsersIds)
+
     }
 }
 
