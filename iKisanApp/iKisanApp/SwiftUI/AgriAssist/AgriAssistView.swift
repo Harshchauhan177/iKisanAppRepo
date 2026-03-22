@@ -18,7 +18,7 @@ struct AgriAssistView: View {
                 ProgressView("Loading crops...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if viewModel.filteredCrops.isEmpty {
-                EmptyStateView()
+                AgriAssistEmptyStateView()
             } else {
                 ScrollView {
                     LazyVStack(spacing: 12) {
@@ -108,7 +108,7 @@ struct AgriCropRowView: View {
 }
 
 // MARK: - Empty State View
-struct EmptyStateView: View {
+struct AgriAssistEmptyStateView: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "leaf.circle")
