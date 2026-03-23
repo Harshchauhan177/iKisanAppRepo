@@ -92,11 +92,29 @@ struct Request: Codable, Identifiable, Equatable {
     var typeOfRequest: RequestType
     var participants: [RequestParticipant]?
     var acceptedUsers: [UUID]?
-    
+
     // Payment-related fields for groups
     var paymentDeadline: Date?  // 4-hour deadline for payment collection
-    
-    // Equatable conformance
+
+    // MARK: - CodingKeys
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId
+        case equipmentId
+        case requestedDate
+        case status
+        case type
+        case area
+        case timeSlot
+        case timePeriod
+        case location
+        case typeOfRequest
+        case participants
+        case acceptedUsers
+        case paymentDeadline
+    }
+
+    // MARK: - Equatable conformance
     static func == (lhs: Request, rhs: Request) -> Bool {
         return lhs.id == rhs.id &&
                lhs.userId == rhs.userId &&
@@ -110,7 +128,8 @@ struct Request: Codable, Identifiable, Equatable {
                lhs.location == rhs.location &&
                lhs.paymentDeadline == rhs.paymentDeadline
     }
-    
+
+    // MARK: - Memberwise Initializer
     init(
         id: UUID = UUID(),
         userId: UUID,
@@ -142,18 +161,140 @@ struct Request: Codable, Identifiable, Equatable {
         self.acceptedUsers = acceptedUsers
         self.paymentDeadline = paymentDeadline
     }
-    
+
+    // MARK: - Defensive Custom Decoder
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Required UUID fields
+        id = try container.decode(UUID.self, forKey: .id)
+        userId = try container.decode(UUID.self, forKey: .userId)
+        equipmentId = try container.decode(UUID.self, forKey: .equipmentId)
+
+        // Defensive date decoding - handles multiple formats
+        requestedDate = Self.decodeFlexibleDate(from: container, forKey: .requestedDate) ?? Date()
+
+        // Status with fallback to .pending
+        if let statusString = try? container.decode(String.self, forKey: .status),
+           let decodedStatus = BookingStatus(rawValue: statusString) {
+            status = decodedStatus
+        } else if let decodedStatus = try? container.decode(BookingStatus.self, forKey: .status) {
+            status = decodedStatus
+        } else {
+            status = .pending
+        }
+
+        // Type with fallback to .coEquip
+        if let typeString = try? container.decode(String.self, forKey: .type),
+           let decodedType = BookingType(rawValue: typeString) {
+            type = decodedType
+        } else if let decodedType = try? container.decode(BookingType.self, forKey: .type) {
+            type = decodedType
+        } else {
+            type = .coEquip
+        }
+
+        // DEFENSIVE: area field - default to 0.0 if null or missing
+        if let decodedArea = try? container.decodeIfPresent(Double.self, forKey: .area) {
+            area = decodedArea
+        } else {
+            area = 0.0
+        }
+
+        // TimeSlot with fallback
+        if let slotString = try? container.decode(String.self, forKey: .timeSlot),
+           let decodedSlot = TimeSlot(rawValue: slotString) {
+            timeSlot = decodedSlot
+        } else if let decodedSlot = try? container.decode(TimeSlot.self, forKey: .timeSlot) {
+            timeSlot = decodedSlot
+        } else {
+            timeSlot = .morning
+        }
+
+        // Optional fields with decodeIfPresent
+        timePeriod = try container.decodeIfPresent(String.self, forKey: .timePeriod)
+
+        // Location with fallback to empty string
+        location = (try? container.decode(String.self, forKey: .location)) ?? ""
+
+        // TypeOfRequest with fallback
+        if let typeOfRequestDecoded = try? container.decode(RequestType.self, forKey: .typeOfRequest) {
+            typeOfRequest = typeOfRequestDecoded
+        } else {
+            typeOfRequest = .myRequest
+        }
+
+        // Optional arrays
+        participants = try container.decodeIfPresent([RequestParticipant].self, forKey: .participants)
+        acceptedUsers = try container.decodeIfPresent([UUID].self, forKey: .acceptedUsers)
+
+        // Optional payment deadline
+        paymentDeadline = Self.decodeFlexibleDate(from: container, forKey: .paymentDeadline)
+    }
+
+    // MARK: - Flexible Date Decoder Helper
+    private static func decodeFlexibleDate(from container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys) -> Date? {
+        // Try decoding as Date first (in case custom dateDecodingStrategy is set)
+        if let date = try? container.decode(Date.self, forKey: key) {
+            return date
+        }
+
+        // Try decoding as String and parse manually
+        // Note: try? with decodeIfPresent flattens to String? in Swift 5.7+
+        guard let dateStr = try? container.decodeIfPresent(String.self, forKey: key) else {
+            return nil
+        }
+
+        // Format 1: "yyyy-MM-dd'T'HH:mm:ss" (without timezone)
+        let simpleFormatter = DateFormatter()
+        simpleFormatter.locale = Locale(identifier: "en_US_POSIX")
+        simpleFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        if let date = simpleFormatter.date(from: dateStr) {
+            return date
+        }
+
+        // Format 2: "yyyy-MM-dd'T'HH:mm:ss.SSSSSS" (with microseconds)
+        simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        if let date = simpleFormatter.date(from: dateStr) {
+            return date
+        }
+
+        // Format 3: ISO8601 with timezone
+        let iso8601Formatter = ISO8601DateFormatter()
+        iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = iso8601Formatter.date(from: dateStr) {
+            return date
+        }
+
+        // Format 4: ISO8601 without fractional seconds
+        iso8601Formatter.formatOptions = [.withInternetDateTime]
+        if let date = iso8601Formatter.date(from: dateStr) {
+            return date
+        }
+
+        // Format 5: Simple date "yyyy-MM-dd"
+        simpleFormatter.dateFormat = "yyyy-MM-dd"
+        if let date = simpleFormatter.date(from: dateStr) {
+            return date
+        }
+
+        return nil
+    }
+
+    // MARK: - Computed Properties
+
     /// Check if this group is currently collecting payments
     var isCollectingPayment: Bool {
         return status == .collectingPayment
     }
-    
+
     /// Calculate time remaining until payment deadline
     var timeRemainingForPayment: TimeInterval? {
         guard let deadline = paymentDeadline else { return nil }
         return deadline.timeIntervalSinceNow
     }
-    
+
     /// Check if payment deadline has expired
     var hasPaymentExpired: Bool {
         guard let remaining = timeRemainingForPayment else { return false }
@@ -169,14 +310,30 @@ struct RequestParticipant: Codable, Identifiable, Equatable {
     var area: Double?           // Area entered by this participant
     var timeSlot: String?       // Time slot selected by this participant
     var joinedAt: Date
-    
+
     // Payment-related fields
     var paymentStatus: PaymentStatus
     var paymentId: String?       // Razorpay Payment ID
     var paymentTimestamp: Date?  // When payment was completed
     var paymentAmount: Double?   // Amount paid by this participant
-    
-    // Equatable conformance
+
+    // MARK: - CodingKeys
+    enum CodingKeys: String, CodingKey {
+        case id
+        case requestId
+        case userId
+        case status
+        case area
+        case timeSlot
+        case timeSlotId      // Alternative key used in some DTOs
+        case joinedAt
+        case paymentStatus = "payment_status"
+        case paymentId = "payment_id"
+        case paymentTimestamp = "payment_timestamp"
+        case paymentAmount = "payment_amount"
+    }
+
+    // MARK: - Equatable conformance
     static func == (lhs: RequestParticipant, rhs: RequestParticipant) -> Bool {
         return lhs.id == rhs.id &&
                lhs.requestId == rhs.requestId &&
@@ -190,9 +347,9 @@ struct RequestParticipant: Codable, Identifiable, Equatable {
                lhs.paymentTimestamp == rhs.paymentTimestamp &&
                lhs.paymentAmount == rhs.paymentAmount
     }
-    
-    // Initializer with default payment status
-    init(id: UUID, requestId: UUID, userId: UUID, status: ParticipantStatus, 
+
+    // MARK: - Memberwise Initializer
+    init(id: UUID, requestId: UUID, userId: UUID, status: ParticipantStatus,
          area: Double? = nil, timeSlot: String? = nil, joinedAt: Date,
          paymentStatus: PaymentStatus = .pending, paymentId: String? = nil,
          paymentTimestamp: Date? = nil, paymentAmount: Double? = nil) {
@@ -207,6 +364,127 @@ struct RequestParticipant: Codable, Identifiable, Equatable {
         self.paymentId = paymentId
         self.paymentTimestamp = paymentTimestamp
         self.paymentAmount = paymentAmount
+    }
+
+    // MARK: - Defensive Custom Decoder
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Required UUID fields
+        id = try container.decode(UUID.self, forKey: .id)
+        requestId = try container.decode(UUID.self, forKey: .requestId)
+        userId = try container.decode(UUID.self, forKey: .userId)
+
+        // Status with fallback to .pending
+        if let statusString = try? container.decode(String.self, forKey: .status),
+           let decodedStatus = ParticipantStatus(rawValue: statusString) {
+            status = decodedStatus
+        } else if let decodedStatus = try? container.decode(ParticipantStatus.self, forKey: .status) {
+            status = decodedStatus
+        } else {
+            status = .pending
+        }
+
+        // DEFENSIVE: area field - use decodeIfPresent, default to nil (it's optional)
+        // But if somehow it's present but fails to parse, we gracefully handle it
+        if let decodedArea = try? container.decodeIfPresent(Double.self, forKey: .area) {
+            area = decodedArea
+        } else {
+            area = nil
+        }
+
+        // TimeSlot - try both "timeSlot" and "timeSlotId" keys
+        if let slot = try? container.decodeIfPresent(String.self, forKey: .timeSlot) {
+            timeSlot = slot
+        } else if let slot = try? container.decodeIfPresent(String.self, forKey: .timeSlotId) {
+            timeSlot = slot
+        } else {
+            timeSlot = nil
+        }
+
+        // Defensive date decoding for joinedAt
+        joinedAt = Self.decodeFlexibleDate(from: container, forKey: .joinedAt) ?? Date()
+
+        // Payment status with fallback to .pending
+        if let paymentStatusString = try? container.decodeIfPresent(String.self, forKey: .paymentStatus),
+           let decodedPaymentStatus = PaymentStatus(rawValue: paymentStatusString) {
+            paymentStatus = decodedPaymentStatus
+        } else if let decodedPaymentStatus = try? container.decodeIfPresent(PaymentStatus.self, forKey: .paymentStatus) {
+            paymentStatus = decodedPaymentStatus ?? .pending
+        } else {
+            paymentStatus = .pending
+        }
+
+        // Optional payment fields
+        paymentId = try container.decodeIfPresent(String.self, forKey: .paymentId)
+        paymentTimestamp = Self.decodeFlexibleDate(from: container, forKey: .paymentTimestamp)
+        paymentAmount = try container.decodeIfPresent(Double.self, forKey: .paymentAmount)
+    }
+
+    // MARK: - Custom Encoder (needed because timeSlotId has no backing property)
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(requestId, forKey: .requestId)
+        try container.encode(userId, forKey: .userId)
+        try container.encode(status, forKey: .status)
+        try container.encodeIfPresent(area, forKey: .area)
+        try container.encodeIfPresent(timeSlot, forKey: .timeSlot)
+        try container.encode(joinedAt, forKey: .joinedAt)
+        try container.encode(paymentStatus, forKey: .paymentStatus)
+        try container.encodeIfPresent(paymentId, forKey: .paymentId)
+        try container.encodeIfPresent(paymentTimestamp, forKey: .paymentTimestamp)
+        try container.encodeIfPresent(paymentAmount, forKey: .paymentAmount)
+    }
+
+    // MARK: - Flexible Date Decoder Helper
+    private static func decodeFlexibleDate(from container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys) -> Date? {
+        // Try decoding as Date first (in case custom dateDecodingStrategy is set)
+        if let date = try? container.decode(Date.self, forKey: key) {
+            return date
+        }
+
+        // Try decoding as String and parse manually
+        // Note: try? with decodeIfPresent flattens to String? in Swift 5.7+
+        guard let dateStr = try? container.decodeIfPresent(String.self, forKey: key) else {
+            return nil
+        }
+
+        // Format 1: "yyyy-MM-dd'T'HH:mm:ss" (without timezone)
+        let simpleFormatter = DateFormatter()
+        simpleFormatter.locale = Locale(identifier: "en_US_POSIX")
+        simpleFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        if let date = simpleFormatter.date(from: dateStr) {
+            return date
+        }
+
+        // Format 2: "yyyy-MM-dd'T'HH:mm:ss.SSSSSS" (with microseconds)
+        simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        if let date = simpleFormatter.date(from: dateStr) {
+            return date
+        }
+
+        // Format 3: ISO8601 with timezone
+        let iso8601Formatter = ISO8601DateFormatter()
+        iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = iso8601Formatter.date(from: dateStr) {
+            return date
+        }
+
+        // Format 4: ISO8601 without fractional seconds
+        iso8601Formatter.formatOptions = [.withInternetDateTime]
+        if let date = iso8601Formatter.date(from: dateStr) {
+            return date
+        }
+
+        // Format 5: Simple date "yyyy-MM-dd"
+        simpleFormatter.dateFormat = "yyyy-MM-dd"
+        if let date = simpleFormatter.date(from: dateStr) {
+            return date
+        }
+
+        return nil
     }
 }
 

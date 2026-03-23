@@ -272,9 +272,14 @@ class AuthManager {
     
     func logout() async throws {
         do {
+            // CRITICAL: Unsubscribe from Realtime WebSocket channels before logout
+            print("🔌 AuthManager: Unsubscribing from Realtime channels...")
+            await RealtimeManager.shared.unsubscribeAll()
+
             try await supabase.client.auth.signOut()
             self.currentUser = nil
             UserDefaults.standard.removeObject(forKey: "currentUser")
+            print("✅ AuthManager: Logout complete, Realtime channels closed")
         } catch {
             print("Logout error: \(error)")
             throw AuthError.logoutFailed

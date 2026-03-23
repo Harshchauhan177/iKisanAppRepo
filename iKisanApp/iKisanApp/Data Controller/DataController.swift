@@ -6,17 +6,76 @@ class SupabaseManager {
     public static let shared: SupabaseManager = .init()
     private let key: String = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4dXV1cGlxZWlweWVtbHV5ZXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUzMDUzMzQsImV4cCI6MjA2MDg4MTMzNH0.zH4zUtWuYB1YTzwIMx_Js6EgnI-s-3AV6WP0qsKjzZ8"
     private let url: String = "https://pxuuupiqeipyemluyers.supabase.co"
-    
+
     public private(set) var client: SupabaseClient
-    
+
+    // MARK: - Timezone-Aware Date Helpers
+
+    /// ISO8601 formatter that includes timezone offset to prevent date shift issues
+    private static let dateEncoderFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        formatter.timeZone = TimeZone.current  // Include local timezone offset
+        return formatter
+    }()
+
+    /// Formats a Date to an ISO8601 string with timezone info
+    /// Example output: "2026-03-23T10:30:00.000+05:30"
+    /// Use this when creating DTOs for INSERT/UPDATE operations
+    static func encodeDate(_ date: Date) -> String {
+        return dateEncoderFormatter.string(from: date)
+    }
+
+    /// Parses a date string from Supabase, handling multiple formats
+    /// Use this when decoding dates from SELECT operations
+    static func decodeDate(_ dateString: String) -> Date? {
+        // Format 1: ISO8601 with fractional seconds and timezone
+        let iso8601WithFractional = ISO8601DateFormatter()
+        iso8601WithFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = iso8601WithFractional.date(from: dateString) {
+            return date
+        }
+
+        // Format 2: ISO8601 without fractional seconds
+        let iso8601Standard = ISO8601DateFormatter()
+        iso8601Standard.formatOptions = [.withInternetDateTime]
+        if let date = iso8601Standard.date(from: dateString) {
+            return date
+        }
+
+        // Format 3: Simple datetime without timezone
+        let simpleFormatter = DateFormatter()
+        simpleFormatter.locale = Locale(identifier: "en_US_POSIX")
+        simpleFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+
+        simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        if let date = simpleFormatter.date(from: dateString) {
+            return date
+        }
+
+        // Format 4: With microseconds
+        simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        if let date = simpleFormatter.date(from: dateString) {
+            return date
+        }
+
+        // Format 5: Date only
+        simpleFormatter.dateFormat = "yyyy-MM-dd"
+        if let date = simpleFormatter.date(from: dateString) {
+            return date
+        }
+
+        return nil
+    }
+
     private init() {
         print("🔌 Initializing SupabaseManager...")
         print("🌐 URL: \(url)")
         print("🔑 Key length: \(key.count) characters")
-        
+
         self.client = SupabaseClient(supabaseURL: URL(string: url)!, supabaseKey: key)
         print("✅ SupabaseClient initialized")
-        
+
         // Verify connection immediately
         Task {
             do {
@@ -2869,6 +2928,154 @@ class RequestManager {
             return []
         }
     }
+
+    // MARK: - Service Requests (Active Jobs)
+
+    /// Fetches active service requests for a specific farmer/user.
+    /// This queries the 'servicerequests' table where the provider has accepted a booking.
+    /// - Parameter userId: The farmer's UUID
+    /// - Returns: Array of ServiceRequest objects with status 'inProgress'
+    func fetchActiveServiceRequests(for userId: UUID) async -> [ServiceRequest] {
+        do {
+            print("📡 [ServiceRequest] Fetching active service requests for user: \(userId)")
+
+            // Create decoder with flexible date handling
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+
+                // Try multiple date formats
+                let formatter = DateFormatter()
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+
+                // Format 1: "yyyy-MM-dd'T'HH:mm:ss"
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+
+                // Format 2: "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+
+                // Format 3: ISO8601 with timezone
+                let iso8601Formatter = ISO8601DateFormatter()
+                iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                if let date = iso8601Formatter.date(from: dateString) {
+                    return date
+                }
+
+                // Format 4: ISO8601 without fractional seconds
+                iso8601Formatter.formatOptions = [.withInternetDateTime]
+                if let date = iso8601Formatter.date(from: dateString) {
+                    return date
+                }
+
+                // Format 5: Simple date "yyyy-MM-dd"
+                formatter.dateFormat = "yyyy-MM-dd"
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Cannot decode date string: \(dateString)"
+                )
+            }
+
+            // Query the servicerequests table
+            let rawData = try await SupabaseManager.shared.client
+                .from("servicerequests")
+                .select("*")
+                .eq("farmerid", value: userId.uuidString)
+                .eq("status", value: "inProgress")
+                .execute()
+                .data
+
+            // Decode the response
+            let serviceRequests = try decoder.decode([ServiceRequest].self, from: rawData)
+
+            print("✅ [ServiceRequest] Fetched \(serviceRequests.count) active service requests")
+
+            // Post notification for UI update
+            await MainActor.run {
+                NotificationCenter.default.post(name: .serviceRequestsUpdated, object: nil)
+                NotificationCenter.default.post(name: .activeJobsUpdated, object: nil)
+            }
+
+            return serviceRequests
+
+        } catch {
+            print("❌ [ServiceRequest] Error fetching active service requests: \(error)")
+            if let postgrestError = error as? PostgrestError {
+                print("🔍 PostgrestError details:")
+                print("  - Code: \(postgrestError.code ?? "nil")")
+                print("  - Message: \(postgrestError.message ?? "nil")")
+                print("  - Hint: \(postgrestError.hint ?? "nil")")
+            }
+            return []
+        }
+    }
+
+    /// Fetches all service requests for a user (not just active ones)
+    /// - Parameter userId: The farmer's UUID
+    /// - Returns: Array of all ServiceRequest objects for this user
+    func fetchAllServiceRequests(for userId: UUID) async -> [ServiceRequest] {
+        do {
+            print("📡 [ServiceRequest] Fetching all service requests for user: \(userId)")
+
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+
+                let formatter = DateFormatter()
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                if let date = formatter.date(from: dateString) { return date }
+
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+                if let date = formatter.date(from: dateString) { return date }
+
+                let iso8601Formatter = ISO8601DateFormatter()
+                iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                if let date = iso8601Formatter.date(from: dateString) { return date }
+
+                iso8601Formatter.formatOptions = [.withInternetDateTime]
+                if let date = iso8601Formatter.date(from: dateString) { return date }
+
+                formatter.dateFormat = "yyyy-MM-dd"
+                if let date = formatter.date(from: dateString) { return date }
+
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Cannot decode date string: \(dateString)"
+                )
+            }
+
+            let rawData = try await SupabaseManager.shared.client
+                .from("servicerequests")
+                .select("*")
+                .eq("farmerid", value: userId.uuidString)
+                .execute()
+                .data
+
+            let serviceRequests = try decoder.decode([ServiceRequest].self, from: rawData)
+
+            print("✅ [ServiceRequest] Fetched \(serviceRequests.count) total service requests")
+            return serviceRequests
+
+        } catch {
+            print("❌ [ServiceRequest] Error fetching all service requests: \(error)")
+            return []
+        }
+    }
 }
 
 // Data Transfer Objects (DTOs) for Supabase
@@ -2978,6 +3185,25 @@ struct RequestDTO: Codable {
         selectedUsersIds = try container.decodeIfPresent([String].self, forKey: .selectedUsersIds)
 
     }
+
+    // MARK: - Custom Encoder (Timezone-aware date encoding)
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(userId, forKey: .userId)
+        try container.encode(equipmentId, forKey: .equipmentId)
+        // Use timezone-aware date encoding to prevent date shift issues
+        let dateString = SupabaseManager.encodeDate(requestedDate)
+        try container.encode(dateString, forKey: .requestedDate)
+        try container.encode(status, forKey: .status)
+        try container.encode(type, forKey: .type)
+        try container.encode(area, forKey: .area)
+        try container.encode(timeSlot, forKey: .timeSlot)
+        try container.encodeIfPresent(timePeriod, forKey: .timePeriod)
+        try container.encode(location, forKey: .location)
+        try container.encode(typeOfRequest, forKey: .typeOfRequest)
+        try container.encodeIfPresent(selectedUsersIds, forKey: .selectedUsersIds)
+    }
 }
 
 struct UserDTO: Codable {
@@ -3039,7 +3265,7 @@ struct BookingDTO: Codable {
     let latitude: Double?
     let longitude: Double?
     let address: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case id = "bookingID"
         case userId = "userID"
@@ -3053,6 +3279,72 @@ struct BookingDTO: Codable {
         case latitude
         case longitude
         case address
+    }
+
+    // MARK: - Custom Encoder (Timezone-aware date encoding)
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(userId, forKey: .userId)
+        try container.encode(equipmentId, forKey: .equipmentId)
+        try container.encode(type, forKey: .type)
+        // Use timezone-aware date encoding to prevent date shift issues
+        let dateString = SupabaseManager.encodeDate(date)
+        try container.encode(dateString, forKey: .date)
+        try container.encode(fieldArea, forKey: .fieldArea)
+        try container.encode(status, forKey: .status)
+        try container.encode(timeSlot, forKey: .timeSlot)
+        try container.encode(source, forKey: .source)
+        try container.encodeIfPresent(latitude, forKey: .latitude)
+        try container.encodeIfPresent(longitude, forKey: .longitude)
+        try container.encodeIfPresent(address, forKey: .address)
+    }
+
+    // MARK: - Custom Decoder (handles multiple date formats)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        userId = try container.decode(String.self, forKey: .userId)
+        equipmentId = try container.decode(String.self, forKey: .equipmentId)
+        type = try container.decode(String.self, forKey: .type)
+
+        // Handle date decoding with multiple formats
+        let dateString = try container.decode(String.self, forKey: .date)
+        if let parsedDate = SupabaseManager.decodeDate(dateString) {
+            date = parsedDate
+        } else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .date,
+                in: container,
+                debugDescription: "Cannot decode date string: \(dateString)"
+            )
+        }
+
+        fieldArea = try container.decode(Double.self, forKey: .fieldArea)
+        status = try container.decode(String.self, forKey: .status)
+        timeSlot = try container.decode(String.self, forKey: .timeSlot)
+        source = try container.decode(String.self, forKey: .source)
+        latitude = try container.decodeIfPresent(Double.self, forKey: .latitude)
+        longitude = try container.decodeIfPresent(Double.self, forKey: .longitude)
+        address = try container.decodeIfPresent(String.self, forKey: .address)
+    }
+
+    // MARK: - Memberwise Initializer
+    init(id: String, userId: String, equipmentId: String, type: String, date: Date,
+         fieldArea: Double, status: String, timeSlot: String, source: String,
+         latitude: Double?, longitude: Double?, address: String?) {
+        self.id = id
+        self.userId = userId
+        self.equipmentId = equipmentId
+        self.type = type
+        self.date = date
+        self.fieldArea = fieldArea
+        self.status = status
+        self.timeSlot = timeSlot
+        self.source = source
+        self.latitude = latitude
+        self.longitude = longitude
+        self.address = address
     }
 }
 

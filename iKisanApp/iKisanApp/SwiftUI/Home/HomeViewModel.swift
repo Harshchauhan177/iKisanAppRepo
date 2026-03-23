@@ -89,28 +89,48 @@ class HomeViewModel: NSObject, ObservableObject {
     func loadData() async {
         isLoading = true
         defer { isLoading = false }
-        
+
+        // CRITICAL: Ensure Realtime subscriptions are active (backup for app restart with existing session)
+        await ensureRealtimeSubscriptionsActive()
+
         do {
             // Fetch all data concurrently
             async let equipmentFetch = requestManager.fetchEquipments()
             async let reviewsFetch = requestManager.fetchReviews()
             async let bookingsFetch = requestManager.fetchBookings()
-            
+
             allEquipment = await equipmentFetch
             reviews = await reviewsFetch
             let allBookings = await bookingsFetch
-            
+
             // Process data
             processEquipmentData()
             processBookingsData(allBookings)
             generateExploreEquipment()
-            
+
             // Generate search data list
             dataList = Array(Set(allEquipment.map { $0.name }))
-            
+
             print("✅ HomeViewModel loaded: \(allEquipment.count) equipment, \(upcomingBookings.count) bookings")
         } catch {
             print("❌ Error loading data: \(error)")
+        }
+    }
+
+    /// Ensures Realtime WebSocket subscriptions are active for the current user.
+    /// This is a backup mechanism for when the app restarts with an existing session.
+    private func ensureRealtimeSubscriptionsActive() async {
+        // Only activate if not already connected and we have a logged-in user
+        guard !RealtimeManager.shared.isConnected else {
+            print("🔌 HomeViewModel: Realtime already connected, skipping")
+            return
+        }
+
+        if let currentUser = AuthManager.shared.currentUser {
+            print("🔌 HomeViewModel: Activating Realtime subscriptions for user: \(currentUser.id)")
+            await RealtimeManager.shared.subscribeToUserUpdates(userId: currentUser.id)
+        } else {
+            print("⚠️ HomeViewModel: No current user, skipping Realtime activation")
         }
     }
     

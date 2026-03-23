@@ -186,20 +186,31 @@ final class LoginViewModel: ObservableObject {
     private func navigateToMainApp() {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first {
-            
+
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             if let tabBarController = storyboard.instantiateViewController(withIdentifier: "MainTabBarController") as? UITabBarController {
-                
+
                 // CRITICAL: Initialize data controller - required for app to function
                 let dataController = IKisanDataController()
-                
+
                 // CRITICAL: Set the data controller BEFORE setting as root view controller
                 // This ensures MainTabBarController.viewDidLoad() has access to dataController
                 if let mainTabBarController = tabBarController as? MainTabBarController {
                     mainTabBarController.dataController = dataController
                     print("✅ LoginViewModel: dataController set on MainTabBarController")
                 }
-                
+
+                // CRITICAL: Start Realtime WebSocket subscriptions for instant updates
+                // This enables the farmer's UI to update the exact second a provider accepts
+                Task {
+                    if let currentUser = AuthManager.shared.currentUser {
+                        print("🔌 LoginViewModel: Starting Realtime subscriptions for user: \(currentUser.id)")
+                        await RealtimeManager.shared.subscribeToUserUpdates(userId: currentUser.id)
+                    } else {
+                        print("⚠️ LoginViewModel: No current user found, skipping Realtime subscriptions")
+                    }
+                }
+
                 // Transition to main app with animation
                 // The MainTabBarController.viewDidLoad() will now distribute dataController to all child VCs
                 UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve) {
