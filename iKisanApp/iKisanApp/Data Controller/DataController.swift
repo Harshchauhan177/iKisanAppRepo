@@ -97,6 +97,82 @@ class SupabaseManager {
             }
         }
     }
+
+    // MARK: - Razorpay Edge Function
+
+    /// Response structure from create-razorpay-order Edge Function
+    struct RazorpayOrderResponse: Codable {
+        let success: Bool
+        let orderId: String?
+        let amount: Int?
+        let amountInr: Double?
+        let currency: String?
+        let receipt: String?
+        let status: String?
+        let error: String?
+
+        enum CodingKeys: String, CodingKey {
+            case success
+            case orderId = "order_id"
+            case amount
+            case amountInr = "amount_inr"
+            case currency
+            case receipt
+            case status
+            case error
+        }
+    }
+
+    /// Creates a Razorpay order via Edge Function with Auth Hold enabled
+    /// - Parameter amount: Amount in INR (will be converted to paise by the edge function)
+    /// - Returns: The Razorpay order_id to be used in checkout
+    /// - Throws: Error if the Edge Function call fails or returns an error
+    func createRazorpayOrder(amount: Double, notes: [String: String]? = nil) async throws -> String {
+        print("🔄 [SupabaseManager] Creating Razorpay order for amount: ₹\(amount)")
+
+        // Prepare the request payload
+        var payload: [String: Any] = [
+            "amount": amount
+        ]
+
+        if let notes = notes {
+            payload["notes"] = notes
+        }
+
+        // Convert payload to JSON data
+        let jsonData = try JSONSerialization.data(withJSONObject: payload)
+
+        // Invoke the Edge Function and decode response directly
+        // supabase-swift v2.x uses generic invoke that returns decoded type
+        let orderResponse: RazorpayOrderResponse = try await client.functions.invoke(
+            "create-razorpay-order",
+            options: FunctionInvokeOptions(body: jsonData)
+        )
+
+        // Check for errors
+        guard orderResponse.success else {
+            let errorMessage = orderResponse.error ?? "Unknown error creating Razorpay order"
+            print("❌ [SupabaseManager] Razorpay order creation failed: \(errorMessage)")
+            throw NSError(
+                domain: "RazorpayError",
+                code: 1001,
+                userInfo: [NSLocalizedDescriptionKey: errorMessage]
+            )
+        }
+
+        // Extract order_id
+        guard let orderId = orderResponse.orderId else {
+            print("❌ [SupabaseManager] Missing order_id in response")
+            throw NSError(
+                domain: "RazorpayError",
+                code: 1002,
+                userInfo: [NSLocalizedDescriptionKey: "Missing order_id in response"]
+            )
+        }
+
+        print("✅ [SupabaseManager] Razorpay order created: \(orderId)")
+        return orderId
+    }
 }
 
 protocol DataController: AnyObject {

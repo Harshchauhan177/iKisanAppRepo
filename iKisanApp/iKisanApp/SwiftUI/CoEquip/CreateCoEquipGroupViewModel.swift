@@ -12,7 +12,7 @@ import SwiftUI
 @MainActor
 class CreateCoEquipGroupViewModel: ObservableObject {
     // MARK: - Published Properties
-    
+
     @Published var selectedDate: Date = Date()
     @Published var fieldArea: String = ""
     @Published var selectedFieldAreaUnit: FieldAreaUnit = .acre
@@ -26,6 +26,11 @@ class CreateCoEquipGroupViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showError: Bool = false
     @Published var creationSuccess: Bool = false
+
+    // Payment flow state tracking
+    @Published var isAwaitingPayment: Bool = false
+    @Published var paymentStatusMessage: String = ""
+    @Published var groupCreatedSuccessfully: Bool = false
     
     // MARK: - Dependencies
     
@@ -285,7 +290,7 @@ class CreateCoEquipGroupViewModel: ObservableObject {
                         .eq("id", value: creatorRequestId.uuidString)
                         .execute()
                         .data
-                    
+
                     if let jsonString = String(data: verifyData, encoding: .utf8) {
                         print("✅ Request verified in database: \(jsonString)")
                     }
@@ -293,10 +298,33 @@ class CreateCoEquipGroupViewModel: ObservableObject {
                     print("❌ Request NOT found in database! This will cause participant creation to fail.")
                     throw NSError(domain: "CreateGroup", code: 3, userInfo: [NSLocalizedDescriptionKey: "Request was not saved to database properly"])
                 }
-                
-                // 2. Create participant entries for the creator's request (invited farmers)
+
+                // 2. Create participant entry for the CREATOR (so they're tracked like other participants)
+                print("📝 Creating participant entry for group creator...")
+                let creatorParticipantId = UUID()
+                let creatorParticipant = RequestParticipant(
+                    id: creatorParticipantId,
+                    requestId: creatorRequestId,
+                    userId: currentUser.id,
+                    status: .done, // Creator has already committed their area
+                    area: areaInAcres, // Creator's field area
+                    timeSlot: "\(timeSlotInfo.startTime) - \(timeSlotInfo.endTime)",
+                    joinedAt: Date()
+                )
+
+                do {
+                    if let dataController = dataController {
+                        try await dataController.createRequestParticipant(creatorParticipant)
+                        print("✅ Creator participant entry created successfully")
+                    }
+                } catch {
+                    print("❌ Failed to create creator participant entry: \(error)")
+                    // Continue anyway - the request is still valid
+                }
+
+                // 3. Create participant entries for invited farmers
                 if !selectedFarmers.isEmpty {
-                    print("📤 Creating \(selectedFarmers.count) participant entries for creator's request...")
+                    print("📤 Creating \(selectedFarmers.count) participant entries for invited farmers...")
                     
                     for farmer in selectedFarmers {
                         guard let farmerUserId = UUID(uuidString: farmer.id) else {
@@ -342,72 +370,137 @@ class CreateCoEquipGroupViewModel: ObservableObject {
                 // Success! Participants have been created and linked to the main request
                 // Invited farmers will see this request in their Join Requests tab because they are participants
                 print("✅ All participants created successfully")
-                
-                // Success!
-                await MainActor.run {
-                    isProcessing = false
-                    creationSuccess = true
-                    
-                    // Haptic feedback
-                    let generator = UINotificationFeedbackGenerator()
-                    generator.notificationOccurred(.success)
-                    
-                    print("✅ Co-Equip group created successfully")
-                    print("📍 Location: \(location.address ?? "Unknown")")
-                    print("📏 Field Area: \(formattedFieldArea)")
-                    print("📅 Date: \(selectedDate)")
-                    print("⏰ Time Slot: \(formattedTimeSlot)")
-                    print("👥 Farmers invited: \(selectedFarmers.count)")
-                }
-                
-                // Force refresh the cache from database BEFORE posting notification
-                if let dataController = dataController {
-                    print("🔄 Refreshing Co-Equip requests from database...")
-                    await dataController.refreshCoEquipRequests()
-                    print("✅ Cache refreshed with new request")
-                }
-                
-                await MainActor.run {
-                    // Post notification to refresh CoEquipViewModel UI
-                    NotificationCenter.default.post(name: .requestsUpdated, object: nil)
-                    print("🔔 Posted .requestsUpdated notification")
-                }
-                
-                // Small delay to ensure notification is processed
-                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-                
-                await MainActor.run {
-                    // Navigate back to root
-                    print("🧭 Navigation options:")
-                    print("   Router: \(router != nil ? "exists" : "nil")")
-                    print("   Coordinator: \(navigationCoordinator != nil ? "exists" : "nil")")
-                    print("   Dismiss callback: \(onDismiss != nil ? "exists" : "nil")")
-                    
-                    if let router = router {
-                        // Preferred: Use router to pop to root
-                        router.popToRoot()
-                        print("🔙 Called router.popToRoot()")
-                    } else if let navigationCoordinator = navigationCoordinator {
-                        // Fallback: Use navigation coordinator
-                        navigationCoordinator.popToRoot()
-                        print("🔙 Called coordinator.popToRoot()")
-                    } else if let onDismiss = onDismiss {
-                        // Last resort: Use dismiss callback
-                        onDismiss()
-                        print("🔙 Called dismiss callback")
-                    } else {
-                        print("⚠️ No navigation method available")
+
+                // CRITICAL: DO NOT update @Published variables that cause UI churn
+                // Keep the view completely static to prevent tearing down Razorpay's display controller
+                // Only log success without triggering SwiftUI redraws
+                print("✅ Co-Equip group created successfully")
+                print("📍 Location: \(location.address ?? "Unknown")")
+                print("📏 Field Area: \(formattedFieldArea)")
+                print("📅 Date: \(selectedDate)")
+                print("⏰ Time Slot: \(formattedTimeSlot)")
+                print("👥 Farmers invited: \(selectedFarmers.count)")
+
+                // DEFER: Refresh cache AFTER payment completes to avoid UI churn
+                // Cache refresh will happen in payment callback navigation
+                print("⏸️ Deferring cache refresh until after payment completes")
+
+                // 4. PHASE 2 FIX: Trigger immediate payment (Auth Hold) for the Creator
+                // CRITICAL: Keep UI completely frozen - do NOT update any @Published variables
+                // that would cause SwiftUI to redraw and tear down Razorpay's display controller
+                print("💳 Initiating creator payment (Auth Hold)...")
+                print("🔒 UI LOCKED: Keeping all @Published variables static during payment handover")
+
+                // Build the Request object with participant info for payment
+                var requestForPayment = creatorRequest
+                requestForPayment.participants = [creatorParticipant]
+
+                // Convert AuthUser to User for GroupPaymentManager
+                let userLocation = Location(
+                    latitude: currentUser.latitude,
+                    longitude: currentUser.longitude,
+                    address: currentUser.address
+                )
+                let userForPayment = User(
+                    userID: currentUser.id,
+                    name: currentUser.name,
+                    email: currentUser.email,
+                    phone: currentUser.phone,
+                    location: userLocation,
+                    selectedCrops: currentUser.selectedCrops ?? [],
+                    fieldArea: currentUser.fieldArea ?? 0.0,
+                    groupID: currentUser.groupID
+                )
+
+                // NO UI UPDATES HERE - keep view completely static
+                // Trigger payment with completion handler that manages ALL state changes
+                GroupPaymentManager.shared.initiateJoinPayment(
+                    request: requestForPayment,
+                    participant: creatorParticipant,
+                    equipment: equipment,
+                    user: userForPayment
+                ) { [weak self] success, paymentId in
+                    guard let self = self else { return }
+
+                    Task { @MainActor in
+                        // NOW it's safe to update UI - Razorpay has finished
+                        self.isProcessing = false
+                        self.isAwaitingPayment = false
+
+                        if success {
+                            print("✅ Creator payment authorization successful: \(paymentId ?? "N/A")")
+                            self.paymentStatusMessage = "Payment successful!"
+                            self.creationSuccess = true
+
+                            // Haptic feedback for success
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.success)
+                        } else {
+                            print("⚠️ Creator payment authorization failed or cancelled")
+                            self.paymentStatusMessage = "Payment skipped - you can pay later"
+                            self.creationSuccess = true // Group was still created
+
+                            // Haptic feedback for warning
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.warning)
+                        }
+
+                        // Refresh cache NOW that payment is complete
+                        if let dataController = self.dataController {
+                            print("🔄 Refreshing Co-Equip requests from database...")
+                            await dataController.refreshCoEquipRequests()
+                            print("✅ Cache refreshed")
+                        }
+
+                        // Post notification to refresh UI
+                        NotificationCenter.default.post(name: .requestsUpdated, object: nil)
+                        print("🔔 Posted .requestsUpdated notification")
+
+                        // Small delay to show the status message
+                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+                        // NOW it's safe to navigate - Razorpay has fully dismissed
+                        self.navigateToRoot()
                     }
                 }
-                
+
+                // Don't navigate here - wait for payment callback above
+
             } catch {
                 print("❌ Error creating group: \(error)")
                 await MainActor.run {
                     isProcessing = false
+                    isAwaitingPayment = false
                     errorMessage = "Failed to create group: \(error.localizedDescription)"
                     showError = true
                 }
             }
+        }
+    }
+
+    // MARK: - Navigation
+
+    /// Safely navigate back to root after payment flow completes
+    private func navigateToRoot() {
+        print("🧭 Navigation options:")
+        print("   Router: \(router != nil ? "exists" : "nil")")
+        print("   Coordinator: \(navigationCoordinator != nil ? "exists" : "nil")")
+        print("   Dismiss callback: \(onDismiss != nil ? "exists" : "nil")")
+
+        if let router = router {
+            // Preferred: Use router to pop to root
+            router.popToRoot()
+            print("🔙 Called router.popToRoot()")
+        } else if let navigationCoordinator = navigationCoordinator {
+            // Fallback: Use navigation coordinator
+            navigationCoordinator.popToRoot()
+            print("🔙 Called coordinator.popToRoot()")
+        } else if let onDismiss = onDismiss {
+            // Last resort: Use dismiss callback
+            onDismiss()
+            print("🔙 Called dismiss callback")
+        } else {
+            print("⚠️ No navigation method available")
         }
     }
 

@@ -360,19 +360,19 @@ class CoEquipViewModel: ObservableObject {
     /// Called from JoinRequestInputViewModel after validation
     func confirmJoin(request: CoEquipRequest, fieldArea: Double) async {
         print("🟢 [CoEquipVM] Confirming join for request: \(request.id), area: \(fieldArea)")
-        
+
         guard let dataController = dataController else {
             print("❌ [CoEquipVM] DataController not available")
             errorMessage = "Unable to process request"
             return
         }
-        
+
         guard let currentUser = dataController.getCurrentUser() else {
             print("❌ [CoEquipVM] No current user")
             errorMessage = "User not logged in"
             return
         }
-        
+
         // Find the original Request object
         let allRequests = dataController.getAllCoEquipRequests()
         guard var originalRequest = allRequests.first(where: { $0.id == request.id }) else {
@@ -380,13 +380,14 @@ class CoEquipViewModel: ObservableObject {
             errorMessage = "Request not found"
             return
         }
-        
+
         // Store original state for rollback
         let originalParticipants = originalRequest.participants
-        
+        let originalArea = originalRequest.area
+
         // OPTIMISTIC UPDATE: Update local UI immediately
         print("🔄 [CoEquipVM] Starting optimistic update...")
-        
+
         // Find or create participant entry
         if var participants = originalRequest.participants {
             // Find participant entry for current user
@@ -424,32 +425,79 @@ class CoEquipViewModel: ObservableObject {
             originalRequest.participants = [newParticipant]
             print("✅ [CoEquipVM] Created participants array with new participant and status: done")
         }
-        
-        // Update local cache immediately for instant UI feedback
-        await processRequests(currentUser: currentUser)
-        
+
+        // PHASE 1.2 FIX: Accumulate the new farmer's area into the group's total area
+        // This updates the requests table to reflect the new total committed area
+        originalRequest.area = originalArea + fieldArea
+        print("📊 [CoEquipVM] Updated group total area: \(originalArea) + \(fieldArea) = \(originalRequest.area)")
+
+        // CRITICAL: Minimize UI updates before payment to prevent SwiftUI churn
+        // Skip optimistic local cache update - we'll refresh after payment completes
+        print("⏸️ [CoEquipVM] Deferring UI refresh until after payment completes")
+
         print("🌐 [CoEquipVM] Sending update to backend...")
-        
-        // Update request in backend
+
+        // Update request in backend (this persists both participant and area changes)
         let success = await dataController.updateRequest(originalRequest)
-        
+
         if success {
             print("✅ [CoEquipVM] Successfully accepted request in backend")
-            
-            // Close the modal
-            showJoinInputSheet = false
-            selectedRequestForJoin = nil
-            
-            // Reload data to ensure we have latest from backend
-            await reloadLocalData()
+
+            // PHASE 3.3: Trigger payment immediately after successful join
+            // CRITICAL: Keep modal and UI completely stable for Razorpay
+            // Get the updated participant for payment
+            if let updatedParticipant = originalRequest.participants?.first(where: { $0.userId == currentUser.userID }),
+               let equipment = dataController.getEquipmentById(originalRequest.equipmentId) {
+
+                print("💳 [CoEquipVM] Initiating immediate payment (Auth Hold) for joined farmer")
+                print("🔒 UI LOCKED: Keeping modal stable during payment handover")
+
+                // Trigger payment with Auth Hold
+                // All UI updates and navigation happen ONLY after payment flow completes
+                GroupPaymentManager.shared.initiateJoinPayment(
+                    request: originalRequest,
+                    participant: updatedParticipant,
+                    equipment: equipment,
+                    user: currentUser
+                ) { [weak self] success, paymentId in
+                    guard let self = self else { return }
+
+                    Task { @MainActor in
+                        if success {
+                            print("✅ [CoEquipVM] Payment authorization successful: \(paymentId ?? "N/A")")
+                        } else {
+                            print("⚠️ [CoEquipVM] Payment authorization failed or cancelled")
+                            // The join was still successful, payment can be retried later
+                            self.errorMessage = "Join successful, but payment authorization failed. Please try payment again."
+                        }
+
+                        // NOW it's safe to refresh UI - Razorpay has fully dismissed
+                        print("🔄 [CoEquipVM] Refreshing UI after payment completion")
+                        await self.reloadLocalData()
+
+                        // Small delay to ensure Razorpay has fully dismissed
+                        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+                        // NOW it's safe to close the modal - Razorpay has finished
+                        self.showJoinInputSheet = false
+                        self.selectedRequestForJoin = nil
+                    }
+                }
+            } else {
+                // No payment needed (edge case) - safe to refresh and close modal
+                await reloadLocalData()
+                showJoinInputSheet = false
+                selectedRequestForJoin = nil
+            }
         } else {
             print("❌ [CoEquipVM] Failed to update request in backend - ROLLING BACK")
             errorMessage = "Failed to join request. Please try again."
-            
-            // ROLLBACK: Restore original state
+
+            // ROLLBACK: Restore original state (both participants and area)
             var rolledBackRequest = originalRequest
             rolledBackRequest.participants = originalParticipants
-            
+            rolledBackRequest.area = originalArea
+
             // Update local state to reflect rollback
             await processRequests(currentUser: currentUser)
         }

@@ -81,58 +81,58 @@ class JoinRequestInputViewModel: ObservableObject {
         guard let acres = areaInAcres, acres > 0 else {
             return false
         }
-        
-        // Check if adding this area (in acres) would exceed capacity
-        let newTotal = currentTotalArea + acres
-        return newTotal <= capacity
+
+        // Check if adding this area (in acres) would exceed equipment capacity
+        // Validation: newFarmerArea <= (equipmentCapacity - currentTotalGroupArea)
+        return acres <= remainingCapacity
     }
-    
+
     var validationMessage: String {
         if fieldAreaInput.isEmpty {
             return ""
         }
-        
+
         guard let value = Double(fieldAreaInput) else {
             return "Please enter a valid number"
         }
-        
+
         if value <= 0 {
             return "Area must be greater than 0"
         }
-        
+
         guard let acres = areaInAcres else {
             return "Invalid area value"
         }
-        
-        let newTotal = currentTotalArea + acres
-        if newTotal > capacity {
-            let remaining = capacity - currentTotalArea
-            let remainingInSelectedUnit = selectedUnit.fromAcres(remaining)
+
+        if acres > remainingCapacity {
+            let remainingInSelectedUnit = selectedUnit.fromAcres(remainingCapacity)
             return "Exceeds capacity. Maximum available: \(String(format: "%.2f", remainingInSelectedUnit)) \(selectedUnit.rawValue.lowercased())"
         }
-        
+
         return ""
     }
-    
+
     var currentTotalAreaText: String {
         return String(format: "%.2f acres", currentTotalArea)
     }
-    
+
     var capacityText: String {
-        return String(format: "%.2f acres", capacity)
+        return String(format: "%.2f acres", equipmentCapacity)
     }
-    
+
+    /// Remaining capacity available for new farmers to commit
+    /// Formula: equipment.capacity - currentTotalGroupArea
     var remainingCapacity: Double {
-        return capacity - currentTotalArea
+        return max(0, equipmentCapacity - currentTotalArea)
     }
-    
+
     var remainingCapacityText: String {
         return String(format: "%.2f acres", remainingCapacity)
     }
-    
+
     var capacityPercentage: Double {
-        guard capacity > 0 else { return 0 }
-        return currentTotalArea / capacity
+        guard equipmentCapacity > 0 else { return 0 }
+        return currentTotalArea / equipmentCapacity
     }
     
     var formattedDate: String {
@@ -143,21 +143,21 @@ class JoinRequestInputViewModel: ObservableObject {
     }
     
     // MARK: - Private Properties
-    
+
     private let request: CoEquipRequest
     private let currentTotalArea: Double
-    private let capacity: Double
+    private let equipmentCapacity: Double // Equipment's maximum capacity
     private let dataController: DataController?
     private let onJoinSuccess: (Double) -> Void
-    
+
     // Display properties
     let equipmentName: String
     let equipmentImageURL: String
     let requestDate: Date
     let creatorName: String
-    
+
     // MARK: - Initialization
-    
+
     init(
         request: CoEquipRequest,
         dataController: DataController?,
@@ -166,15 +166,26 @@ class JoinRequestInputViewModel: ObservableObject {
         self.request = request
         self.dataController = dataController
         self.onJoinSuccess = onJoinSuccess
-        
+
         // Get underlying request for full details
         if let underlyingRequest = request.underlyingRequest {
-            // Calculate current total area from participants
+            // Calculate current total area from accepted/done participants
+            // This represents the total area already committed to the group
             self.currentTotalArea = underlyingRequest.participants?
                 .filter { $0.status == .accepted || $0.status == .done }
                 .reduce(0.0) { $0 + ($1.area ?? 0.0) } ?? 0.0
-            
-            self.capacity = underlyingRequest.area
+
+            // Get equipment capacity from the equipment, NOT from request.area
+            // request.area is the group's accumulated area, NOT the max capacity
+            if let equipment = dataController?.getEquipmentById(underlyingRequest.equipmentId) {
+                // Parse equipment capacity (may be "50 acres" or just "50")
+                let capacityString = equipment.capacity.replacingOccurrences(of: "[^0-9.]", with: "", options: .regularExpression)
+                self.equipmentCapacity = Double(capacityString) ?? 100.0
+            } else {
+                // Fallback - use a reasonable default
+                self.equipmentCapacity = 100.0
+            }
+
             // Use CoEquipRequest display properties which already have equipment/user info
             self.equipmentName = request.equipmentName
             self.equipmentImageURL = request.equipmentImageURL
@@ -183,7 +194,7 @@ class JoinRequestInputViewModel: ObservableObject {
         } else {
             // Fallback to CoEquipRequest properties
             self.currentTotalArea = 0.0
-            self.capacity = 100.0 // Default capacity
+            self.equipmentCapacity = 100.0 // Default capacity
             self.equipmentName = request.equipmentName
             self.equipmentImageURL = request.equipmentImageURL
             self.requestDate = request.date
@@ -199,20 +210,19 @@ class JoinRequestInputViewModel: ObservableObject {
             showError = true
             return
         }
-        
-        // Final validation before processing
-        let newTotal = currentTotalArea + acres
-        guard newTotal <= capacity else {
-            errorMessage = "Adding this area would exceed the group capacity"
+
+        // Final validation: ensure new farmer's area doesn't exceed remaining capacity
+        guard acres <= remainingCapacity else {
+            errorMessage = "Adding this area would exceed the equipment's capacity"
             showError = true
             return
         }
-        
+
         isProcessing = true
-        
+
         // Call the success handler with the standardized area in acres
         onJoinSuccess(acres)
-        
+
         // Mark as successful
         joinSuccessful = true
         isProcessing = false

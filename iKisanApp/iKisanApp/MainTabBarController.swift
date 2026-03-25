@@ -15,9 +15,13 @@ class MainTabBarController: UITabBarController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         print("🚀 MainTabBarController viewDidLoad called")
-        
+
+        // Pre-warm GroupPaymentManager on main thread to ensure Razorpay SDK
+        // initializes correctly (WebKit requires main thread for message handlers)
+        GroupPaymentManager.preWarm()
+
         // Always setup view controllers first (SwiftUI replacement happens here)
         setupViewControllers()
         setupNotificationObservers()
