@@ -29,6 +29,10 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
     @Published var showError: Bool = false
     @Published var payableAmount: Double = 0
     
+    /// Selected payment method — defaults to COD when Razorpay is disabled
+    @Published var selectedPaymentMethod: PaymentMethod = FeatureFlags.isRazorpayEnabled ? .razorpay : .cashOnDelivery
+    
+    // MARK: - Future Razorpay Integration
     // Razorpay instance - strong reference to prevent deallocation during payment
     private var razorpay: RazorpayCheckout?
     private var pendingBooking: Booking?
@@ -119,8 +123,11 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         self.navigationCoordinator = navigationCoordinator
         self.retainedDataController = dataController
         
-        // Initialize Razorpay - must be done after all properties are set
-        self.razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
+        // MARK: - Future Razorpay Integration
+        // Initialize Razorpay only when the feature is enabled
+        if FeatureFlags.isRazorpayEnabled {
+            self.razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
+        }
         
         // Load existing booking data if modifying
         if let booking = existingBooking {
@@ -287,6 +294,18 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         // Store booking temporarily
         pendingBooking = newBooking
         
+        // MARK: - COD Payment Path
+        // When Razorpay is disabled, process as Cash on Delivery
+        if selectedPaymentMethod == .cashOnDelivery || !FeatureFlags.isRazorpayEnabled {
+            print("💵 Processing Cash on Delivery order...")
+            placeCODOrder(booking: newBooking)
+            return
+        }
+        
+        // MARK: - Future Razorpay Integration
+        // The following Razorpay payment flow is preserved for future releases.
+        // Set FeatureFlags.isRazorpayEnabled = true to re-enable.
+        
         // Ensure Razorpay is initialized
         guard let razorpayInstance = razorpay else {
             errorMessage = "Payment system is not initialized. Please try again."
@@ -325,7 +344,64 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         }
     }
     
-    // MARK: - Razorpay Payment Completion Protocol
+    // MARK: - Cash on Delivery Order Placement
+    
+    /// Places the order directly as COD, bypassing the Razorpay payment gateway.
+    /// The booking is created, marked as confirmed, and the user is navigated to success.
+    private func placeCODOrder(booking: Booking) {
+        Task { @MainActor in
+            // 1. Add booking to local data controller
+            if let dataController = self.retainedDataController ?? self.dataController {
+                _ = dataController.addBooking(booking)
+            }
+            
+            // 2. Update booking status in Supabase as confirmed with COD payment type
+            struct CODStatusUpdate: Codable {
+                var status: BookingStatus = .confirmed
+                var paymentMethod: String = "cod"
+            }
+            
+            do {
+                try await SupabaseManager.shared.client
+                    .from("bookings")
+                    .update(CODStatusUpdate())
+                    .eq("bookingID", value: booking.bookingID)
+                    .execute()
+                
+                print("✅ COD Booking confirmed in backend")
+            } catch {
+                print("⚠️ Error updating COD booking status: \(error)")
+                // Continue anyway — booking is already added locally
+            }
+            
+            // 3. Post notification based on booking source
+            switch booking.source {
+            case .prebooking:
+                NotificationCenter.default.post(
+                    name: Notification.Name.preBookingAdded,
+                    object: nil,
+                    userInfo: ["booking": booking]
+                )
+            default:
+                NotificationCenter.default.post(
+                    name: .bookingAdded,
+                    object: nil
+                )
+            }
+            
+            // 4. Reset payment flags
+            self.isPaymentInProgress = false
+            self.isProcessing = false
+            
+            // 5. Navigate to success
+            print("✅ COD order placed successfully — navigating to confirmation")
+            self.navigateAfterPaymentSuccess()
+        }
+    }
+    
+    // MARK: - Future Razorpay Integration — Payment Completion Protocol
+    // These callbacks are invoked by the Razorpay SDK when payment completes.
+    // They remain fully functional for when FeatureFlags.isRazorpayEnabled is set to true.
     
     nonisolated func onPaymentError(_ code: Int32, description str: String) {
         Task { @MainActor [weak self] in

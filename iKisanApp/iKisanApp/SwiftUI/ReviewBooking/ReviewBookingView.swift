@@ -160,6 +160,43 @@ struct ReviewBookingView: View {
                         }
                         .accessibilityLabel(viewModel.totalPrice > 0 ? "Total price: ₹\(String(format: "%.2f", viewModel.totalPrice))" : "Price per hour: \(viewModel.formattedPrice)")
                         .animation(.spring(response: 0.3), value: viewModel.totalPrice)
+                        
+                        Divider()
+                            .padding(.leading, 48)
+                        
+                        // MARK: - Payment Method Selection
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack(alignment: .top, spacing: 12) {
+                                Image(systemName: "wallet.pass.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.ikisanGreen)
+                                    .frame(width: 28, height: 28)
+                                
+                                Text("Payment Method")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundColor(.primary)
+                                
+                                Spacer()
+                            }
+                            
+                            // COD Option — always visible
+                            PaymentMethodRow(
+                                method: .cashOnDelivery,
+                                isSelected: viewModel.selectedPaymentMethod == .cashOnDelivery,
+                                onSelect: { viewModel.selectedPaymentMethod = .cashOnDelivery }
+                            )
+                            
+                            // MARK: - Future Razorpay Integration
+                            // Razorpay option is only shown when the feature flag is enabled.
+                            if FeatureFlags.isRazorpayEnabled {
+                                PaymentMethodRow(
+                                    method: .razorpay,
+                                    isSelected: viewModel.selectedPaymentMethod == .razorpay,
+                                    onSelect: { viewModel.selectedPaymentMethod = .razorpay }
+                                )
+                            }
+                        }
+                        .padding(.vertical, 4)
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
@@ -198,13 +235,25 @@ struct ReviewBookingView: View {
                                 .scaleEffect(0.9)
                         }
                         
-                        Text("Proceed To Pay")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-                        
-                        Image(systemName: "arrow.right.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(.white.opacity(0.9))
+                        // Dynamic button text based on selected payment method
+                        if viewModel.selectedPaymentMethod == .cashOnDelivery {
+                            Text("Place Order")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                            
+                            Image(systemName: "shippingbox.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.white.opacity(0.9))
+                        } else {
+                            // MARK: - Future Razorpay Integration
+                            Text("Proceed To Pay")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                            
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.white.opacity(0.9))
+                        }
                         
                         Spacer()
                     }
@@ -228,8 +277,8 @@ struct ReviewBookingView: View {
                 .disabled(!viewModel.isFormValid || viewModel.isProcessing)
                 .scaleEffect(viewModel.isFormValid ? 1.0 : 0.98)
                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.isFormValid)
-                .accessibilityLabel("Proceed to payment")
-                .accessibilityHint(viewModel.isFormValid ? "Double tap to continue to payment" : "Fill in all required fields to continue")
+                .accessibilityLabel(viewModel.selectedPaymentMethod == .cashOnDelivery ? "Place order with cash on delivery" : "Proceed to payment")
+                .accessibilityHint(viewModel.isFormValid ? "Double tap to continue" : "Fill in all required fields to continue")
                 
                 Color.screenBackground
                     .frame(height: 8)

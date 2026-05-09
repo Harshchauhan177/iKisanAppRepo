@@ -444,43 +444,61 @@ class CoEquipViewModel: ObservableObject {
             print("✅ [CoEquipVM] Successfully accepted request in backend")
 
             // PHASE 3.3: Trigger payment immediately after successful join
-            // CRITICAL: Keep modal and UI completely stable for Razorpay
             // Get the updated participant for payment
             if let updatedParticipant = originalRequest.participants?.first(where: { $0.userId == currentUser.userID }),
                let equipment = dataController.getEquipmentById(originalRequest.equipmentId) {
 
-                print("💳 [CoEquipVM] Initiating immediate payment (Auth Hold) for joined farmer")
-                print("🔒 UI LOCKED: Keeping modal stable during payment handover")
+                // MARK: - COD Payment Path for Join Flow
+                // When Razorpay is disabled, skip payment and directly refresh UI
+                if !FeatureFlags.isRazorpayEnabled {
+                    print("💵 [CoEquipVM] COD mode — skipping payment for joined farmer")
+                    
+                    // Refresh UI
+                    await self.reloadLocalData()
+                    
+                    // Close the modal
+                    self.showJoinInputSheet = false
+                    self.selectedRequestForJoin = nil
+                    
+                    print("✅ [CoEquipVM] Join completed with COD")
+                } else {
+                    // MARK: - Future Razorpay Integration
+                    // The following Razorpay payment flow is preserved for future releases.
+                    // Set FeatureFlags.isRazorpayEnabled = true to re-enable.
+                    
+                    print("💳 [CoEquipVM] Initiating immediate payment (Auth Hold) for joined farmer")
+                    print("🔒 UI LOCKED: Keeping modal stable during payment handover")
 
-                // Trigger payment with Auth Hold
-                // All UI updates and navigation happen ONLY after payment flow completes
-                GroupPaymentManager.shared.initiateJoinPayment(
-                    request: originalRequest,
-                    participant: updatedParticipant,
-                    equipment: equipment,
-                    user: currentUser
-                ) { [weak self] success, paymentId in
-                    guard let self = self else { return }
+                    // Trigger payment with Auth Hold
+                    // All UI updates and navigation happen ONLY after payment flow completes
+                    GroupPaymentManager.shared.initiateJoinPayment(
+                        request: originalRequest,
+                        participant: updatedParticipant,
+                        equipment: equipment,
+                        user: currentUser
+                    ) { [weak self] success, paymentId in
+                        guard let self = self else { return }
 
-                    Task { @MainActor in
-                        if success {
-                            print("✅ [CoEquipVM] Payment authorization successful: \(paymentId ?? "N/A")")
-                        } else {
-                            print("⚠️ [CoEquipVM] Payment authorization failed or cancelled")
-                            // The join was still successful, payment can be retried later
-                            self.errorMessage = "Join successful, but payment authorization failed. Please try payment again."
+                        Task { @MainActor in
+                            if success {
+                                print("✅ [CoEquipVM] Payment authorization successful: \(paymentId ?? "N/A")")
+                            } else {
+                                print("⚠️ [CoEquipVM] Payment authorization failed or cancelled")
+                                // The join was still successful, payment can be retried later
+                                self.errorMessage = "Join successful, but payment authorization failed. Please try payment again."
+                            }
+
+                            // NOW it's safe to refresh UI - Razorpay has fully dismissed
+                            print("🔄 [CoEquipVM] Refreshing UI after payment completion")
+                            await self.reloadLocalData()
+
+                            // Small delay to ensure Razorpay has fully dismissed
+                            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+                            // NOW it's safe to close the modal - Razorpay has finished
+                            self.showJoinInputSheet = false
+                            self.selectedRequestForJoin = nil
                         }
-
-                        // NOW it's safe to refresh UI - Razorpay has fully dismissed
-                        print("🔄 [CoEquipVM] Refreshing UI after payment completion")
-                        await self.reloadLocalData()
-
-                        // Small delay to ensure Razorpay has fully dismissed
-                        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
-
-                        // NOW it's safe to close the modal - Razorpay has finished
-                        self.showJoinInputSheet = false
-                        self.selectedRequestForJoin = nil
                     }
                 }
             } else {

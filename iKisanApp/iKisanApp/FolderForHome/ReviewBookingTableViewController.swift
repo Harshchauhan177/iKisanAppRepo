@@ -412,9 +412,12 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
             updateData()
         }
         
-        // Initialize Razorpay if needed
-        if razorpay == nil {
-            razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
+        // MARK: - Future Razorpay Integration
+        // Initialize Razorpay only when the feature is enabled
+        if FeatureFlags.isRazorpayEnabled {
+            if razorpay == nil {
+                razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
+            }
         }
     }
     
@@ -728,16 +731,66 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
         )
         thisBooking = newBooking
         
-        // Present PaymentViewController
-//        let storyboard = UIStoryboard(name: "Tab1Home", bundle: nil)
-//        if let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentViewController") as? PaymentViewController {
-//            paymentVC.booking = newBooking
-//            paymentVC.modalPresentationStyle = .automatic
-//            
-//            let navController = UINavigationController(rootViewController: paymentVC)
-//            present(navController, animated: true, completion: nil)
-//        }
-       
+        // MARK: - COD Payment Path
+        // When Razorpay is disabled, process as Cash on Delivery
+        if !FeatureFlags.isRazorpayEnabled {
+            print("💵 [ReviewBookingTVC] Processing Cash on Delivery order...")
+            
+            // Add booking locally
+            addThisBooking()
+            
+            // Update booking status in Supabase
+            Task {
+                struct CODUpdate: Codable {
+                    var status: BookingStatus = .confirmed
+                    var paymentMethod: String = "cod"
+                }
+                
+                do {
+                    try await SupabaseManager.shared.client
+                        .from("bookings")
+                        .update(CODUpdate())
+                        .eq("bookingID", value: newBooking.bookingID)
+                        .execute()
+                    print("✅ COD Booking confirmed in backend")
+                } catch {
+                    print("⚠️ Error updating COD booking status: \(error)")
+                }
+                
+                DispatchQueue.main.async {
+                    // Post notification
+                    switch newBooking.source {
+                    case .prebooking:
+                        NotificationCenter.default.post(
+                            name: Notification.Name.preBookingAdded,
+                            object: nil,
+                            userInfo: ["booking": newBooking]
+                        )
+                    default:
+                        NotificationCenter.default.post(name: .bookingAdded, object: nil)
+                    }
+                    
+                    // Navigate back to root
+                    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                          let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController else {
+                        return
+                    }
+                    
+                    tabBarController.selectedIndex = 0
+                    self.view.window?.rootViewController?.dismiss(animated: true) {
+                        if let navController = tabBarController.selectedViewController as? UINavigationController {
+                            navController.popToRootViewController(animated: false)
+                        }
+                    }
+                }
+            }
+            return
+        }
+        
+        // MARK: - Future Razorpay Integration
+        // The following Razorpay payment flow is preserved for future releases.
+        // Set FeatureFlags.isRazorpayEnabled = true to re-enable.
+        
         let option : [String:Any] = [
             "amount": String(self.payableAmount * 100),
             "currency": "INR",
@@ -880,7 +933,11 @@ class ReviewBookingTableViewController: UITableViewController, UITextFieldDelega
 //    }
     
     override func viewDidAppear(_ animated: Bool) {
-        razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
+        // MARK: - Future Razorpay Integration
+        // Initialize Razorpay only when the feature is enabled
+        if FeatureFlags.isRazorpayEnabled {
+            razorpay = RazorpayCheckout.initWithKey("rzp_test_A9W91a51kUjKmX", andDelegate: self)
+        }
         super.viewDidAppear(animated)
 
         // Apply shadow to the whole table view

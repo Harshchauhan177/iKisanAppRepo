@@ -224,27 +224,46 @@ struct GroupPaymentView: View {
     // MARK: - Payment Button Section
     
     private var paymentButtonSection: some View {
-        Button(action: {
-            viewModel.initiatePayment()
-        }) {
-            HStack(spacing: 12) {
-                if viewModel.isProcessingPayment {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                } else {
-                    Image(systemName: "creditcard.fill")
-                    Text("Pay ₹\(String(format: "%.2f", viewModel.paymentAmount))")
-                        .fontWeight(.semibold)
+        VStack(spacing: 8) {
+            Button(action: {
+                viewModel.initiatePayment()
+            }) {
+                HStack(spacing: 12) {
+                    if viewModel.isProcessingPayment {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else if !FeatureFlags.isRazorpayEnabled {
+                        // MARK: - COD Payment Button
+                        Image(systemName: "banknote")
+                        Text("Confirm COD — ₹\(String(format: "%.2f", viewModel.paymentAmount))")
+                            .fontWeight(.semibold)
+                    } else {
+                        // MARK: - Future Razorpay Integration
+                        Image(systemName: "creditcard.fill")
+                        Text("Pay ₹\(String(format: "%.2f", viewModel.paymentAmount))")
+                            .fontWeight(.semibold)
+                    }
                 }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.ikisanGreen)
+                .foregroundColor(.white)
+                .cornerRadius(12)
             }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.ikisanGreen)
-            .foregroundColor(.white)
-            .cornerRadius(12)
+            .disabled(viewModel.isProcessingPayment)
+            .padding(.top, 8)
+            
+            // COD info label
+            if !FeatureFlags.isRazorpayEnabled {
+                HStack(spacing: 6) {
+                    Image(systemName: "info.circle")
+                        .font(.caption)
+                    Text("You will pay when service is delivered")
+                        .font(.caption)
+                }
+                .foregroundColor(.secondary)
+            }
         }
-        .disabled(viewModel.isProcessingPayment)
-        .padding(.top, 8)
     }
 }
 

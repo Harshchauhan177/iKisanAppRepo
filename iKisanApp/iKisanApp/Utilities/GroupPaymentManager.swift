@@ -200,6 +200,21 @@ class GroupPaymentManager: NSObject, ObservableObject, RazorpayPaymentCompletion
         isProcessingPayment = true
         paymentError = nil
 
+        // MARK: - COD Payment Path
+        // When Razorpay is disabled, skip payment gateway and record as COD
+        if !FeatureFlags.isRazorpayEnabled {
+            print("💵 [GroupPaymentManager] Processing as Cash on Delivery (Razorpay disabled)")
+            let codPaymentId = "COD-\(UUID().uuidString.prefix(8))"
+            Task {
+                await self.recordPaymentSuccess(paymentId: codPaymentId)
+            }
+            return
+        }
+
+        // MARK: - Future Razorpay Integration
+        // The following Razorpay payment flow is preserved for future releases.
+        // Set FeatureFlags.isRazorpayEnabled = true to re-enable.
+
         // Create Razorpay order securely via Edge Function, then open checkout
         Task {
             do {
@@ -331,6 +346,21 @@ class GroupPaymentManager: NSObject, ObservableObject, RazorpayPaymentCompletion
         // Mark as processing
         isProcessingPayment = true
         paymentError = nil
+
+        // MARK: - COD Payment Path
+        // When Razorpay is disabled, skip payment gateway and record as COD
+        if !FeatureFlags.isRazorpayEnabled {
+            print("💵 [GroupPaymentManager] Processing join payment as Cash on Delivery (Razorpay disabled)")
+            let codPaymentId = "COD-\(UUID().uuidString.prefix(8))"
+            Task {
+                await self.recordPaymentSuccess(paymentId: codPaymentId)
+            }
+            return
+        }
+
+        // MARK: - Future Razorpay Integration
+        // The following Razorpay payment flow is preserved for future releases.
+        // Set FeatureFlags.isRazorpayEnabled = true to re-enable.
 
         // Create Razorpay order with Auth Hold via Edge Function
         Task {

@@ -385,82 +385,116 @@ class CreateCoEquipGroupViewModel: ObservableObject {
                 // Cache refresh will happen in payment callback navigation
                 print("⏸️ Deferring cache refresh until after payment completes")
 
-                // 4. PHASE 2 FIX: Trigger immediate payment (Auth Hold) for the Creator
-                // CRITICAL: Keep UI completely frozen - do NOT update any @Published variables
-                // that would cause SwiftUI to redraw and tear down Razorpay's display controller
-                print("💳 Initiating creator payment (Auth Hold)...")
-                print("🔒 UI LOCKED: Keeping all @Published variables static during payment handover")
+                // 4. Payment handling for the Creator
+                // MARK: - COD Payment Path for Group Creator
+                // When Razorpay is disabled, skip payment and go directly to success
+                if !FeatureFlags.isRazorpayEnabled {
+                    print("💵 [CreateCoEquipVM] COD mode — skipping payment for group creator")
+                    
+                    // Update UI state
+                    self.isProcessing = false
+                    self.isAwaitingPayment = false
+                    self.paymentStatusMessage = "Order placed — Cash on Delivery"
+                    self.creationSuccess = true
+                    
+                    // Haptic feedback for success
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+                    
+                    // Refresh cache
+                    if let dataController = self.dataController {
+                        print("🔄 Refreshing Co-Equip requests from database...")
+                        await dataController.refreshCoEquipRequests()
+                        print("✅ Cache refreshed")
+                    }
+                    
+                    // Post notification to refresh UI
+                    NotificationCenter.default.post(name: .requestsUpdated, object: nil)
+                    print("🔔 Posted .requestsUpdated notification")
+                    
+                    // Small delay then navigate
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    self.navigateToRoot()
+                    
+                } else {
+                    // MARK: - Future Razorpay Integration
+                    // The following Razorpay payment flow is preserved for future releases.
+                    // Set FeatureFlags.isRazorpayEnabled = true to re-enable.
+                    
+                    print("💳 Initiating creator payment (Auth Hold)...")
+                    print("🔒 UI LOCKED: Keeping all @Published variables static during payment handover")
 
-                // Build the Request object with participant info for payment
-                var requestForPayment = creatorRequest
-                requestForPayment.participants = [creatorParticipant]
+                    // Build the Request object with participant info for payment
+                    var requestForPayment = creatorRequest
+                    requestForPayment.participants = [creatorParticipant]
 
-                // Convert AuthUser to User for GroupPaymentManager
-                let userLocation = Location(
-                    latitude: currentUser.latitude,
-                    longitude: currentUser.longitude,
-                    address: currentUser.address
-                )
-                let userForPayment = User(
-                    userID: currentUser.id,
-                    name: currentUser.name,
-                    email: currentUser.email,
-                    phone: currentUser.phone,
-                    location: userLocation,
-                    selectedCrops: currentUser.selectedCrops ?? [],
-                    fieldArea: currentUser.fieldArea ?? 0.0,
-                    groupID: currentUser.groupID
-                )
+                    // Convert AuthUser to User for GroupPaymentManager
+                    let userLocation = Location(
+                        latitude: currentUser.latitude,
+                        longitude: currentUser.longitude,
+                        address: currentUser.address
+                    )
+                    let userForPayment = User(
+                        userID: currentUser.id,
+                        name: currentUser.name,
+                        email: currentUser.email,
+                        phone: currentUser.phone,
+                        location: userLocation,
+                        selectedCrops: currentUser.selectedCrops ?? [],
+                        fieldArea: currentUser.fieldArea ?? 0.0,
+                        groupID: currentUser.groupID
+                    )
 
-                // NO UI UPDATES HERE - keep view completely static
-                // Trigger payment with completion handler that manages ALL state changes
-                GroupPaymentManager.shared.initiateJoinPayment(
-                    request: requestForPayment,
-                    participant: creatorParticipant,
-                    equipment: equipment,
-                    user: userForPayment
-                ) { [weak self] success, paymentId in
-                    guard let self = self else { return }
+                    // NO UI UPDATES HERE - keep view completely static
+                    // Trigger payment with completion handler that manages ALL state changes
+                    GroupPaymentManager.shared.initiateJoinPayment(
+                        request: requestForPayment,
+                        participant: creatorParticipant,
+                        equipment: equipment,
+                        user: userForPayment
+                    ) { [weak self] success, paymentId in
+                        guard let self = self else { return }
 
-                    Task { @MainActor in
-                        // NOW it's safe to update UI - Razorpay has finished
-                        self.isProcessing = false
-                        self.isAwaitingPayment = false
+                        Task { @MainActor in
+                            // NOW it's safe to update UI - Razorpay has finished
+                            self.isProcessing = false
+                            self.isAwaitingPayment = false
 
-                        if success {
-                            print("✅ Creator payment authorization successful: \(paymentId ?? "N/A")")
-                            self.paymentStatusMessage = "Payment successful!"
-                            self.creationSuccess = true
+                            if success {
+                                print("✅ Creator payment authorization successful: \(paymentId ?? "N/A")")
+                                self.paymentStatusMessage = "Payment successful!"
+                                self.creationSuccess = true
 
-                            // Haptic feedback for success
-                            let generator = UINotificationFeedbackGenerator()
-                            generator.notificationOccurred(.success)
-                        } else {
-                            print("⚠️ Creator payment authorization failed or cancelled")
-                            self.paymentStatusMessage = "Payment skipped - you can pay later"
-                            self.creationSuccess = true // Group was still created
+                                // Haptic feedback for success
+                                let generator = UINotificationFeedbackGenerator()
+                                generator.notificationOccurred(.success)
+                            } else {
+                                print("⚠️ Creator payment authorization failed or cancelled")
+                                self.paymentStatusMessage = "Payment skipped - you can pay later"
+                                self.creationSuccess = true // Group was still created
 
-                            // Haptic feedback for warning
-                            let generator = UINotificationFeedbackGenerator()
-                            generator.notificationOccurred(.warning)
+                                // Haptic feedback for warning
+                                let generator = UINotificationFeedbackGenerator()
+                                generator.notificationOccurred(.warning)
+                            }
+
+                            // Refresh cache NOW that payment is complete
+                            if let dataController = self.dataController {
+                                print("🔄 Refreshing Co-Equip requests from database...")
+                                await dataController.refreshCoEquipRequests()
+                                print("✅ Cache refreshed")
+                            }
+
+                            // Post notification to refresh UI
+                            NotificationCenter.default.post(name: .requestsUpdated, object: nil)
+                            print("🔔 Posted .requestsUpdated notification")
+
+                            // Small delay to show the status message
+                            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+                            // NOW it's safe to navigate - Razorpay has fully dismissed
+                            self.navigateToRoot()
                         }
-
-                        // Refresh cache NOW that payment is complete
-                        if let dataController = self.dataController {
-                            print("🔄 Refreshing Co-Equip requests from database...")
-                            await dataController.refreshCoEquipRequests()
-                            print("✅ Cache refreshed")
-                        }
-
-                        // Post notification to refresh UI
-                        NotificationCenter.default.post(name: .requestsUpdated, object: nil)
-                        print("🔔 Posted .requestsUpdated notification")
-
-                        // Small delay to show the status message
-                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-
-                        // NOW it's safe to navigate - Razorpay has fully dismissed
-                        self.navigateToRoot()
                     }
                 }
 
