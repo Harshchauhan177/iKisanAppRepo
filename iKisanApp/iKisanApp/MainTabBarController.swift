@@ -79,6 +79,17 @@ class MainTabBarController: UITabBarController {
                 }
                 // ✅ END SWIFTUI
                 
+                // ✅ SWIFTUI ENABLED: Replace UIKit PrebookingViewController with SwiftUI version
+                if navController.viewControllers.first is PrebookingViewController {
+                    print("🔄 FOUND PrebookingViewController at index \(index) - REPLACING WITH SWIFTUI VERSION")
+                    let swiftUIPrebookingVC = PrebookingViewControllerSwiftUI()
+                    swiftUIPrebookingVC.dataController = dataController
+                    navController.setViewControllers([swiftUIPrebookingVC], animated: false)
+                    print("✅ Successfully replaced with PrebookingViewControllerSwiftUI")
+                    continue
+                }
+                // ✅ END SWIFTUI
+                
                 // ✅ SWIFTUI ENABLED: Replace UIKit AgriAssistViewController with SwiftUI version
                 if navController.viewControllers.first is AgriAssistViewController {
                     print("🔄 FOUND AgriAssistViewController at index \(index) - REPLACING WITH SWIFTUI VERSION")
@@ -145,25 +156,30 @@ class MainTabBarController: UITabBarController {
     @objc private func handlePreBookingAdded(_ notification: Notification) {
         print("MainTabBarController - Received preBookingAdded notification")
         
-        // Find the index of the Prebooking tab
+        // Find the index of the Prebooking tab (supports both UIKit and SwiftUI versions)
         var prebookingTabIndex: Int? = nil
         
         if let viewControllers = self.viewControllers {
             for (index, viewController) in viewControllers.enumerated() {
-                if let navController = viewController as? UINavigationController,
-                   navController.viewControllers.first is PrebookingViewController {
-                    prebookingTabIndex = index
-                    break
+                if let navController = viewController as? UINavigationController {
+                    let firstVC = navController.viewControllers.first
+                    if firstVC is PrebookingViewController || firstVC is PrebookingViewControllerSwiftUI {
+                        prebookingTabIndex = index
+                        break
+                    }
                 }
             }
         }
         
         // If we found the prebooking tab, switch to it and refresh it
         if let index = prebookingTabIndex,
-           let navController = viewControllers?[index] as? UINavigationController,
-           let prebookingVC = navController.viewControllers.first as? PrebookingViewController {
-            // Force refresh prebookings data
-            prebookingVC.loadPreBookings()
+           let navController = viewControllers?[index] as? UINavigationController {
+            
+            // Handle UIKit version
+            if let prebookingVC = navController.viewControllers.first as? PrebookingViewController {
+                prebookingVC.loadPreBookings()
+            }
+            // SwiftUI version handles refresh via NotificationCenter observer internally
             
             // Switch to the prebooking tab
             self.selectedIndex = index

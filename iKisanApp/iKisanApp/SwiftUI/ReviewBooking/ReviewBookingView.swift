@@ -237,11 +237,11 @@ struct ReviewBookingView: View {
                         
                         // Dynamic button text based on selected payment method
                         if viewModel.selectedPaymentMethod == .cashOnDelivery {
-                            Text("Place Order")
+                            Text(viewModel.isModifying ? "Update Booking" : "Place Order")
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(.white)
                             
-                            Image(systemName: "shippingbox.fill")
+                            Image(systemName: viewModel.isModifying ? "pencil.circle.fill" : "shippingbox.fill")
                                 .font(.system(size: 20))
                                 .foregroundColor(.white.opacity(0.9))
                         } else {
@@ -305,6 +305,11 @@ struct ReviewBookingView: View {
         }
         .onChange(of: viewModel.selectedDate) { _ in
             viewModel.checkAvailability()
+        }
+        .onChange(of: viewModel.shouldDismiss) { shouldDismiss in
+            if shouldDismiss {
+                dismiss()
+            }
         }
     }
 }

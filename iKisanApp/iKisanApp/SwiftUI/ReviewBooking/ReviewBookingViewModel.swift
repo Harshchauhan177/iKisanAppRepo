@@ -29,6 +29,9 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
     @Published var showError: Bool = false
     @Published var payableAmount: Double = 0
     
+    /// Set to true after booking is placed/updated — observed by the view to trigger dismiss
+    @Published var shouldDismiss: Bool = false
+    
     /// Selected payment method — defaults to COD when Razorpay is disabled
     @Published var selectedPaymentMethod: PaymentMethod = FeatureFlags.isRazorpayEnabled ? .razorpay : .cashOnDelivery
     
@@ -43,6 +46,11 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
     let bookingSource: BookingSource
     weak var dataController: DataController?
     weak var navigationCoordinator: HomeNavigationCoordinator?
+    
+    /// Whether this is modifying an existing booking (vs. creating new)
+    let isModifying: Bool
+    /// The existing booking being modified (nil for new bookings)
+    private let existingBookingData: Booking?
     
     // Strong references to prevent deallocation during async operations
     private var retainedDataController: DataController?
@@ -115,13 +123,17 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         bookingSource: BookingSource,
         dataController: DataController?,
         navigationCoordinator: HomeNavigationCoordinator?,
-        existingBooking: Booking? = nil
+        existingBooking: Booking? = nil,
+        isModifying: Bool = false,
+        preselectedDate: Date? = nil
     ) {
         self.equipment = equipment
         self.bookingSource = bookingSource
         self.dataController = dataController
         self.navigationCoordinator = navigationCoordinator
         self.retainedDataController = dataController
+        self.isModifying = isModifying
+        self.existingBookingData = existingBooking
         
         // MARK: - Future Razorpay Integration
         // Initialize Razorpay only when the feature is enabled
@@ -139,6 +151,10 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
                 self.locationText = loc.address ?? "Location selected"
             }
         } else {
+            // Use preselected date if provided (e.g. from prebooking calendar)
+            if let preDate = preselectedDate {
+                self.selectedDate = preDate
+            }
             // Try to load user's default location
             loadUserDefaultLocation()
         }
@@ -278,8 +294,11 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         
         let userID = currentUser.id
         
+        // Use existing booking ID when modifying, otherwise generate new
+        let bookingID = (isModifying ? existingBookingData?.bookingID : nil) ?? UUID()
+        
         let newBooking = Booking(
-            bookingID: UUID(),
+            bookingID: bookingID,
             userID: userID,
             equipmentID: equipment.equipmentID,
             bookingType: bookingType,
@@ -350,28 +369,57 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
     /// The booking is created, marked as confirmed, and the user is navigated to success.
     private func placeCODOrder(booking: Booking) {
         Task { @MainActor in
-            // 1. Add booking to local data controller
+            // 1. Add or update booking in local data controller
             if let dataController = self.retainedDataController ?? self.dataController {
-                _ = dataController.addBooking(booking)
+                if isModifying {
+                    dataController.updateBooking(booking)
+                    print("📝 Updated existing booking locally: \(booking.bookingID)")
+                } else {
+                    _ = dataController.addBooking(booking)
+                    print("➕ Added new booking locally: \(booking.bookingID)")
+                }
             }
             
-            // 2. Update booking status in Supabase as confirmed with COD payment type
+            // 2. Update/insert booking in Supabase
             struct CODStatusUpdate: Codable {
                 var status: BookingStatus = .confirmed
                 var paymentMethod: String = "cod"
             }
             
             do {
-                try await SupabaseManager.shared.client
-                    .from("bookings")
-                    .update(CODStatusUpdate())
-                    .eq("bookingID", value: booking.bookingID)
-                    .execute()
-                
-                print("✅ COD Booking confirmed in backend")
+                if isModifying {
+                    // For modify: update the existing booking fields in Supabase
+                    struct BookingUpdate: Codable {
+                        let bookingDate: Date
+                        let fieldArea: Double
+                        let timeSlot: TimeSlot
+                        var status: BookingStatus = .pending
+                        var paymentMethod: String = "cod"
+                    }
+                    
+                    try await SupabaseManager.shared.client
+                        .from("bookings")
+                        .update(BookingUpdate(
+                            bookingDate: booking.bookingDate,
+                            fieldArea: booking.fieldArea,
+                            timeSlot: booking.timeSlot
+                        ))
+                        .eq("bookingID", value: booking.bookingID)
+                        .execute()
+                    
+                    print("✅ COD Booking updated in backend")
+                } else {
+                    try await SupabaseManager.shared.client
+                        .from("bookings")
+                        .update(CODStatusUpdate())
+                        .eq("bookingID", value: booking.bookingID)
+                        .execute()
+                    
+                    print("✅ COD Booking confirmed in backend")
+                }
             } catch {
                 print("⚠️ Error updating COD booking status: \(error)")
-                // Continue anyway — booking is already added locally
+                // Continue anyway — booking is already saved locally
             }
             
             // 3. Post notification based on booking source
@@ -394,7 +442,8 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
             self.isProcessing = false
             
             // 5. Navigate to success
-            print("✅ COD order placed successfully — navigating to confirmation")
+            let action = isModifying ? "updated" : "placed"
+            print("✅ COD order \(action) successfully — navigating to confirmation")
             self.navigateAfterPaymentSuccess()
         }
     }
@@ -511,7 +560,8 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
             if let viewControllers = tabBarController.viewControllers {
                 targetTabIndex = viewControllers.firstIndex(where: { vc in
                     if let navController = vc as? UINavigationController {
-                        return navController.viewControllers.first is PrebookingViewController
+                        let firstVC = navController.viewControllers.first
+                        return firstVC is PrebookingViewController || firstVC is PrebookingViewControllerSwiftUI
                     }
                     return false
                 }) ?? 0
@@ -529,6 +579,9 @@ class ReviewBookingViewModel: ObservableObject, RazorpayPaymentCompletionProtoco
         if let navController = tabBarController.selectedViewController as? UINavigationController {
             navController.popToRootViewController(animated: true)
         }
+        
+        // Signal SwiftUI views to dismiss (for NavigationStack-pushed views)
+        self.shouldDismiss = true
         
         // Show success message after navigation
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
