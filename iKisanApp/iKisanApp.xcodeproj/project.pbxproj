@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		238D56FF2F6469DA00059FB1 /* Razorpay.framework.dSYM in CopyFiles */ = {isa = PBXBuildFile; fileRef = 238D56FE2F6469D900059FB1 /* Razorpay.framework.dSYM */; };
 		3A6E219D2DCA14E300A2F4F1 /* RazorpayCheckout in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6E219C2DCA14E300A2F4F1 /* RazorpayCheckout */; };
 		3A9FC89F2DB7AA0C00592A21 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 3A9FC89E2DB7AA0C00592A21 /* Auth */; };
 		3A9FC8A12DB7AA0C00592A21 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 3A9FC8A02DB7AA0C00592A21 /* Functions */; };
@@ -24,14 +23,12 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
-				238D56FF2F6469DA00059FB1 /* Razorpay.framework.dSYM in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		238D56FE2F6469D900059FB1 /* Razorpay.framework.dSYM */ = {isa = PBXFileReference; lastKnownFileType = wrapper.dsym; path = Razorpay.framework.dSYM; sourceTree = "<group>"; };
 		C48A0E0B2D378C480026B8AC /* iKisanApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iKisanApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -84,7 +81,6 @@
 		C48A0E022D378C480026B8AC = {
 			isa = PBXGroup;
 			children = (
-				238D56FE2F6469D900059FB1 /* Razorpay.framework.dSYM */,
 				C48A0E0D2D378C480026B8AC /* iKisanApp */,
 				3A9FC8A82DB7ACF400592A21 /* Frameworks */,
 				C48A0E0C2D378C480026B8AC /* Products */,
