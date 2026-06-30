@@ -101,6 +101,51 @@ class AuthManager {
            let user = try? JSONDecoder().decode(AuthUser.self, from: userData) {
             self.currentUser = user
         }
+        
+        // Restore session on app launch
+        Task {
+            await checkAndRestoreSession()
+        }
+    }
+    
+    private func checkAndRestoreSession() async {
+        guard let sessionString = UserDefaults.standard.string(forKey: "supabase_session"),
+              let sessionData = sessionString.data(using: .utf8) else {
+            print("❌ AuthManager: No saved session found")
+            return
+        }
+        
+        do {
+            let sessionDict = try JSONDecoder().decode([String: String].self, from: sessionData)
+            guard let accessToken = sessionDict["accessToken"],
+                  let refreshToken = sessionDict["refreshToken"],
+                  !accessToken.isEmpty,
+                  !refreshToken.isEmpty else {
+                print("❌ AuthManager: Invalid session data found")
+                return
+            }
+            
+            try await supabase.client.auth.setSession(accessToken: accessToken, refreshToken: refreshToken)
+            print("✅ AuthManager: Session restored successfully")
+        } catch {
+            print("❌ AuthManager: Failed to restore session: \(error)")
+        }
+    }
+    
+    private func saveSession(_ session: Session) {
+        do {
+            let sessionDict = [
+                "accessToken": session.accessToken,
+                "refreshToken": session.refreshToken
+            ]
+            let sessionData = try JSONEncoder().encode(sessionDict)
+            if let sessionString = String(data: sessionData, encoding: .utf8) {
+                UserDefaults.standard.set(sessionString, forKey: "supabase_session")
+                print("✅ AuthManager: Session saved locally")
+            }
+        } catch {
+            print("❌ AuthManager: Failed to save session: \(error)")
+        }
     }
     
     private(set) var currentUser: AuthUser?
@@ -133,7 +178,8 @@ class AuthManager {
             let userData = result.data
             let appUser = try JSONDecoder().decode(AuthUser.self, from: userData)
             
-            // Save user locally
+            // Save session and user locally
+            saveSession(authResponse)
             self.currentUser = appUser
             saveUserToUserDefaults(appUser)
             
@@ -259,7 +305,10 @@ class AuthManager {
             let userData = result.data
             let appUser = try JSONDecoder().decode(AuthUser.self, from: userData)
             
-            // Save user locally
+            // Save session and user locally
+            if let session = authResponse.session {
+                saveSession(session)
+            }
             self.currentUser = appUser
             saveUserToUserDefaults(appUser)
             
@@ -279,6 +328,7 @@ class AuthManager {
             try await supabase.client.auth.signOut()
             self.currentUser = nil
             UserDefaults.standard.removeObject(forKey: "currentUser")
+            UserDefaults.standard.removeObject(forKey: "supabase_session")
             print("✅ AuthManager: Logout complete, Realtime channels closed")
         } catch {
             print("Logout error: \(error)")
@@ -652,6 +702,76 @@ class AuthManager {
         }
     }
 
+    // MARK: - Account Deletion
+    
+    /// Deletes the user's account completely.
+    /// Swift handles: userSelectedCrops, users table, avatar storage, local data.
+    /// RPC handles: auth.users deletion (requires admin privileges).
+    func deleteAccount() async throws {
+        guard let user = currentUser else {
+            throw AuthError.notLoggedIn
+        }
+        
+        let userId = user.id.uuidString
+        print("🗑️ Starting account deletion for user: \(userId)")
+        
+        // Step 1: Remove avatar from storage (while still authenticated)
+        do {
+            try await supabase.client.storage
+                .from("avatars")
+                .remove(paths: ["\(userId.lowercased())/avatar.jpg"])
+            print("✅ Step 1: Deleted avatar from storage")
+        } catch {
+            print("⚠️ Step 1: Avatar deletion failed (non-critical): \(error)")
+        }
+        
+        // Step 2: Delete user's selected crops
+        do {
+            try await supabase.client
+                .from("userSelectedCrops")
+                .delete()
+                .eq("userID", value: userId)
+                .execute()
+            print("✅ Step 2: Deleted userSelectedCrops")
+        } catch {
+            print("⚠️ Step 2: userSelectedCrops deletion failed (non-critical): \(error)")
+        }
+        
+        // Step 3: Delete user row from users table
+        do {
+            try await supabase.client
+                .from("users")
+                .delete()
+                .eq("userID", value: userId)
+                .execute()
+            print("✅ Step 3: Deleted user row from users table")
+        } catch {
+            print("⚠️ Step 3: users table deletion failed: \(error)")
+        }
+        
+        // Step 4: Delete auth user via RPC (requires admin privileges)
+        do {
+            try await supabase.client
+                .rpc("delete_user_account")
+                .execute()
+            print("✅ Step 4: Deleted auth user via RPC")
+        } catch {
+            print("❌ Step 4: RPC delete_user_account FAILED: \(error)")
+            throw AuthError.accountDeletionFailed
+        }
+        
+        // Step 5: Unsubscribe from Realtime channels
+        await RealtimeManager.shared.unsubscribeAll()
+        print("✅ Step 5: Unsubscribed from Realtime")
+        
+        // Step 6: Clear local data
+        self.currentUser = nil
+        UserDefaults.standard.removeObject(forKey: "currentUser")
+        UserDefaults.standard.removeObject(forKey: "isNewlyRegisteredUser")
+        
+        print("✅ Account deletion complete for user \(userId)")
+    }
+    
 } // End of AuthManager class
 
 enum AuthError: Error {
@@ -663,4 +783,5 @@ enum AuthError: Error {
     case logoutFailed
     case resetPasswordFailed
     case rateLimited
+    case accountDeletionFailed
 }

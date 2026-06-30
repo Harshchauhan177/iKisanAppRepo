@@ -16,52 +16,8 @@ struct ProfileView: View {
         // No NavigationStack here since we're using UIKit navigation controller
             List {
                 Section {
-                if viewModel.isEditMode {
-                    // Editable profile header
+                    // Unified profile header — handles both edit and non-edit modes
                     ProfileHeaderView(viewModel: viewModel)
-                } else {
-                    // Regular profile display
-                    VStack(alignment: .center, spacing: 12) {
-                        if let avatar = viewModel.avatar {
-                            Image(uiImage: avatar)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 80, height: 80)
-                                .clipShape(Circle())
-                        } else {
-                        Image(systemName: "person.crop.circle.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 80, height: 80)
-                                .foregroundColor(viewModel.ikisanGreen)
-                            .clipShape(Circle())
-                        }
-                        
-                        Text(viewModel.name)
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .multilineTextAlignment(.center)
-                        
-                        Text(viewModel.email)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                        
-                        Text(viewModel.phone)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                        
-                        if !viewModel.address.isEmpty {
-                            Text(viewModel.address)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                }
                 }
                 
             // Hide these sections in edit mode
@@ -111,6 +67,16 @@ struct ProfileView: View {
                         } icon: {
                             Image(systemName: "mappin.and.ellipse")
                                 .foregroundColor(viewModel.ikisanGreen)
+                        }
+                    }
+                    
+                    NavigationLink(destination: DeleteAccountView(viewModel: viewModel)) {
+                        Label {
+                            Text("Delete Account")
+                                .foregroundColor(.red)
+                        } icon: {
+                            Image(systemName: "trash.fill")
+                                .foregroundColor(.red)
                         }
                     }
                 }
