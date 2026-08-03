@@ -21,20 +21,30 @@ class EquipmentsForCropsViewController: UIViewController,UITableViewDelegate,UIT
             super.viewWillAppear(animated)
             
             Task {
-                self.equipmentCategories = try! await SupabaseManager.shared.client
-                    .from("equipmentCategories")
-                    .select("*")
-                    .eq("cropCategoryId", value: selectedCropId)
-                    .execute()
-                    .value ?? []
+                self.equipmentCategories = []
+                do {
+                    self.equipmentCategories = try await SupabaseManager.shared.client
+                        .from("equipmentCategories")
+                        .select("*")
+                        .eq("cropCategoryId", value: selectedCropId)
+                        .execute()
+                        .value ?? []
+                } catch {
+                    print("Error: \(error)")
+                }
 
                 for i in equipmentCategories.indices {
-                    let equipmentAgri: [EquipmentAgri] = try! await SupabaseManager.shared.client
-                        .from("equipmentAgri")
-                        .select("*")
-                        .eq("categoryId", value: equipmentCategories[i].id)
-                        .execute()
-                        .value
+                    var equipmentAgri: [EquipmentAgri] = []
+                    do {
+                        equipmentAgri = try await SupabaseManager.shared.client
+                            .from("equipmentAgri")
+                            .select("*")
+                            .eq("categoryId", value: equipmentCategories[i].id)
+                            .execute()
+                            .value
+                    } catch {
+                        print("Error: \(error)")
+                    }
                     equipmentCategories[i].equipmentList = equipmentAgri
                 }
 

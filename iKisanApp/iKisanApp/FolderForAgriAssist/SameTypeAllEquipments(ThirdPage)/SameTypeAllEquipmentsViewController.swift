@@ -21,12 +21,17 @@ class SameTypeAllEquipmentsViewController: UIViewController,UICollectionViewDele
             super.viewWillAppear(animated)
             
             Task {
-                self.equipments = try! await SupabaseManager.shared.client
-                    .from("equipmentAgri")
-                    .select("*")
-                    .eq("categoryId", value: selectedCategoryId)
-                    .execute()
-                    .value
+                self.equipments = []
+                do {
+                    self.equipments = try await SupabaseManager.shared.client
+                        .from("equipmentAgri")
+                        .select("*")
+                        .eq("categoryId", value: selectedCategoryId)
+                        .execute()
+                        .value
+                } catch {
+                    print("Error: \(error)")
+                }
                 DispatchQueue.main.async {
                     self.SameTypeAllEquipmentsCollectionView.reloadData()
                 }

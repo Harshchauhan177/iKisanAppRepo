@@ -18,7 +18,10 @@ class LaunchHandler {
         if !hasCompletedOnboarding {
             // User hasn't completed onboarding, show UIKit onboarding screens
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let onboardingVC = storyboard.instantiateViewController(withIdentifier: "OnboardingViewController") as! OnboardingViewController
+            guard let onboardingVC = storyboard.instantiateViewController(withIdentifier: "OnboardingViewController") as? OnboardingViewController else {
+                let loginVC = LoginHostingController()
+                return UINavigationController(rootViewController: loginVC)
+            }
             return onboardingVC
         } else if !AuthManager.shared.isLoggedIn {
             // User has completed onboarding but isn't logged in, show login screen

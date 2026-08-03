@@ -38,6 +38,38 @@ struct AuthUser: Codable {
         case selectedCrops
         case groupID
     }
+    
+    // Custom decoder: gracefully handle NULL values for name/phone/email
+    // (e.g. Apple Sign-In users may not have a phone number)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        email = try container.decodeIfPresent(String.self, forKey: .email) ?? ""
+        name = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
+        phone = try container.decodeIfPresent(String.self, forKey: .phone) ?? ""
+        latitude = try container.decodeIfPresent(Double.self, forKey: .latitude) ?? 0.0
+        longitude = try container.decodeIfPresent(Double.self, forKey: .longitude) ?? 0.0
+        address = try container.decodeIfPresent(String.self, forKey: .address)
+        fieldArea = try container.decodeIfPresent(Double.self, forKey: .fieldArea)
+        selectedCrops = try container.decodeIfPresent([UUID].self, forKey: .selectedCrops)
+        groupID = try container.decodeIfPresent(UUID.self, forKey: .groupID)
+    }
+    
+    // Memberwise initializer (needed since we added custom decoder)
+    init(id: UUID, email: String, name: String, phone: String,
+         latitude: Double = 0.0, longitude: Double = 0.0, address: String? = nil,
+         fieldArea: Double? = nil, selectedCrops: [UUID]? = nil, groupID: UUID? = nil) {
+        self.id = id
+        self.email = email
+        self.name = name
+        self.phone = phone
+        self.latitude = latitude
+        self.longitude = longitude
+        self.address = address
+        self.fieldArea = fieldArea
+        self.selectedCrops = selectedCrops
+        self.groupID = groupID
+    }
 }
 
 // Struct for creating a new user
@@ -163,8 +195,8 @@ class AuthManager {
                 password: password
             )
             
-            // Get user ID as string (direct access since it's non-optional)
-            let userId = authResponse.user.id
+            // Get user ID as lowercased string to match Supabase format
+            let userId = authResponse.user.id.uuidString.lowercased()
             
             // Fetch user details from users table
             let result = try await supabase.client
@@ -262,7 +294,7 @@ class AuthManager {
             _ = try await supabase.client
                 .from("users")
                 .update(updateReq)
-                .eq("userID", value: userId.uuidString)
+                .eq("userID", value: userId.uuidString.lowercased())
                 .execute()
 
             return true
@@ -281,15 +313,15 @@ class AuthManager {
     func verifyOTP(email: String, otp: String) async throws -> AuthUser {
         do {
             // Verify OTP with Supabase Auth
-            // Use .email type because Supabase email confirmation OTPs are of type "email", not "signup"
+            // Use .signup type for signup email confirmation OTPs
             let authResponse = try await supabase.client.auth.verifyOTP(
                 email: email,
                 token: otp,
-                type: .email
+                type: .signup
             )
             
-            // Get user ID (direct access since it's non-optional)
-            let userId = authResponse.user.id
+            // Get user ID as lowercased string to match Supabase format
+            let userId = authResponse.user.id.uuidString.lowercased()
             
             // Wait a moment to ensure database has been updated
             try await Task.sleep(nanoseconds: UInt64(0.5 * Double(NSEC_PER_SEC)))
@@ -405,7 +437,7 @@ class AuthManager {
             throw AuthError.rateLimited
         } catch {
             print("Resend OTP error: \(error)")
-            throw AuthError.resetPasswordFailed
+            throw AuthError.resendOTPFailed
         }
     }
     
@@ -469,7 +501,7 @@ class AuthManager {
             try await supabase.client
                 .from("users")
                 .update(updateRequest)
-                .eq("userID", value: user.id.uuidString)
+                .eq("userID", value: user.id.uuidString.lowercased())
                 .execute()
             
             // Update local user
@@ -536,7 +568,7 @@ class AuthManager {
             let deleteResult = try await supabase.client
                 .from("userSelectedCrops")
                 .delete()
-                .eq("userID", value: user.id.uuidString)
+                .eq("userID", value: user.id.uuidString.lowercased())
                 .execute()
             
             print("Deleted existing crop selections")
@@ -549,7 +581,7 @@ class AuthManager {
                 
                 for cropId in selectedCropIds {
                     let row = [
-                        "userID": user.id.uuidString,
+                        "userID": user.id.uuidString.lowercased(),
                         "cropID": cropId.uuidString
                     ]
                     rowsToInsert.append(row)
@@ -595,7 +627,7 @@ class AuthManager {
             try await supabase.client
                 .from("users")
                 .update(["fieldArea": area])
-                .eq("userID", value: user.id.uuidString)
+                .eq("userID", value: user.id.uuidString.lowercased())
                 .execute()
             
             print("Updated user's field area to \(area) acres in users table")
@@ -620,7 +652,7 @@ class AuthManager {
             let result = try await supabase.client
                 .from("users")
                 .select()
-                .eq("userID", value: session.user.id.uuidString)
+                .eq("userID", value: session.user.id.uuidString.lowercased())
                 .single()
                 .execute()
             
@@ -639,7 +671,7 @@ class AuthManager {
             
             do {
                 let newUser = NewUserRequest(
-                    userID: session.user.id.uuidString,
+                    userID: session.user.id.uuidString.lowercased(),
                     name: name.trimmingCharacters(in: .whitespacesAndNewlines),
                     email: email.trimmingCharacters(in: .whitespacesAndNewlines),
                     phone: "", // Empty phone for Apple Sign In users
@@ -664,7 +696,7 @@ class AuthManager {
                 let result = try await supabase.client
                     .from("users")
                     .select()
-                    .eq("userID", value: session.user.id.uuidString)
+                    .eq("userID", value: session.user.id.uuidString.lowercased())
                     .single()
                     .execute()
                 
@@ -684,7 +716,7 @@ class AuthManager {
                     let retryResult = try await supabase.client
                         .from("users")
                         .select()
-                        .eq("userID", value: session.user.id.uuidString)
+                        .eq("userID", value: session.user.id.uuidString.lowercased())
                         .single()
                         .execute()
                     
@@ -721,7 +753,7 @@ class AuthManager {
             throw AuthError.notLoggedIn
         }
         
-        let userId = user.id.uuidString
+        let userId = user.id.uuidString.lowercased()
         let deletedId = AuthManager.deletedUserID
         print("🗑️ Starting account deletion for user: \(userId)")
         
@@ -838,7 +870,8 @@ class AuthManager {
                 .execute()
             print("✅ Step 4: Deleted user row from users table")
         } catch {
-            print("⚠️ Step 4: users table deletion failed: \(error)")
+            print("❌ Step 4: users table deletion FAILED — aborting to prevent orphaned account: \(error)")
+            throw AuthError.accountDeletionFailed
         }
         
         // Step 5: Delete auth user via RPC (requires admin privileges)
@@ -874,6 +907,7 @@ enum AuthError: Error {
     case notLoggedIn
     case logoutFailed
     case resetPasswordFailed
+    case resendOTPFailed
     case rateLimited
     case accountDeletionFailed
 }

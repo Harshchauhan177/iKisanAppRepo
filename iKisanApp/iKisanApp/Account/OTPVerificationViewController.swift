@@ -188,7 +188,7 @@ class OTPVerificationViewController: UIViewController {
     // MARK: - Action Methods
     @objc private func textFieldDidChange(_ textField: UITextField) {
         guard let text = textField.text, text.count <= 1 else {
-            textField.text = String(textField.text?.first ?? " ")
+            textField.text = textField.text?.first.map(String.init) ?? ""
             return
         }
         

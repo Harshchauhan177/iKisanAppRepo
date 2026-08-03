@@ -28,10 +28,6 @@ struct EquipmentDetailView: View {
                     PhotosSectionEnhanced(viewModel: viewModel)
                         .padding(.top, 20)
                     
-                    // Reviews Section
-                    ReviewsSection(viewModel: viewModel)
-                        .padding(.top, 24)
-                    
                     // Location Section
                     LocationSection(viewModel: viewModel)
                         .padding(.top, 24)
@@ -41,6 +37,10 @@ struct EquipmentDetailView: View {
                     SpecificationsSection(viewModel: viewModel)
                         .padding(.top, 20)
                         .padding(.horizontal, 16)
+                    
+                    // Ratings & Reviews Section
+                    ReviewsSection(viewModel: viewModel)
+                        .padding(.top, 24)
                         .padding(.bottom, 40)
                 }
             }

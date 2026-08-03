@@ -32,22 +32,32 @@ class infoAboutEquipmentsViewController: UIViewController,UICollectionViewDataSo
             loadData()
             
             Task {
-                self.equipmentTypeDetails = try! await SupabaseManager.shared.client
-                    .from("equipmentAgri")
-                    .select("*")
-                    .eq("id", value: selectedEquipmentId)
-                    .execute()
-                    .value
+                self.equipmentTypeDetails = []
+                do {
+                    self.equipmentTypeDetails = try await SupabaseManager.shared.client
+                        .from("equipmentAgri")
+                        .select("*")
+                        .eq("id", value: selectedEquipmentId)
+                        .execute()
+                        .value
+                } catch {
+                    print("Error: \(error)")
+                }
                 if self.equipmentTypeDetails.count > 0 {
                     let categoryId = self.equipmentTypeDetails[0].categoryId
                     
-                    self.relatedEquipment = try! await SupabaseManager.shared.client
-                        .from("equipmentAgri")
-                        .select()
-                        .eq("categoryId", value: categoryId)
-                        .neq("id", value: selectedEquipmentId)
-                        .execute()
-                        .value
+                    self.relatedEquipment = []
+                    do {
+                        self.relatedEquipment = try await SupabaseManager.shared.client
+                            .from("equipmentAgri")
+                            .select()
+                            .eq("categoryId", value: categoryId)
+                            .neq("id", value: selectedEquipmentId)
+                            .execute()
+                            .value
+                    } catch {
+                        print("Error: \(error)")
+                    }
                 }
                 
                 DispatchQueue.main.async {

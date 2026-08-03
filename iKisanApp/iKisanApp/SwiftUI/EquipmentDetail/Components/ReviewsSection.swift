@@ -14,6 +14,13 @@ struct ReviewsSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // Section Title
+            Text("Ratings & Reviews")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundColor(.primary)
+                .accessibilityAddTraits(.isHeader)
+                .padding(.horizontal, 16)
+            
             // Section Header with Rating and Write Review Button
             HStack(alignment: .center, spacing: 12) {
                 // Rating display
