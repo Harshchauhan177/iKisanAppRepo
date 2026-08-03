@@ -281,10 +281,11 @@ class AuthManager {
     func verifyOTP(email: String, otp: String) async throws -> AuthUser {
         do {
             // Verify OTP with Supabase Auth
+            // Use .email type because Supabase email confirmation OTPs are of type "email", not "signup"
             let authResponse = try await supabase.client.auth.verifyOTP(
                 email: email,
                 token: otp,
-                type: .signup
+                type: .email
             )
             
             // Get user ID (direct access since it's non-optional)
@@ -393,15 +394,12 @@ class AuthManager {
     
     func resendOTP(email: String) async throws {
         do {
-            // Use the signup method with the same email to trigger a new OTP
-            let authResponse = try await supabase.client.auth.signUp(
+            // Use the proper resend API to re-send the signup confirmation email
+            try await supabase.client.auth.resend(
                 email: email,
-                password: "temporary-placeholder-password" // This won't be used as the account already exists
+                type: .signup
             )
-            
-            // Simply check if we got a valid response
-            // The signup will throw an error if it fails, so if we got here, it's likely successful
-            return
+            print("✅ OTP resent successfully to \(email)")
         } catch let error as AuthError where error.localizedDescription.contains("over_email_send_rate_limit") {
             print("Email rate limit exceeded: \(error)")
             throw AuthError.rateLimited
@@ -704,15 +702,27 @@ class AuthManager {
 
     // MARK: - Account Deletion
     
+    /// Well-known sentinel UUID for the "Deleted User" placeholder.
+    /// A matching row must exist in the `users` table with this userID.
+    /// Run the SQL in the project README/docs to create it once in Supabase.
+    static let deletedUserID = "00000000-0000-0000-0000-000000000000"
+    
     /// Deletes the user's account completely.
-    /// Swift handles: userSelectedCrops, users table, avatar storage, local data.
-    /// RPC handles: auth.users deletion (requires admin privileges).
+    ///
+    /// **Strategy (industry-standard "Deleted User" sentinel pattern):**
+    /// 1. Remove user-only data (avatar, crop selections, likes)
+    /// 2. Reassign business-critical records (bookings, service requests, requests, reviews)
+    ///    to the sentinel "Deleted User" so providers keep their history
+    /// 3. Delete the user's row from the `users` table
+    /// 4. Delete the auth account via RPC
+    /// 5. Clean up local state
     func deleteAccount() async throws {
         guard let user = currentUser else {
             throw AuthError.notLoggedIn
         }
         
         let userId = user.id.uuidString
+        let deletedId = AuthManager.deletedUserID
         print("🗑️ Starting account deletion for user: \(userId)")
         
         // Step 1: Remove avatar from storage (while still authenticated)
@@ -725,46 +735,128 @@ class AuthManager {
             print("⚠️ Step 1: Avatar deletion failed (non-critical): \(error)")
         }
         
-        // Step 2: Delete user's selected crops
+        // Step 2: Delete user-only data (no provider impact)
+        
+        // 2a: Delete selected crops
         do {
             try await supabase.client
                 .from("userSelectedCrops")
                 .delete()
                 .eq("userID", value: userId)
                 .execute()
-            print("✅ Step 2: Deleted userSelectedCrops")
+            print("✅ Step 2a: Deleted userSelectedCrops")
         } catch {
-            print("⚠️ Step 2: userSelectedCrops deletion failed (non-critical): \(error)")
+            print("⚠️ Step 2a: userSelectedCrops deletion failed (non-critical): \(error)")
         }
         
-        // Step 3: Delete user row from users table
+        // 2b: Delete equipment likes
+        do {
+            try await supabase.client
+                .from("userEquipmentLikes")
+                .delete()
+                .eq("userID", value: userId)
+                .execute()
+            print("✅ Step 2b: Deleted userEquipmentLikes")
+        } catch {
+            print("⚠️ Step 2b: userEquipmentLikes deletion failed (non-critical): \(error)")
+        }
+        
+        // 2c: Delete request participants (join table)
+        do {
+            try await supabase.client
+                .from("request_participants")
+                .delete()
+                .eq("userID", value: userId)
+                .execute()
+            print("✅ Step 2c: Deleted request_participants")
+        } catch {
+            print("⚠️ Step 2c: request_participants deletion failed (non-critical): \(error)")
+        }
+        
+        // Step 3: Reassign business-critical records to the "Deleted User" sentinel
+        // This preserves provider history while removing the FK link to the real user
+        
+        // Helper structs for reassigning FK columns to the sentinel user
+        struct ReassignFarmerID: Encodable { let farmerid: String }
+        struct ReassignUserID: Encodable { let userID: String }
+        struct ReassignUserId: Encodable { let userId: String }
+        
+        // 3a: Reassign servicerequests → Deleted User
+        do {
+            try await supabase.client
+                .from("servicerequests")
+                .update(ReassignFarmerID(farmerid: deletedId))
+                .eq("farmerid", value: userId.lowercased())
+                .execute()
+            print("✅ Step 3a: Reassigned servicerequests to Deleted User")
+        } catch {
+            print("⚠️ Step 3a: servicerequests reassignment failed: \(error)")
+        }
+        
+        // 3b: Reassign bookings → Deleted User
+        do {
+            try await supabase.client
+                .from("bookings")
+                .update(ReassignUserID(userID: deletedId))
+                .eq("userID", value: userId)
+                .execute()
+            print("✅ Step 3b: Reassigned bookings to Deleted User")
+        } catch {
+            print("⚠️ Step 3b: bookings reassignment failed: \(error)")
+        }
+        
+        // 3c: Reassign requests → Deleted User
+        do {
+            try await supabase.client
+                .from("requests")
+                .update(ReassignUserId(userId: deletedId))
+                .eq("userId", value: userId)
+                .execute()
+            print("✅ Step 3c: Reassigned requests to Deleted User")
+        } catch {
+            print("⚠️ Step 3c: requests reassignment failed: \(error)")
+        }
+        
+        // 3d: Reassign reviews → Deleted User
+        do {
+            try await supabase.client
+                .from("reviews")
+                .update(ReassignUserID(userID: deletedId))
+                .eq("userID", value: userId)
+                .execute()
+            print("✅ Step 3d: Reassigned reviews to Deleted User")
+        } catch {
+            print("⚠️ Step 3d: reviews reassignment failed: \(error)")
+        }
+        
+        // Step 4: Delete user row from users table (safe — all FKs now point to sentinel)
         do {
             try await supabase.client
                 .from("users")
                 .delete()
                 .eq("userID", value: userId)
                 .execute()
-            print("✅ Step 3: Deleted user row from users table")
+            print("✅ Step 4: Deleted user row from users table")
         } catch {
-            print("⚠️ Step 3: users table deletion failed: \(error)")
+            print("⚠️ Step 4: users table deletion failed: \(error)")
         }
         
-        // Step 4: Delete auth user via RPC (requires admin privileges)
+        // Step 5: Delete auth user via RPC (requires admin privileges)
         do {
             try await supabase.client
                 .rpc("delete_user_account")
                 .execute()
-            print("✅ Step 4: Deleted auth user via RPC")
+            print("✅ Step 5: Deleted auth user via RPC")
         } catch {
-            print("❌ Step 4: RPC delete_user_account FAILED: \(error)")
+            print("❌ Step 5: RPC delete_user_account FAILED: \(error)")
             throw AuthError.accountDeletionFailed
         }
         
-        // Step 5: Unsubscribe from Realtime channels
+        // Step 6: Unsubscribe from Realtime channels
         await RealtimeManager.shared.unsubscribeAll()
-        print("✅ Step 5: Unsubscribed from Realtime")
+        print("✅ Step 6: Unsubscribed from Realtime")
         
-        // Step 6: Clear local data
+        // Step 7: Clear local data
         self.currentUser = nil
         UserDefaults.standard.removeObject(forKey: "currentUser")
         UserDefaults.standard.removeObject(forKey: "isNewlyRegisteredUser")

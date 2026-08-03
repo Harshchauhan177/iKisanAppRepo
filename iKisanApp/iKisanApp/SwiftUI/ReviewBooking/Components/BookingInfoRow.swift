@@ -172,13 +172,8 @@ struct FieldAreaInputRow: View {
                     Menu {
                         Picker("Unit", selection: $selectedUnit) {
                             ForEach(FieldAreaUnit.allCases, id: \.self) { unit in
-                                HStack {
-                                    Text(unit.displayName)
-                                    if unit == selectedUnit {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                                .tag(unit)
+                                Text(unit.displayName)
+                                    .tag(unit)
                             }
                         }
                         .labelsHidden()
