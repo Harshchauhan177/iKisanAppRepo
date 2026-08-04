@@ -276,6 +276,8 @@ class AuthManager {
     func register(name: String, email: String, password: String, phone: String) async throws -> Bool {
         do {
             // 1️⃣ Sign up the user, sending name & phone as auth metadata
+            //    Supabase Auth automatically sends the confirmation OTP email
+            print("📧 Starting signup for email: \(email)")
             let authResponse = try await supabase.client.auth.signUp(
                 email:    email,
                 password: password,
@@ -285,35 +287,48 @@ class AuthManager {
                 ]
             )
             let userId = authResponse.user.id
+            print("✅ signUp() succeeded — user ID: \(userId)")
+            print("📬 Supabase should have sent OTP email to \(email)")
 
             // short pause so the DB trigger can fire and create the row
             try await Task.sleep(nanoseconds: UInt64(0.5 * Double(NSEC_PER_SEC)))
 
-            // 2️⃣ Update that users row with the proper name & phone
-            let updateReq = UpdateUserRequest(name: name, phone: phone)
+            // 2️⃣ Upsert user row — creates the row if the DB trigger didn't,
+            //    or updates it if the trigger already created it.
+            //    This guarantees the user row exists for OTP verification.
+            let newUser = NewUserRequest(
+                userID: userId.uuidString.lowercased(),
+                name: name,
+                email: email,
+                phone: phone,
+                latitude: 0.0,
+                longitude: 0.0,
+                fieldArea: 0.0
+            )
             _ = try await supabase.client
                 .from("users")
-                .update(updateReq)
-                .eq("userID", value: userId.uuidString.lowercased())
+                .upsert(newUser, onConflict: "userID")
                 .execute()
+            print("✅ User row upserted in users table")
 
             return true
 
-        } catch let error as AuthError where error.localizedDescription.contains("over_email_send_rate_limit") {
-            // Email rate‑limit hit
-            throw AuthError.rateLimited
-
         } catch {
-            print("Registration error: \(error)")
+            let errorDesc = "\(error)"
+            print("❌ Registration error: \(errorDesc)")
+            if errorDesc.contains("over_email_send_rate_limit") || errorDesc.contains("rate_limit") {
+                throw AuthError.rateLimited
+            }
             throw AuthError.registrationFailed
         }
+
     }
 
     
     func verifyOTP(email: String, otp: String) async throws -> AuthUser {
         do {
             // Verify OTP with Supabase Auth
-            // Use .signup type for signup email confirmation OTPs
+            print("🔑 Verifying OTP for email: \(email), code: \(otp), type: .signup")
             let authResponse = try await supabase.client.auth.verifyOTP(
                 email: email,
                 token: otp,
@@ -322,21 +337,63 @@ class AuthManager {
             
             // Get user ID as lowercased string to match Supabase format
             let userId = authResponse.user.id.uuidString.lowercased()
+            print("✅ OTP verified — user ID: \(userId)")
             
             // Wait a moment to ensure database has been updated
             try await Task.sleep(nanoseconds: UInt64(0.5 * Double(NSEC_PER_SEC)))
             
-            // Fetch user details from users table
+            // Fetch user from users table — use array fetch instead of .single()
+            // to gracefully handle the case where the row doesn't exist yet
             let result = try await supabase.client
                 .from("users")
                 .select()
                 .eq("userID", value: userId)
-                .single()
                 .execute()
             
-            // Decode user from response
-            let userData = result.data
-            let appUser = try JSONDecoder().decode(AuthUser.self, from: userData)
+            let users = try JSONDecoder().decode([AuthUser].self, from: result.data)
+            
+            let appUser: AuthUser
+            if let existingUser = users.first {
+                print("✅ Found user row in database")
+                appUser = existingUser
+            } else {
+                // User row doesn't exist (DB trigger didn't fire) — create it now
+                print("⚠️ User row not found in users table — creating...")
+                
+                // Extract name/phone from the auth metadata that was set during signup
+                var userName = ""
+                var userPhone = ""
+                if case .string(let n) = authResponse.user.userMetadata["name"] {
+                    userName = n
+                }
+                if case .string(let p) = authResponse.user.userMetadata["phone"] {
+                    userPhone = p
+                }
+                
+                let newUser = NewUserRequest(
+                    userID: userId,
+                    name: userName,
+                    email: email,
+                    phone: userPhone,
+                    latitude: 0.0,
+                    longitude: 0.0,
+                    fieldArea: 0.0
+                )
+                try await supabase.client
+                    .from("users")
+                    .insert(newUser)
+                    .execute()
+                
+                // Fetch the newly created user
+                let newResult = try await supabase.client
+                    .from("users")
+                    .select()
+                    .eq("userID", value: userId)
+                    .single()
+                    .execute()
+                appUser = try JSONDecoder().decode(AuthUser.self, from: newResult.data)
+                print("✅ User row created successfully")
+            }
             
             // Save session and user locally
             if let session = authResponse.session {
@@ -347,7 +404,13 @@ class AuthManager {
             
             return appUser
         } catch {
-            print("OTP verification error: \(error)")
+            // Log the FULL Supabase error so we can see the actual reason
+            print("❌ OTP verification FAILED")
+            print("   Email: \(email)")
+            print("   OTP entered: \(otp)")
+            print("   Error type: \(type(of: error))")
+            print("   Error detail: \(error)")
+            print("   Localized: \(error.localizedDescription)")
             throw AuthError.invalidOTP
         }
     }
