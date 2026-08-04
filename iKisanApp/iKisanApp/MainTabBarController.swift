@@ -22,8 +22,19 @@ class MainTabBarController: UITabBarController {
         // initializes correctly (WebKit requires main thread for message handlers)
         GroupPaymentManager.preWarm()
 
-        // Always setup view controllers first (SwiftUI replacement happens here)
-        setupViewControllers()
+        // Configure tab bar appearance for iOS 26 Liquid Glass / modern look
+        configureTabBarAppearance()
+
+        // On iOS 18+, use the modern UITab API for programmatic tab setup.
+        // This replaces the storyboard-based tab configuration and enables
+        // the iOS 26 Liquid Glass floating tab bar automatically.
+        if #available(iOS 18.0, *) {
+            configureModernTabs()
+        } else {
+            // Fallback: use the legacy storyboard-based setup for older iOS
+            setupViewControllers()
+        }
+        
         setupNotificationObservers()
         
         // Check dataController after setup (log warning but don't block)
@@ -34,6 +45,109 @@ class MainTabBarController: UITabBarController {
             print("✅ DataController is initialized")
         }
     }
+    
+    // MARK: - Tab Bar Appearance (iOS 26 Liquid Glass)
+    
+    /// Configures the tab bar appearance to enable the system's default material
+    /// (Liquid Glass on iOS 26). Removes any hardcoded background/tint overrides
+    /// that were previously set in the storyboard, which would block the system
+    /// from rendering the translucent glass effect.
+    private func configureTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        
+        tabBar.standardAppearance = appearance
+        tabBar.scrollEdgeAppearance = appearance
+        
+        // Clear the storyboard's hardcoded backgroundColor on the tabBar itself.
+        // The storyboard sets tabBar.backgroundColor = .white directly, which
+        // overrides the appearance-based configuration and blocks the system's
+        // Liquid Glass material from rendering on iOS 26.
+        tabBar.backgroundColor = nil
+        tabBar.isTranslucent = true
+        
+        // Preserve the iKisan green tint for selected tab items
+        tabBar.tintColor = UIColor(red: 0.298, green: 0.498, blue: 0.345, alpha: 1.0)
+        
+        print("✅ Tab bar appearance configured for modern iOS styling")
+    }
+    
+    // MARK: - Modern Tab Configuration (iOS 18+ UITab API)
+    
+    /// Sets up tabs using the modern UITab API introduced in iOS 18.
+    /// This programmatic approach replaces the storyboard-based tab definitions
+    /// and is required for the iOS 26 Liquid Glass tab bar to render correctly.
+    /// Each tab wraps its SwiftUI view controller inside a UINavigationController,
+    /// preserving the same navigation hierarchy as the storyboard-based setup.
+    @available(iOS 18.0, *)
+    private func configureModernTabs() {
+        print("📋 configureModernTabs() called — using UITab API")
+        
+        // Tab 1: iKisan (Home)
+        let homeTab = UITab(
+            title: "iKisan",
+            image: UIImage(systemName: "house"),
+            identifier: "home"
+        ) { [weak self] _ in
+            let navController = UINavigationController()
+            let swiftUIHomeVC = HomeViewControllerSwiftUI()
+            swiftUIHomeVC.dataController = self?.dataController
+            navController.setViewControllers([swiftUIHomeVC], animated: false)
+            print("✅ UITab: Home tab created with HomeViewControllerSwiftUI")
+            return navController
+        }
+        
+        // Tab 2: Pre Booking
+        let prebookingTab = UITab(
+            title: "Pre Booking",
+            image: UIImage(systemName: "book"),
+            identifier: "prebooking"
+        ) { [weak self] _ in
+            let navController = UINavigationController()
+            let swiftUIPrebookingVC = PrebookingViewControllerSwiftUI()
+            swiftUIPrebookingVC.dataController = self?.dataController
+            navController.setViewControllers([swiftUIPrebookingVC], animated: false)
+            print("✅ UITab: Pre Booking tab created with PrebookingViewControllerSwiftUI")
+            return navController
+        }
+        
+        // Tab 3: CoEquip
+        let coequipTab = UITab(
+            title: "CoEquip",
+            image: UIImage(systemName: "person.3"),
+            identifier: "coequip"
+        ) { [weak self] _ in
+            let navController = UINavigationController()
+            let swiftUICoEquipVC = CoEquipHostingController(dataController: self?.dataController)
+            navController.setViewControllers([swiftUICoEquipVC], animated: false)
+            print("✅ UITab: CoEquip tab created with CoEquipHostingController")
+            return navController
+        }
+        
+        // Tab 4: AgriAssist
+        let agriAssistTab = UITab(
+            title: "AgriAssist",
+            image: UIImage(systemName: "lightbulb.max"),
+            identifier: "agriassist"
+        ) { _ in
+            let navController = UINavigationController()
+            let swiftUIView = NavigationStack {
+                AgriAssistView()
+            }
+            let hostingController = UIHostingController(rootView: swiftUIView)
+            hostingController.navigationItem.hidesBackButton = true
+            navController.setViewControllers([hostingController], animated: false)
+            // Hide the UIKit navigation bar to avoid double titles
+            navController.setNavigationBarHidden(true, animated: false)
+            print("✅ UITab: AgriAssist tab created with SwiftUI AgriAssistView")
+            return navController
+        }
+        
+        self.tabs = [homeTab, prebookingTab, coequipTab, agriAssistTab]
+        print("📱 Set \(self.tabs.count) tabs via UITab API")
+    }
+    
+    // MARK: - Legacy Storyboard-Based Setup (< iOS 18)
     
     private func setupViewControllers() {
         print("📋 setupViewControllers() called")
@@ -124,6 +238,8 @@ class MainTabBarController: UITabBarController {
         }
     }
     
+    // MARK: - Notification Observers
+    
     private func setupNotificationObservers() {
         // Register for booking notifications
         NotificationCenter.default.addObserver(
@@ -146,6 +262,8 @@ class MainTabBarController: UITabBarController {
         print("MainTabBarController - Received bookingAdded notification")
         
         // Ensure the home tab is updated (first tab)
+        // Works with both legacy viewControllers and modern UITab API —
+        // viewControllers is still populated by UITabBarController in both paths.
         if let navController = viewControllers?[0] as? UINavigationController,
            let homeVC = navController.viewControllers.first as? HomeViewController {
             // Force refresh data on the home view controller
